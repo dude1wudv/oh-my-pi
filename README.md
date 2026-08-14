@@ -54,6 +54,14 @@ brew install can1357/tap/omp
 bun install -g @oh-my-pi/pi-coding-agent
 ```
 
+**npm**
+
+```sh
+npm install -g @oh-my-pi/pi-coding-agent
+```
+
+After installation, run `omp update` to let omp use the package manager that owns the active executable. npm and Bun installs are updated in place; standalone binary installs remain binary-managed.
+
 **Nix**
 
 ```sh
