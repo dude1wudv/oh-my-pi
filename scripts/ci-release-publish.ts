@@ -281,7 +281,9 @@ export interface PackedTarball {
 
 function tarCompatiblePath(filePath: string): string {
 	if (process.platform !== "win32") return filePath;
-	return filePath.replaceAll("\\", "/");
+	const normalized = filePath.replaceAll("\\", "/");
+	const drivePath = normalized.match(/^([A-Za-z]):\/(.*)$/);
+	return drivePath ? `//?/${drivePath[1].toUpperCase()}:/${drivePath[2]}` : normalized;
 }
 
 /** Read the package identity npm will publish from the packed archive. */
