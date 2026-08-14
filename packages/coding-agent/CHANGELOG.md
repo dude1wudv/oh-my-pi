@@ -2,6 +2,16 @@
 
 ## [Unreleased]
 
+## [20.1.0] - 2026-08-14
+
+### Added
+
+- Added npm installation documentation and generated declaration output for published utility packages.
+
+### Changed
+
+- Started the fork's independent 20.x release line while retaining compatibility with the existing `omp` CLI installation and update flow.
+
 ## [17.3.4] - 2026-08-14
 
 ### Changed
