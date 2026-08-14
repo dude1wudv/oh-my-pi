@@ -23,6 +23,9 @@
 
 Windows 本地 `omp.exe` 已由本版本构建并替换，运行 `omp --version` 返回 `omp/20.1.0`。
 
+## GitHub Packages
+
+GitHub Actions 使用 `GITHUB_TOKEN` 将同一批 `@dude1wudv/*` npm 包发布到 GitHub Packages（`npm.pkg.github.com`），并授予 workflow `packages: write` 权限。
 ## 上游
 
 - 上游仓库：<https://github.com/can1357/oh-my-pi>
