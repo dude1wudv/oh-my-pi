@@ -60,7 +60,12 @@ import { MCPManager } from "../../mcp/manager";
 import type { MCPServerConfig } from "../../mcp/types";
 import { loadAllExtensions } from "../../modes/components/extensions/state-manager";
 import { theme } from "../../modes/theme/theme";
-import { normalizePlanTitle, type PlanApprovalDetails, resolveApprovedPlan } from "../../plan-mode/approved-plan";
+import {
+	exportApprovedProjectPlan,
+	normalizePlanTitle,
+	type PlanApprovalDetails,
+	resolveApprovedPlan,
+} from "../../plan-mode/approved-plan";
 import type { AgentSession, AgentSessionEvent } from "../../session/agent-session";
 import { BlobStore, resolveImageDataSync } from "../../session/blob-store";
 import { isSilentAbort, SKILL_PROMPT_MESSAGE_TYPE, USER_INTERRUPT_LABEL } from "../../session/messages";
@@ -1725,12 +1730,16 @@ export class AcpAgent implements Agent {
 				details,
 			};
 		}
-		// Approved. Set the plan reference so the next turn injects the plan
-		// content as context (the file keeps its agent-chosen name — no rename),
-		// then exit plan mode so the agent regains full tools.
-		session.setPlanReferencePath(planFilePath);
-		session.setPlanProposalHandler?.(null);
-		session.setPlanModeState(undefined);
+        // Export before changing mode state; a filesystem failure must keep plan mode active.
+        const projectPlan = await exportApprovedProjectPlan({
+            cwd: session.sessionManager.getCwd(),
+            planContent,
+            title: resolvedTitle,
+        });
+        session.setPlanReferencePath(planFilePath);
+        session.setPlanProposalHandler?.(null);
+        session.setPlanModeState(undefined);
+        session.setProjectPlanPath(projectPlan.projectPlanPath);
 		try {
 			await this.#connection.sessionUpdate({
 				sessionId: session.sessionId,
@@ -1743,15 +1752,15 @@ export class AcpAgent implements Agent {
 				error,
 			});
 		}
-		return {
-			content: [
-				{
-					type: "text" as const,
-					text: `Plan approved at ${planFilePath}. Plan mode exited; proceed with the implementation.`,
-				},
-			],
-			details,
-		};
+        return {
+            content: [
+                {
+                    type: "text" as const,
+                    text: `Plan approved at ${planFilePath}; persisted project plan at ${projectPlan.projectPlanPath}. Plan mode exited; proceed with the implementation.`,
+                },
+            ],
+            details,
+        };
 	}
 
 	#resolveAcpPlanFilePath(session: AgentSession, planFilePath: string): string {

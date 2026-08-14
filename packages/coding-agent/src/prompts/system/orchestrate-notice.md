@@ -17,6 +17,9 @@ Record execution through narrow plan events, in this order:
 
 During `WAIT_ALL`, Main may update only internal collection state and the necessary dispatch-row/barrier fields. It MUST NOT perform same-domain exploration, read partial `agent://`/`history://` artifacts, rewrite the document, or emit repeated partial summaries. If a job ID is stale or unavailable during recovery, record `timeout` when dispatch had started or `dispatch failure` when it had not, then explicitly decide whether to re-dispatch.
 </project-plan>
+<batch-gate>
+When an async task batch is registered, runtime owns a Main `AsyncBatchGate`. Enter passive `WAIT_ALL`: individual completions update gate counters only and MUST NOT trigger a fresh Main follow-up, repeated `hub wait`, or coordination nudge. The configured `async.batchWakeInterval` defaults to `20m`; `off` disables timer wakes. A timer emits one aggregate `async-batch-status` with counts and next wake. All terminal states (`success`, `failure`, `cancellation`, `timeout`, `dispatch failure`) emit one aggregate `async-batch-result`; only then may Main read all artifacts and synthesize once. User messages, cancellation, explicit failure/blocker, and safety events may wake immediately, but generation tokens prevent duplicate timer/all-settled deliveries. Close gates on session dispose, owner migration, cancellation, or all-settled.
+</batch-gate>
 
 
 <rules>

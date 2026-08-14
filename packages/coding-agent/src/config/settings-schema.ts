@@ -4234,6 +4234,26 @@ export const SETTINGS_SCHEMA = {
 		},
 	},
 
+	"async.batchWakeInterval": {
+		type: "enum",
+		values: ["off", "5m", "10m", "20m", "30m"] as const,
+		default: "20m",
+		ui: {
+			tab: "tools",
+			group: "Execution",
+			label: "Async Batch Wake Interval",
+			description:
+				"How often an active async task batch wakes its owner with an aggregate of settled results. Off waits until every job settles.",
+			options: [
+				{ value: "off", label: "Off", description: "Wake only when every job settles" },
+				{ value: "5m", label: "5 minutes" },
+				{ value: "10m", label: "10 minutes" },
+				{ value: "20m", label: "20 minutes", description: "Default" },
+				{ value: "30m", label: "30 minutes" },
+			],
+		},
+	},
+
 	"async.maxJobs": {
 		type: "number",
 		default: 100,

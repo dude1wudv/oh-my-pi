@@ -874,10 +874,18 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 		// "running" until every job settles, then turns "failed" if any spawn
 		// failed. Blocking spawns run inline below and land in `results` before
 		// the call returns, so post-return job updates never drop them.
-		let settledCount = 0;
-		let failedCount = 0;
-		let primaryJobId = asyncSpawns[0].agentId;
-		const syncResults: SingleResult[] = [];
+        let settledCount = 0;
+        let failedCount = 0;
+        const syncResults: SingleResult[] = [];
+        let batchId: string | undefined;
+        const ownerId = this.session.getAgentId?.();
+        if (ownerId) {
+            batchId = manager.createBatchGate({
+                ownerId,
+                wakeInterval: this.session.settings.get("async.batchWakeInterval") as "off" | "5m" | "10m" | "20m" | "30m",
+            }).id;
+        }
+        let primaryJobId = asyncSpawns[0].agentId;
 		let syncUsage: Usage | undefined;
 		let syncOutputPaths: string[] | undefined;
 		let syncProjectAgentsDir: string | null = null;
@@ -888,11 +896,12 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 			usage: syncUsage,
 			outputPaths: syncOutputPaths,
 			progress: spawns.map(spawn => ({ ...spawn.progress })),
-			async: {
-				state: settledCount < asyncSpawns.length ? "running" : failedCount > 0 ? "failed" : "completed",
-				jobId: primaryJobId,
-				type: "task",
-			},
+            async: {
+                state: settledCount < asyncSpawns.length ? "running" : failedCount > 0 ? "failed" : "completed",
+                jobId: primaryJobId,
+                type: "task",
+                batchId,
+            },
 		});
 
 		const started: Array<{ agentId: string; jobId: string }> = [];

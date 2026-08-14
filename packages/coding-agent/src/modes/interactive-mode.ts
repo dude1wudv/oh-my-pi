@@ -91,7 +91,12 @@ import {
 	type McpConnectionFailure,
 	type McpConnectionStatusEvent,
 } from "../mcp/startup-events";
-import { humanizePlanTitle, type PlanApprovalDetails, resolvePlanTitle } from "../plan-mode/approved-plan";
+import {
+	exportApprovedProjectPlan,
+	humanizePlanTitle,
+	type PlanApprovalDetails,
+	resolvePlanTitle,
+} from "../plan-mode/approved-plan";
 import { resolvePlanModelTransition } from "../plan-mode/model-transition";
 import guidedGoalInterviewPrompt from "../prompts/goals/guided-goal-interview.md" with { type: "text" };
 import planModeApprovedPrompt from "../prompts/system/plan-mode-approved.md" with { type: "text" };
@@ -3191,6 +3196,16 @@ export class InteractiveMode implements InteractiveModeContext {
 		},
 	): Promise<boolean> {
 		const previousTools = this.#planModePreviousTools ?? this.session.getEnabledToolNames();
+		const projectPlan = await exportApprovedProjectPlan({
+			cwd: this.sessionManager.getCwd(),
+			planContent,
+			title: options.title,
+		});
+		this.sessionManager.appendCustomEntry("project-plan", {
+			path: projectPlan.projectPlanPath,
+			planId: projectPlan.planId,
+		});
+        this.session.setProjectPlanPath(projectPlan.projectPlanPath);
 
 		// Mark the pending abort caused by the plan-mode → compaction transition as
 		// silent BEFORE #exitPlanMode raises it. The `finally` below clears the
