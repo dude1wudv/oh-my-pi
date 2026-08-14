@@ -26,6 +26,7 @@ import {
 	isDeepseekModelIdOrName,
 	isDeepseekV4FlashModelId,
 	isGlm52ReasoningEffortModelId,
+	isGrokReasoningEffortCapable,
 	isKimiK3ModelId,
 	isMimoModelIdOrName,
 	isMinimaxM2FamilyModelId,
@@ -178,8 +179,9 @@ function fillThinkingWireDefaults<TApi extends Api>(
 		(spec.api === "anthropic-messages" || spec.api === "bedrock-converse-stream") &&
 		supportsAdaptiveThinkingDisplay(spec.id);
 	const needsRequiresEffort = thinking.requiresEffort === undefined && impliesMandatoryReasoning(parsed, spec.id);
-	const needsDefaultLevel = thinking.defaultLevel === undefined && isKimiK3ModelId(spec.id);
-	if (!effortsChanged && !shouldReplaceEffortMap && !needsDisplay && !needsRequiresEffort && !needsDefaultLevel) {
+	const needsKimiDefaultLevel = thinking.defaultLevel === undefined && isKimiK3ModelId(spec.id);
+	const needsGrokDefaultLevel = thinking.defaultLevel === undefined && isGrokReasoningEffortCapable(spec.id);
+	if (!effortsChanged && !shouldReplaceEffortMap && !needsDisplay && !needsRequiresEffort && !needsKimiDefaultLevel && !needsGrokDefaultLevel) {
 		return thinking;
 	}
 	const filled: ThinkingConfig = { ...thinking };
@@ -196,8 +198,11 @@ function fillThinkingWireDefaults<TApi extends Api>(
 	if (needsDisplay) {
 		filled.supportsDisplay = true;
 	}
-	if (needsDefaultLevel) {
+	if (needsKimiDefaultLevel) {
 		filled.defaultLevel = Effort.Max;
+	}
+	if (needsGrokDefaultLevel) {
+		filled.defaultLevel = Effort.High;
 	}
 	if (needsRequiresEffort) {
 		filled.requiresEffort = true;
@@ -218,6 +223,9 @@ export function deriveThinking<TApi extends Api>(spec: ModelSpec<TApi>, compat: 
 	};
 	if (isKimiK3ModelId(spec.id)) {
 		config.defaultLevel = Effort.Max;
+	}
+	if (isGrokReasoningEffortCapable(spec.id)) {
+		config.defaultLevel = Effort.High;
 	}
 	const effortMap = inferEffortMap(spec, compat, config.mode, config.efforts);
 	if (effortMap !== undefined) {
@@ -349,6 +357,11 @@ function getModelDefinedEfforts<TApi extends Api>(
 		// Normalize stale baked/discovered `low..xhigh` surfaces to the
 		// wire-exact five-tier `low..max` ladder.
 		return FIVE_TIER_EFFORTS_LOW_TO_MAX;
+	}
+	if (isGrokReasoningEffortCapable(spec.id)) {
+		// xAI's effort-capable Grok endpoints expose low/medium/high; `minimal`
+		// is a synthetic default tier and must not be sent on the wire.
+		return LOW_MEDIUM_HIGH_REASONING_EFFORTS;
 	}
 	const anthropicAdaptive = getAnthropicAdaptiveEfforts(spec);
 	if (anthropicAdaptive !== undefined) {

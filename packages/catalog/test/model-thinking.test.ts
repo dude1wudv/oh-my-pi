@@ -650,6 +650,47 @@ describe("model thinking derivation", () => {
 		expect(kimi.compat.supportsSamplingParams).toBe(true);
 	});
 
+	it("stores Grok effort-capable models on the low/medium/high ladder defaulting to high", () => {
+		const grok45 = createModel({
+			id: "grok-4.5",
+			api: "openai-completions",
+			provider: "xai",
+			baseUrl: "https://api.x.ai/v1",
+		});
+		const grok46 = createModel({
+			id: "grok-4.6",
+			api: "openai-completions",
+			provider: "subgrok",
+			baseUrl: "https://sub.sunmmyapi.xyz/v1",
+		});
+		const staleCustom = createModel({
+			id: "grok-4.6",
+			api: "openai-completions",
+			provider: "subgrok",
+			baseUrl: "https://sub.sunmmyapi.xyz/v1",
+			thinking: {
+				mode: "effort",
+				efforts: [Effort.Minimal, Effort.Low, Effort.Medium, Effort.High, Effort.XHigh],
+			},
+		});
+
+		expect(grok45.thinking).toEqual({
+			mode: "effort",
+			efforts: [Effort.Low, Effort.Medium, Effort.High],
+			defaultLevel: Effort.High,
+		});
+		expect(grok46.thinking).toEqual({
+			mode: "effort",
+			efforts: [Effort.Low, Effort.Medium, Effort.High],
+			defaultLevel: Effort.High,
+		});
+		expect(staleCustom.thinking).toEqual({
+			mode: "effort",
+			efforts: [Effort.Low, Effort.Medium, Effort.High],
+			defaultLevel: Effort.High,
+		});
+	});
+
 	it("encodes effort-dial-less reasoners as thinking: undefined", () => {
 		const model = createModel({
 			id: "grok-build",

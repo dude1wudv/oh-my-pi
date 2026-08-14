@@ -181,6 +181,16 @@ describe("parseAgentFields", () => {
 		expect(parseAgentFields({ name: "worker", description: "desc", prewalk: "  " })?.prewalk).toBeUndefined();
 		expect(parseAgentFields({ name: "worker", description: "desc" })?.prewalk).toBeUndefined();
 	});
+	test("parses restrict-tools from boolean frontmatter and hyphenated strings", () => {
+		expect(parseAgentFields({ name: "worker", description: "desc", restrictTools: true })?.restrictTools).toBe(true);
+		expect(parseAgentFields({ name: "worker", description: "desc", "restrict-tools": "false" })?.restrictTools).toBe(
+			false,
+		);
+		expect(
+			parseAgentFields({ name: "worker", description: "desc", "restrict-tools": "invalid" })?.restrictTools,
+		).toBeUndefined();
+	});
+
 	test("parses advisor from boolean frontmatter and boolean strings", () => {
 		expect(parseAgentFields({ name: "worker", description: "desc", advisor: true })?.advisor).toBe(true);
 		expect(parseAgentFields({ name: "worker", description: "desc", advisor: false })?.advisor).toBe(false);

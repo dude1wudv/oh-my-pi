@@ -167,6 +167,35 @@ describe("structured subagent primitive", () => {
 		).rejects.toThrow("isolation, apply, and merge controls are unavailable in plan mode");
 		expect(discover).not.toHaveBeenCalled();
 	});
+	it("applies an agent's restricted capability boundary to the executor", async () => {
+		const restrictedAgent = { ...AGENT, restrictTools: true };
+		mockDiscovery(restrictedAgent);
+		const restrictedSession = session();
+		const mcpManager = {} as NonNullable<ToolSession["mcpManager"]>;
+		Object.assign(restrictedSession, {
+			mcpManager,
+			extensionPaths: ["/plugins/example.ts"],
+			customToolPaths: [{ path: "/tools/example.ts", source: "project" }],
+		});
+		const dispatched: executorModule.ExecutorOptions[] = [];
+		vi.spyOn(executorModule, "runSubprocess").mockImplementation(async options => {
+			dispatched.push(options);
+			return result();
+		});
+
+		const settled = await runStructuredSubagent(request({ session: restrictedSession, retainArtifacts: true }));
+
+		expect(dispatched[0]).toMatchObject({
+			restrictToolNames: true,
+			enableMCP: false,
+			enableLsp: false,
+			preloadedExtensionPaths: [],
+			preloadedCustomToolPaths: [],
+		});
+		expect(dispatched[0]?.mcpManager).toBeUndefined();
+		await fs.rm(settled.artifactsDir, { recursive: true, force: true });
+	});
+
 	it("propagates a custom thinking-suffixed role alias through policy, dispatch, and settlement", async () => {
 		const customAgent = { ...AGENT, model: ["@reviewer:high"] };
 		mockDiscovery(customAgent);

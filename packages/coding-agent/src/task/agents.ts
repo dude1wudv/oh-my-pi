@@ -28,6 +28,7 @@ interface AgentFrontmatter {
 	blocking?: boolean;
 	prewalk?: boolean | string;
 	advisor?: boolean | string;
+	restrictTools?: boolean;
 }
 
 interface EmbeddedAgentDef {

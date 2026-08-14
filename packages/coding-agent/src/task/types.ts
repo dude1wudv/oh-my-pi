@@ -373,6 +373,8 @@ export interface AgentDefinition {
 	prewalk?: boolean | string;
 	/** Advisor for spawned sessions of this agent: `true` = advise with the default advisor-role model, string = advise with that model pattern (optional `:level` suffix). Absent/`false` = no advisor. */
 	advisor?: boolean | string;
+	/** Restrict the child session to declared tools and disable ambient capabilities. */
+	restrictTools?: boolean;
 	source: AgentSource;
 	filePath?: string;
 }

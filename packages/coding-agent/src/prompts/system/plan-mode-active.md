@@ -8,6 +8,60 @@ Implementing: write the plan `<slug>`/title, plain text, to `xd://propose` with 
 
 NEVER ask user to exit plan mode or request approval in prose/with `{{askToolName}}`; approval ONLY via `xd://propose` write.
 </critical>
+## Approved project-plan export
+
+The `local://<slug>-plan.md` artifact remains the only canonical draft and approval carrier. Plan mode is read-only for the project working tree: before approval, NEVER create, edit, delete, or rename anything under the project, including `.omp/plans/`. `local://` remains session-scoped scratch and keeps its existing read/write and migration semantics; it is not a project path.
+
+Only when approval transitions the session into execution, Main MUST read the complete canonical `local://<slug>-plan.md` and export it under the current project root at `.omp/plans/`. The export directory is created lazily at that point. Resolve and validate the destination as a child of the current project's `.omp/plans/`; reject absolute paths, `..` traversal, another scheme, or any destination outside that containment. Do not replace this safety boundary with string concatenation or a second `local://` resolver.
+
+Use the local calendar date at plan creation for `YYYY-MM-DD`, and the canonical kebab-case `<slug>`, yielding `.omp/plans/YYYY-MM-DD-<slug>.md`. Never overwrite a same-day/same-slug file: choose the first available `-2`, `-3`, and so on. After the first successful export, record the exact chosen relative path in plan metadata and in the document's `Project plan` field; every later update MUST use that fixed path rather than recomputing the date or slug. An export error prevents any claim that the plan was persisted and must be returned to Main as an actionable error.
+
+## Exported document and recovery contract
+
+The exported file preserves the complete approved plan, including any `Critical files & anchors` content. It MUST contain these metadata and dynamic sections in this order (the existing `Context`, `Approach`, and `Assumptions` content is retained):
+
+```markdown
+# <title>
+
+> Status: planned | executing | blocked | completed
+> Created: YYYY-MM-DD
+> Updated: YYYY-MM-DD HH:mm <local timezone>
+> Plan ID: <slug>
+> Project plan: .omp/plans/YYYY-MM-DD-<slug>.md
+
+## Context
+...
+
+## Approach
+...
+
+## Task breakdown
+- [ ] T1 — <task> — owner: Main|agent-label — scope: <paths>
+- [ ] T2 — <task> — owner: ...
+
+## Agent dispatch log
+| Round | Agent | Scope | Status | Artifact | Follow-up |
+| --- | --- | --- | --- | --- | --- |
+
+## Result barrier
+- Expected terminal items: <N>
+- Settled: <N>
+- WAIT_ALL: active|closed
+- Last barrier decision: <text>
+
+## Verification
+- [ ] <observable check>
+
+## Assumptions
+...
+```
+
+`Status` is one of `planned`, `executing`, `blocked`, or `completed`; a successfully approved export starts as `executing`. Main changes it to `blocked` only for an unresolved execution blocker and to `completed` only after all tasks are accepted and every required verification is recorded. `Task breakdown` is the execution checklist: create each task unchecked, and check it only after its artifact is accepted and its verification is recorded. `Agent dispatch log` records facts, with terminal statuses exactly `success`, `failure`, `cancellation`, `timeout`, or `dispatch failure` (and `running` before settlement). `Result barrier` counts every expected task plus every recorded dispatch failure, and `WAIT_ALL` is `active` until all those items are terminal and `closed` only at the barrier. `Verification` contains only checks actually run and observed; never mark an unchecked or merely planned check as done.
+
+Main is the sole owner of project-plan writes. Subagents NEVER edit `.omp/plans/`. Updates are narrow changes to the matching task checkbox, dispatch row, barrier counters, metadata, or verification item; do not rewrite unrelated approved content. During `WAIT_ALL`, update only internal collection state and the necessary row/counter fields; do not read, summarize, or rewrite partial artifacts.
+
+When a new session enters a project, first list recent files in `.omp/plans/` but do not treat any old plan as the current task automatically. If the user explicitly continues a plan, or its metadata marks it active, read the complete document and recover its `Status`, unchecked tasks, `running` and terminal dispatch rows, and barrier counters. A recovered `running` row is only logical state: never infer that an old job ID is still running. If its job is expired or unavailable, record `timeout` when dispatch had started, or `dispatch failure` when dispatch never established, then decide whether to re-dispatch; never silently mark it successful.
+
 
 ## What a plan is
 
