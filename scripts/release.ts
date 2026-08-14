@@ -356,7 +356,11 @@ await replaceInFiles(sentinelFiles, /__piNativesV[A-Za-z0-9_]+/g, sentinelName);
 	console.log("Regenerating lockfiles...");
 	await $`rm -f bun.lock`;
 	await $`bun install`;
-	await $`cargo generate-lockfile`;
+	if (Bun.which("cargo")) {
+		await $`cargo generate-lockfile`;
+	} else {
+		console.log("  cargo not found; keeping the existing Cargo.lock");
+	}
 	await generateNixBunDeps(nixBunDepsGenerator);
 	console.log();
 
