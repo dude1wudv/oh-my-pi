@@ -380,9 +380,13 @@ await replaceInFiles(sentinelFiles, /__piNativesV[A-Za-z0-9_]+/g, sentinelName);
 	await updateChangelogsForRelease(version);
 	console.log();
 
-	// 6. Run checks
-	console.log("Running checks...");
-	await $`bun run check`;
+	// Rust checks require cargo; the release CI validates them on the hosted runner.
+	if (Bun.which("cargo")) {
+		await $`bun run check`;
+	} else {
+		console.log("  cargo not found; running TypeScript checks only");
+		await $`bun run check:ts`;
+	}
 	console.log();
 
 	// 7. Commit

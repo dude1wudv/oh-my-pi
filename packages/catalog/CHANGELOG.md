@@ -7,18 +7,16 @@
 ### Added
 
 - Added wire constants for Codex V2 remote-compaction feature negotiation.
+- Recognized `grok-4.6` as a Grok SKU that accepts the `reasoning.effort` / `reasoning_effort` dial.
 
 ### Fixed
 
 - Fixed raw `COPILOT_GITHUB_TOKEN` credentials skipping plan-specific endpoint discovery, which routed GitHub Copilot Business model requests to the personal endpoint and returned HTTP 403. The GitHub Copilot model cache is now scoped per credential, so switching the token no longer serves another account's stale endpoint for the cache TTL ([#8507](https://github.com/can1357/oh-my-pi/issues/8507)).
 - Fixed the OpenRouter `deepseek/deepseek-v4-pro-0813` route silently clamping the reasoning effort to `high`: the dated SKU advertises (and accepts) the wire-exact `low`/`high`/`max` ladder, so its effort override no longer collapses to `high`-only. The undated `deepseek/deepseek-v4-pro` OpenRouter route stays `high`-only. ([#8517](https://github.com/can1357/oh-my-pi/issues/8517))
+
 ### Changed
 
 - Restricted effort-capable Grok models (`grok-3-mini`, `grok-4.3`, `grok-4.5`, `grok-4.6`, `grok-4.20-multi-agent`) to the wire-exact `low`/`medium`/`high` thinking ladder, defaulting to `high`. Custom `openai-completions` hosts no longer inherit the generic OpenAI `minimal`/`xhigh` picker.
-
-### Added
-
-- Recognized `grok-4.6` as a Grok SKU that accepts the `reasoning.effort` / `reasoning_effort` dial.
 
 ## [17.3.2] - 2026-08-13
 
