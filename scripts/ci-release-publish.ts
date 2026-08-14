@@ -321,7 +321,9 @@ async function packAndPublish(dir: string, name: string): Promise<void> {
 			console.log(`Skipping ${packedTarball.name} (version already published)`);
 			return;
 		}
-		const result = await $`npm publish ${packedTarball.path} --access public`.quiet().nothrow();
+		const result = process.env.NPM_OTP
+			? await $`npm publish ${packedTarball.path} --access public --otp ${process.env.NPM_OTP}`.quiet().nothrow()
+			: await $`npm publish ${packedTarball.path} --access public`.quiet().nothrow();
 		const output = `${result.stdout.toString()}${result.stderr.toString()}`.trim();
 		if (output) console.log(output);
 		if (result.exitCode !== 0) {
