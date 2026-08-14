@@ -181,7 +181,14 @@ function fillThinkingWireDefaults<TApi extends Api>(
 	const needsRequiresEffort = thinking.requiresEffort === undefined && impliesMandatoryReasoning(parsed, spec.id);
 	const needsKimiDefaultLevel = thinking.defaultLevel === undefined && isKimiK3ModelId(spec.id);
 	const needsGrokDefaultLevel = thinking.defaultLevel === undefined && isGrokReasoningEffortCapable(spec.id);
-	if (!effortsChanged && !shouldReplaceEffortMap && !needsDisplay && !needsRequiresEffort && !needsKimiDefaultLevel && !needsGrokDefaultLevel) {
+	if (
+		!effortsChanged &&
+		!shouldReplaceEffortMap &&
+		!needsDisplay &&
+		!needsRequiresEffort &&
+		!needsKimiDefaultLevel &&
+		!needsGrokDefaultLevel
+	) {
 		return thinking;
 	}
 	const filled: ThinkingConfig = { ...thinking };

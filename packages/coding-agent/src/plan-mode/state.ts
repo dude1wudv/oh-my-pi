@@ -15,7 +15,13 @@ export interface PlanModeState {
 export type ProjectPlanUpdateEvent =
 	| { type: "task_created"; taskId: string; task: string; owner?: string; scope?: string }
 	| { type: "task_started"; taskId: string; owner?: string; scope?: string }
-	| { type: "task_settled"; taskId: string; status: "success" | "failure" | "cancellation" | "timeout" | "dispatch failure"; artifact?: string; followUp?: string }
+	| {
+			type: "task_settled";
+			taskId: string;
+			status: "success" | "failure" | "cancellation" | "timeout" | "dispatch failure";
+			artifact?: string;
+			followUp?: string;
+	  }
 	| { type: "dispatch_failed"; taskId: string; error: string; owner?: string; scope?: string }
 	| { type: "artifact_accepted"; taskId: string; artifact: string }
 	| { type: "verification_recorded"; check: string; passed?: boolean; detail?: string }
@@ -51,7 +57,8 @@ export function projectPlanRelativePath(cwd: string, absolutePath: string): stri
 	const root = path.resolve(cwd);
 	const relative = path.relative(root, absolutePath);
 	const resolved = resolveProjectPlanPath(root, relative);
-	if (path.resolve(resolved) !== path.resolve(absolutePath)) throw new Error("Project plan path escaped the project root.");
+	if (path.resolve(resolved) !== path.resolve(absolutePath))
+		throw new Error("Project plan path escaped the project root.");
 	return relative.split(path.sep).join("/");
 }
 
@@ -88,19 +95,26 @@ function appendSectionLine(content: string, heading: string, line: string): stri
 function taskLine(content: string, taskId: string): { start: number; end: number; line: string } | undefined {
 	const escaped = taskId.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 	const match = new RegExp(`^- \\[([ xX~-])\\] ${escaped}(?:\\s|—|$).*?$`, "m").exec(content);
-	return match && match.index !== undefined ? { start: match.index, end: match.index + match[0].length, line: match[0] } : undefined;
+	return match && match.index !== undefined
+		? { start: match.index, end: match.index + match[0].length, line: match[0] }
+		: undefined;
 }
 
 function updateTask(content: string, taskId: string, status: string, checked: boolean): string {
 	const found = taskLine(content, taskId);
-	if (!found) return appendSectionLine(content, "Task breakdown", `- [${checked ? "x" : " "}] ${taskId} — status: ${status}`);
+	if (!found)
+		return appendSectionLine(content, "Task breakdown", `- [${checked ? "x" : " "}] ${taskId} — status: ${status}`);
 	const base = found.line.replace(/\s+— status: [^—]+$/, "").replace(/^- \[[ xX~-]\]/, `- [${checked ? "x" : " "}]`);
 	return `${content.slice(0, found.start)}${base} — status: ${status}${content.slice(found.end)}`;
 }
 
-function updateDispatch(content: string, event: Extract<ProjectPlanUpdateEvent, { type: "task_started" | "task_settled" | "dispatch_failed" }>): string {
+function updateDispatch(
+	content: string,
+	event: Extract<ProjectPlanUpdateEvent, { type: "task_started" | "task_settled" | "dispatch_failed" }>,
+): string {
 	const range = section(content, "Agent dispatch log");
-	const status = event.type === "task_started" ? "running" : event.type === "dispatch_failed" ? "dispatch failure" : event.status;
+	const status =
+		event.type === "task_started" ? "running" : event.type === "dispatch_failed" ? "dispatch failure" : event.status;
 	const row = `| ? | ${"owner" in event && event.owner ? event.owner : "Main"} | ${"scope" in event && event.scope ? event.scope : event.taskId} | ${status} | ${"artifact" in event && event.artifact ? event.artifact : "—"} | ${"followUp" in event && event.followUp ? event.followUp : "—"} |`;
 	if (!range) return appendSectionLine(content, "Agent dispatch log", row);
 	const lines = content.slice(range.start, range.end).split("\n");
@@ -128,7 +142,11 @@ export function applyProjectPlanUpdate(content: string, event: ProjectPlanUpdate
 	let next = content;
 	switch (event.type) {
 		case "task_created":
-			next = appendSectionLine(next, "Task breakdown", `- [ ] ${event.taskId} — ${event.task} — owner: ${event.owner ?? "Main"} — scope: ${event.scope ?? "(unspecified)"}`);
+			next = appendSectionLine(
+				next,
+				"Task breakdown",
+				`- [ ] ${event.taskId} — ${event.task} — owner: ${event.owner ?? "Main"} — scope: ${event.scope ?? "(unspecified)"}`,
+			);
 			break;
 		case "task_started":
 			next = updateTask(next, event.taskId, "running", false);
@@ -143,10 +161,18 @@ export function applyProjectPlanUpdate(content: string, event: ProjectPlanUpdate
 			next = updateDispatch(next, event);
 			break;
 		case "artifact_accepted":
-			next = appendSectionLine(next, "Agent dispatch log", `| ? | Main | ${event.taskId} | artifact accepted | ${event.artifact} | — |`);
+			next = appendSectionLine(
+				next,
+				"Agent dispatch log",
+				`| ? | Main | ${event.taskId} | artifact accepted | ${event.artifact} | — |`,
+			);
 			break;
 		case "verification_recorded":
-			next = appendSectionLine(next, "Verification", `- [${event.passed === false ? " " : "x"}] ${event.check}${event.detail ? ` — ${event.detail}` : ""}`);
+			next = appendSectionLine(
+				next,
+				"Verification",
+				`- [${event.passed === false ? " " : "x"}] ${event.check}${event.detail ? ` — ${event.detail}` : ""}`,
+			);
 			break;
 		case "status_changed":
 			next = replaceMetadata(next, event.status, now);
@@ -165,7 +191,8 @@ export async function updateProjectPlanFile(options: ProjectPlanFileUpdateOption
 	const realPlansRoot = await fs.realpath(plansRoot).catch(() => plansRoot);
 	const realTarget = await fs.realpath(target).catch(() => target);
 	const relative = path.relative(realPlansRoot, realTarget);
-	if (!relative || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) throw new Error("Project plan update escaped .omp/plans.");
+	if (!relative || relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative))
+		throw new Error("Project plan update escaped .omp/plans.");
 	const current = await fs.readFile(target, "utf8");
 	const updated = applyProjectPlanUpdate(current, options.event, options.now);
 	const temporary = `${target}.${process.pid}.${Date.now()}.${tempSequence++}.tmp`;

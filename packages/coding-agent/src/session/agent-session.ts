@@ -507,7 +507,7 @@ export class AgentSession {
 	#goalTurnCounter = 0;
 	#planReferenceSent = false;
 	#planReferencePath = "local://PLAN.md";
-    #projectPlanPath: string | undefined;
+	#projectPlanPath: string | undefined;
 	#clientBridge: ClientBridge | undefined;
 	#allowAcpAgentInitiatedTurns = false;
 	/** Session file created by this session's `/move`; removed on dispose if it stayed empty. */
@@ -588,7 +588,7 @@ export class AgentSession {
 	#messageEndPersistenceTail: Promise<void> = Promise.resolve();
 	#pendingMessageEndPersistence = new Map<string, Promise<void>>();
 	#persistedMessageKeys: { anchor: string; keys: Set<string> } | undefined;
-    #projectPlanUpdateTail: Promise<void> = Promise.resolve();
+	#projectPlanUpdateTail: Promise<void> = Promise.resolve();
 
 	// Custom commands (TypeScript slash commands)
 	#customCommands: LoadedCustomCommand[] = [];
@@ -4789,22 +4789,22 @@ export class AgentSession {
 	getPlanReferencePath(): string {
 		return this.#planReferencePath;
 	}
-    setProjectPlanPath(projectPlanPath: string | undefined): void {
-        this.#projectPlanPath = projectPlanPath;
-    }
+	setProjectPlanPath(projectPlanPath: string | undefined): void {
+		this.#projectPlanPath = projectPlanPath;
+	}
 
-    getProjectPlanPath(): string | undefined {
-        return this.#projectPlanPath;
-    }
+	getProjectPlanPath(): string | undefined {
+		return this.#projectPlanPath;
+	}
 
-    updateProjectPlan(event: ProjectPlanUpdateEvent, projectPlanPath = this.#projectPlanPath): Promise<void> {
-        if (!projectPlanPath) return Promise.reject(new Error("No approved project plan is attached to this session."));
-        const run = this.#projectPlanUpdateTail.then(() =>
-            updateProjectPlanFile({ cwd: this.sessionManager.getCwd(), projectPlanPath, event }),
-        );
-        this.#projectPlanUpdateTail = run.catch(() => {});
-        return run;
-    }
+	updateProjectPlan(event: ProjectPlanUpdateEvent, projectPlanPath = this.#projectPlanPath): Promise<void> {
+		if (!projectPlanPath) return Promise.reject(new Error("No approved project plan is attached to this session."));
+		const run = this.#projectPlanUpdateTail.then(() =>
+			updateProjectPlanFile({ cwd: this.sessionManager.getCwd(), projectPlanPath, event }),
+		);
+		this.#projectPlanUpdateTail = run.catch(() => {});
+		return run;
+	}
 
 	get clientBridge(): ClientBridge | undefined {
 		return this.#clientBridge;

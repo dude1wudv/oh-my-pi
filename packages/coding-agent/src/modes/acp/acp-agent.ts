@@ -1730,16 +1730,16 @@ export class AcpAgent implements Agent {
 				details,
 			};
 		}
-        // Export before changing mode state; a filesystem failure must keep plan mode active.
-        const projectPlan = await exportApprovedProjectPlan({
-            cwd: session.sessionManager.getCwd(),
-            planContent,
-            title: resolvedTitle,
-        });
-        session.setPlanReferencePath(planFilePath);
-        session.setPlanProposalHandler?.(null);
-        session.setPlanModeState(undefined);
-        session.setProjectPlanPath(projectPlan.projectPlanPath);
+		// Export before changing mode state; a filesystem failure must keep plan mode active.
+		const projectPlan = await exportApprovedProjectPlan({
+			cwd: session.sessionManager.getCwd(),
+			planContent,
+			title: resolvedTitle,
+		});
+		session.setPlanReferencePath(planFilePath);
+		session.setPlanProposalHandler?.(null);
+		session.setPlanModeState(undefined);
+		session.setProjectPlanPath(projectPlan.projectPlanPath);
 		try {
 			await this.#connection.sessionUpdate({
 				sessionId: session.sessionId,
@@ -1752,15 +1752,15 @@ export class AcpAgent implements Agent {
 				error,
 			});
 		}
-        return {
-            content: [
-                {
-                    type: "text" as const,
-                    text: `Plan approved at ${planFilePath}; persisted project plan at ${projectPlan.projectPlanPath}. Plan mode exited; proceed with the implementation.`,
-                },
-            ],
-            details,
-        };
+		return {
+			content: [
+				{
+					type: "text" as const,
+					text: `Plan approved at ${planFilePath}; persisted project plan at ${projectPlan.projectPlanPath}. Plan mode exited; proceed with the implementation.`,
+				},
+			],
+			details,
+		};
 	}
 
 	#resolveAcpPlanFilePath(session: AgentSession, planFilePath: string): string {

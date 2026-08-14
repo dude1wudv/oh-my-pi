@@ -28,7 +28,9 @@ export function normalizePlanTitle(title: string): { title: string; fileName: st
 		.replace(/-{2,}/g, "-")
 		.replace(/^-+|-+$/g, "");
 	if (!sanitized) {
-		throw new ToolError("Plan title must contain at least one letter, number, underscore, or hyphen after sanitization.");
+		throw new ToolError(
+			"Plan title must contain at least one letter, number, underscore, or hyphen after sanitization.",
+		);
 	}
 	return { title: sanitized, fileName: `${sanitized}.md` };
 }
@@ -112,7 +114,8 @@ export async function resolveApprovedPlan(input: ResolveApprovedPlanInput): Prom
 	consider(slug ? planFileUrlForSlug(slug) : undefined);
 	const listed = input.listPlanFiles ? await input.listPlanFiles() : [];
 	const canonicalListed = new Set(listed.map(normalizeLocalScheme));
-	if (input.statePlanFilePath && !canonicalListed.has(normalizeLocalScheme(input.statePlanFilePath))) consider(input.statePlanFilePath);
+	if (input.statePlanFilePath && !canonicalListed.has(normalizeLocalScheme(input.statePlanFilePath)))
+		consider(input.statePlanFilePath);
 	for (const url of listed) consider(url);
 	consider(input.statePlanFilePath);
 	for (const url of ordered) {
@@ -120,7 +123,9 @@ export async function resolveApprovedPlan(input: ResolveApprovedPlanInput): Prom
 		if (content !== null) return finalizeApprovedPlan(url, content, input.suppliedTitle);
 	}
 	const target = ordered[0] ?? input.statePlanFilePath;
-	throw new ToolError(`Plan file not found at ${target}. Write the finalized plan to ${target} before requesting approval.`);
+	throw new ToolError(
+		`Plan file not found at ${target}. Write the finalized plan to ${target} before requesting approval.`,
+	);
 }
 
 function finalizeApprovedPlan(planFilePath: string, planContent: string, suppliedTitle: unknown): ResolvedApprovedPlan {
@@ -158,15 +163,17 @@ function localDateTime(now: Date): string {
 }
 
 function projectSlug(title: string): string {
-	const normalized = normalizePlanTitle(title).title.replace(/_/g, "-").replace(/-plan$/i, "");
+	const normalized = normalizePlanTitle(title)
+		.title.replace(/_/g, "-")
+		.replace(/-plan$/i, "");
 	return (normalized || "plan").toLowerCase();
 }
 
 function initialProjectPlan(content: string, title: string, planId: string, projectPath: string, now: Date): string {
 	const body = content.trimEnd();
 	const metadata = [
-        `> Status: executing`,
-        `> Created: ${localDate(now)}`,
+		`> Status: executing`,
+		`> Created: ${localDate(now)}`,
 		`> Updated: ${localDateTime(now)}`,
 		`> Plan ID: ${planId}`,
 		`> Project plan: ${projectPath}`,
@@ -181,11 +188,11 @@ function initialProjectPlan(content: string, title: string, planId: string, proj
 		"## Result barrier",
 		"- Expected terminal items: 0",
 		"- Settled: 0",
-        `- WAIT_ALL: active`,
-        `- Wake policy: \`batch-gated\``,
-        `- Wake interval: \`20m\`; next wake: pending`,
-        `- Last wake reason: timer`,
-        `- Last barrier decision: not started`,
+		`- WAIT_ALL: active`,
+		`- Wake policy: \`batch-gated\``,
+		`- Wake interval: \`20m\`; next wake: pending`,
+		`- Last wake reason: timer`,
+		`- Last barrier decision: not started`,
 		"",
 		"## Verification",
 		"",
@@ -200,11 +207,14 @@ async function assertProjectRoot(cwd: string, plansRoot: string): Promise<void> 
 	const root = await fs.realpath(path.resolve(cwd));
 	const realPlansRoot = await fs.realpath(plansRoot).catch(() => plansRoot);
 	const relative = path.relative(root, realPlansRoot);
-	if (relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative)) throw new Error("Project plan directory escaped the current project root.");
+	if (relative.startsWith(`..${path.sep}`) || path.isAbsolute(relative))
+		throw new Error("Project plan directory escaped the current project root.");
 }
 
 /** Export an approved local plan into cwd/.omp/plans without overwriting a plan. */
-export async function exportApprovedProjectPlan(input: ExportApprovedProjectPlanInput): Promise<ExportApprovedProjectPlanResult> {
+export async function exportApprovedProjectPlan(
+	input: ExportApprovedProjectPlanInput,
+): Promise<ExportApprovedProjectPlanResult> {
 	const now = input.now ?? new Date();
 	const slug = projectSlug(input.title);
 	const date = localDate(now);
@@ -221,7 +231,12 @@ export async function exportApprovedProjectPlan(input: ExportApprovedProjectPlan
 			.replace(/^> Status: .*$/m, "> Status: executing");
 		const merged = `${metadata.trimEnd()}\n\n${input.planContent.trimEnd()}\n`;
 		await fs.writeFile(absolutePath, merged, { encoding: "utf8" });
-		return { projectPlanPath: projectPlanRelativePath(root, absolutePath), absolutePath, planId: slug, createdDate: date };
+		return {
+			projectPlanPath: projectPlanRelativePath(root, absolutePath),
+			absolutePath,
+			planId: slug,
+			createdDate: date,
+		};
 	}
 
 	for (let suffix = 1; ; suffix += 1) {

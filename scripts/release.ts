@@ -50,7 +50,6 @@ async function replaceInFiles(paths: readonly string[], pattern: RegExp, replace
 	}
 }
 
-
 // =============================================================================
 // Shared functions
 // =============================================================================
@@ -285,7 +284,7 @@ async function cmdRelease(versionOrBump: string): Promise<void> {
 		publicPkgPaths.push(pkgPath);
 	}
 
-await replaceInFiles(publicPkgPaths, /"version": "[^"]+"/, `"version": "${version}"`);
+	await replaceInFiles(publicPkgPaths, /"version": "[^"]+"/, `"version": "${version}"`);
 
 	// Verify
 	console.log("  Verifying versions:");
@@ -304,7 +303,7 @@ await replaceInFiles(publicPkgPaths, /"version": "[^"]+"/, `"version": "${versio
 
 	// 3. Update Rust workspace version
 	console.log(`Updating Rust workspace version to ${version}…`);
-await replaceInFiles(["Cargo.toml"], /^version = "[^"]+"/m, `version = "${version}"`);
+	await replaceInFiles(["Cargo.toml"], /^version = "[^"]+"/m, `version = "${version}"`);
 
 	// Verify
 	const cargoToml = await Bun.file("Cargo.toml").text();
@@ -341,7 +340,7 @@ await replaceInFiles(["Cargo.toml"], /^version = "[^"]+"/m, `version = "${versio
 		"packages/natives/native/index.d.ts",
 		"packages/natives/native/index.js",
 	];
-await replaceInFiles(sentinelFiles, /__piNativesV[A-Za-z0-9_]+/g, sentinelName);
+	await replaceInFiles(sentinelFiles, /__piNativesV[A-Za-z0-9_]+/g, sentinelName);
 	const libRs = await Bun.file("crates/pi-natives/src/lib.rs").text();
 	if (!libRs.includes(`js_name = "${sentinelName}"`)) {
 		console.error(

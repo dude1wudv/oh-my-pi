@@ -3205,7 +3205,7 @@ export class InteractiveMode implements InteractiveModeContext {
 			path: projectPlan.projectPlanPath,
 			planId: projectPlan.planId,
 		});
-        this.session.setProjectPlanPath(projectPlan.projectPlanPath);
+		this.session.setProjectPlanPath(projectPlan.projectPlanPath);
 
 		// Mark the pending abort caused by the plan-mode → compaction transition as
 		// silent BEFORE #exitPlanMode raises it. The `finally` below clears the

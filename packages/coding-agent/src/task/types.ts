@@ -551,10 +551,10 @@ export interface TaskToolDetails {
 	usage?: Usage;
 	outputPaths?: string[];
 	progress?: AgentProgress[];
-    async?: {
-        state: "running" | "completed" | "failed";
-        jobId: string;
-        type: "task";
-        batchId?: string;
-    };
+	async?: {
+		state: "running" | "completed" | "failed";
+		jobId: string;
+		type: "task";
+		batchId?: string;
+	};
 }
