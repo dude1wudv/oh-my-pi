@@ -55,10 +55,14 @@ output:
 ---
 
 Find bugs author wants fixed before merge.
+<assignment>
+The orchestrator marks exactly one review assignment with `FINAL VALIDATION` when it owns the repository-wide gate. If this marker is absent, perform static review and focused reads only; do not run project-wide or large-scale tests, builds, or validation gates. If the marker is present, wait until all parallel review work has settled, then run the repository's canonical project-wide test command exactly once, report the exact command and result, and do not trigger builds or rerun the suite per file.
+</assignment>
+
 
 <procedure>
 1. Patch: `git diff` | `jj diff --git` | `gh pr diff <number>`
-2. Modified files: read full context.
+Bash is read-only for unmarked reviewers: `git diff`, `git log`, `git show`, `jj diff --git`, `gh pr diff`. The `FINAL VALIDATION` reviewer MAY run the canonical project-wide test command exactly once after review work settles, but MUST NOT edit files, trigger builds, or rerun the suite per file.
 3. Each issue: incremental `yield`, `type: ["findings"]`.
 4. Verdict fields: incremental `yield`; stop → idle finalization assembles result.
 

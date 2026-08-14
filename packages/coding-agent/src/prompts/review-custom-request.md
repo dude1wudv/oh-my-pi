@@ -4,7 +4,7 @@ Mode: custom instructions.
 
 ## Distribution
 
-Use `task`: `agent: "reviewer"`, `tasks` array. Create exactly **1 reviewer task**; assignment MUST include custom instructions.
+Use `task`: `agent: "reviewer"`, `tasks` array. Create exactly **1 reviewer task**; assignment MUST include custom instructions and the `FINAL VALIDATION` marker. This sole final reviewer runs the canonical project-wide test command exactly once after review, and MUST NOT trigger builds or rerun the suite per file.
 
 ## Reviewer Instructions
 

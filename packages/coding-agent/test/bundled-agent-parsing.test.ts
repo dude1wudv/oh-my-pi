@@ -28,6 +28,16 @@ describe("bundled agent parsing", () => {
 		expect(task?.thinkingLevel).toBe(AUTO_THINKING);
 	});
 
+	it("carries validation ownership boundaries in bundled prompts", () => {
+		const task = getBundledAgent("task");
+		const reviewer = getBundledAgent("reviewer");
+
+		expect(task?.systemPrompt).toContain("MUST NOT run project-wide or large-scale test/validation gates");
+		expect(task?.systemPrompt).toContain("MAY run only a targeted check directly required by the assigned contract");
+		expect(reviewer?.systemPrompt).toContain("FINAL VALIDATION");
+		expect(reviewer?.systemPrompt).toContain("exactly once");
+	});
+
 	// Issue #4761: with `modelRoles.slow: ...:xhigh`, the role's explicit effort
 	// suffix must survive agent-pattern expansion and model resolution for the
 	// bundled agents routed at that role. The executor prefers an explicit

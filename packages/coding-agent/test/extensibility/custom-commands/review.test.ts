@@ -28,15 +28,15 @@ const SAMPLE_PR_DIFF = `diff --git a/src/pr.ts b/src/pr.ts
 +export const pr = true;
 `;
 
-function makeManyFileDiff(fileCount: number): string {
+function makeManyFileDiff(fileCount: number, linesPerFile = 1): string {
 	return Array.from(
 		{ length: fileCount },
 		(_, idx) => `diff --git a/src/pr-${idx}.ts b/src/pr-${idx}.ts
 --- a/src/pr-${idx}.ts
 +++ b/src/pr-${idx}.ts
-@@ -1 +1 @@
--export const pr${idx} = false;
-+export const pr${idx} = true;
+@@ -1,${linesPerFile} +1,${linesPerFile} @@
+${Array.from({ length: linesPerFile }, (_, line) => `-export const pr${idx}_${line} = false;`).join("\n")}
+${Array.from({ length: linesPerFile }, (_, line) => `+export const pr${idx}_${line} = true;`).join("\n")}
 `,
 	).join("\n");
 }
@@ -174,6 +174,8 @@ describe("ReviewCommand", () => {
 		expect(result).toBeDefined();
 		const promptText = result!;
 		expect(promptText).toContain("Check authentication boundaries");
+		expect(promptText).toContain("FINAL VALIDATION");
+		expect(promptText).toContain("canonical project-wide test command exactly once");
 	});
 
 	it("does not submit empty custom review instructions", async () => {
@@ -215,6 +217,29 @@ describe("ReviewCommand", () => {
 		} finally {
 			jjRepoSpy.mockRestore();
 			jjDiffSpy.mockRestore();
+			gitStatusSpy.mockRestore();
+			gitDiffSpy.mockRestore();
+		}
+	});
+
+	it("assigns one final validation reviewer after parallel review work", async () => {
+		const dir = await createTempDir();
+		const jjRepoSpy = spyOn(jj.repo, "is").mockResolvedValue(false);
+		const gitStatusSpy = spyOn(git, "status").mockResolvedValue(" M src/workspace.ts\n");
+		const gitDiffSpy = spyOn(git, "diff").mockResolvedValue(makeManyFileDiff(3, 50));
+		try {
+			const command = new ReviewCommand({ cwd: dir } as unknown as CustomCommandAPI);
+			const ctx = createContext({ selectedMode: "2. Review uncommitted changes" });
+
+			const result = await command.execute([], ctx);
+
+			expect(result).toBeDefined();
+			const promptText = result!;
+			expect(promptText).toContain("Spawn **2 reviewer agents** in parallel");
+			expect(promptText).toContain("After every parallel reviewer settles, dispatch exactly **1 additional reviewer task** marked `FINAL VALIDATION`");
+			expect(promptText).toContain("MUST NOT run project-wide or large-scale tests, builds, or validation gates");
+		} finally {
+			jjRepoSpy.mockRestore();
 			gitStatusSpy.mockRestore();
 			gitDiffSpy.mockRestore();
 		}
@@ -601,5 +626,7 @@ describe("ReviewCommand", () => {
 		expect(result).toBeDefined();
 		const promptText = result!;
 		expect(promptText).toContain("focus auth");
+		expect(promptText).toContain("FINAL VALIDATION");
+		expect(promptText).toContain("canonical project-wide test command exactly once");
 	});
 });
