@@ -11,7 +11,7 @@ import { type ActiveRepoContext, resolveActiveRepoContextSync } from "../../../u
 import * as git from "../../../utils/git";
 import * as jj from "../../../utils/jj";
 import { getSessionAccentAnsi, getSessionAccentHex } from "../../../utils/session-color";
-import { calculateTokensPerSecond } from "../../../utils/token-rate";
+import { calculateAverageTtftMs, calculateTokensPerSecond } from "../../../utils/token-rate";
 import { sanitizeStatusText } from "../../shared";
 import { theme } from "../../theme/theme";
 import {
@@ -1555,6 +1555,7 @@ export class StatusLineComponent implements Component {
 		const usageStats = {
 			...aggregateUsageStats,
 			tokensPerSecond: this.#getTokensPerSecond(),
+			averageTtftMs: calculateAverageTtftMs(state.messages),
 		};
 
 		let contextWindow = state.model?.contextWindow ?? this.session.model?.contextWindow ?? 0;

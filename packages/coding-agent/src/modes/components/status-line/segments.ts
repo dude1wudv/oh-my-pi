@@ -429,6 +429,16 @@ const tokenRateSegment: StatusLineSegment = {
 	},
 };
 
+const ttftSegment: StatusLineSegment = {
+	id: "ttft",
+	render(ctx) {
+		const { averageTtftMs } = ctx.usageStats;
+		if (!averageTtftMs) return { content: "", visible: false };
+		const content = withIcon(theme.icon.time, `TTFT ${Math.round(averageTtftMs)}ms`);
+		return { content: theme.fg("statusLineOutput", content), visible: true };
+	},
+};
+
 const costSegment: StatusLineSegment = {
 	id: "cost",
 	render(ctx) {
@@ -698,6 +708,7 @@ export const SEGMENTS: Record<StatusLineSegmentId, StatusLineSegment> = {
 	token_out: tokenOutSegment,
 	token_total: tokenTotalSegment,
 	token_rate: tokenRateSegment,
+	ttft: ttftSegment,
 	cost: costSegment,
 	context_pct: contextPctSegment,
 	context_total: contextTotalSegment,

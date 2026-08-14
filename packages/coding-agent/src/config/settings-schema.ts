@@ -171,6 +171,7 @@ export type StatusLineSegmentId =
 	| "token_out"
 	| "token_total"
 	| "token_rate"
+	| "ttft"
 	| "cost"
 	| "context_pct"
 	| "context_total"

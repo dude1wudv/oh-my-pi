@@ -21,6 +21,7 @@ type MaybeAssistantMessage = {
 	role?: string;
 	timestamp?: number;
 	duration?: number;
+	ttft?: number;
 	usage?: {
 		output?: number;
 	};
@@ -43,6 +44,15 @@ function getLastAssistantMessage(messages: ReadonlyArray<MaybeAssistantMessage>)
 		}
 	}
 	return null;
+}
+
+export function calculateAverageTtftMs(messages: ReadonlyArray<MaybeAssistantMessage>): number | null {
+	const values = messages
+		.filter(message => message.role === "assistant")
+		.map(message => message.ttft)
+		.filter((value): value is number => typeof value === "number" && Number.isFinite(value) && value > 0);
+	if (values.length === 0) return null;
+	return values.reduce((sum, value) => sum + value, 0) / values.length;
 }
 
 export function calculateTokensPerSecond(

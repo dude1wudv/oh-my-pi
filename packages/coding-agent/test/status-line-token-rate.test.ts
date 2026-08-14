@@ -4,7 +4,7 @@ import type { AssistantMessage } from "@oh-my-pi/pi-ai";
 import { renderSegment } from "@oh-my-pi/pi-coding-agent/modes/components/status-line/segments";
 import type { SegmentContext } from "@oh-my-pi/pi-coding-agent/modes/components/status-line/types";
 import { initTheme } from "@oh-my-pi/pi-coding-agent/modes/theme/theme";
-import { calculateTokensPerSecond } from "@oh-my-pi/pi-coding-agent/utils/token-rate";
+import { calculateAverageTtftMs, calculateTokensPerSecond } from "@oh-my-pi/pi-coding-agent/utils/token-rate";
 
 beforeAll(async () => {
 	await initTheme();
@@ -41,6 +41,7 @@ function ctxWithTokenRate(tokensPerSecond: number | null): SegmentContext {
 			premiumRequests: 0,
 			cost: 0,
 			tokensPerSecond,
+			averageTtftMs: null,
 		},
 	} as unknown as SegmentContext;
 }
@@ -99,5 +100,38 @@ describe("token rate calculation", () => {
 			false,
 		);
 		expect(rate).toBeNull();
+	});
+});
+
+describe("ttft status-line segment", () => {
+	it("renders the average first-token latency in milliseconds", () => {
+		const ctx = ctxWithTokenRate(null);
+		ctx.usageStats.averageTtftMs = 842.6;
+		const result = renderSegment("ttft", ctx);
+		expect(result.visible).toBe(true);
+		expect(stripVTControlCharacters(result.content)).toContain("TTFT 843ms");
+	});
+
+	it("stays hidden when no TTFT measurement exists", () => {
+		const result = renderSegment("ttft", ctxWithTokenRate(null));
+		expect(result.visible).toBe(false);
+		expect(result.content).toBe("");
+	});
+});
+
+describe("average TTFT calculation", () => {
+	it("averages only finite positive assistant TTFT values", () => {
+		const messages = [
+			assistantMessage({ ttft: 100 }),
+			assistantMessage({ ttft: 300 }),
+			assistantMessage({ ttft: 0 }),
+			assistantMessage({ ttft: Number.NaN }),
+			{ role: "user" },
+		];
+		expect(calculateAverageTtftMs(messages)).toBe(200);
+	});
+
+	it("returns null when no usable TTFT exists", () => {
+		expect(calculateAverageTtftMs([assistantMessage({ ttft: 0 })])).toBeNull();
 	});
 });

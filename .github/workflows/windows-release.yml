@@ -1,0 +1,74 @@
+name: Windows Release
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  CARGO_TERM_COLOR: always
+
+jobs:
+  build-windows:
+    name: Build Windows binary and source
+    runs-on: windows-2022
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version-file: package.json
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@master
+        with:
+          toolchain: nightly-2026-07-28
+          targets: x86_64-pc-windows-msvc
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build native addon
+        run: bun run build:native
+
+      - name: Build OMP Windows binary
+        run: bun --cwd=packages/coding-agent run build
+
+      - name: Package Windows binary
+        shell: pwsh
+        run: |
+          $version = "${{ github.ref_name }}"
+          if (-not $version.StartsWith("v")) { $version = "manual-${{ github.sha }}" }
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          Copy-Item packages/coding-agent/dist/omp.exe "dist/omp-$version-windows-x64.exe"
+
+      - name: Package source archive
+        shell: bash
+        run: |
+          version="${GITHUB_REF_NAME}"
+          if [[ "$version" != v* ]]; then version="manual-${GITHUB_SHA}"; fi
+          git archive --format=zip --prefix="oh-my-pi-${version}/" HEAD -o "dist/oh-my-pi-${version}-source.zip"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Publish GitHub release
+        if: startsWith(github.ref, 'refs/tags/v')
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "${GITHUB_REF_NAME}" dist/* --title "Oh My Pi ${GITHUB_REF_NAME}" --generate-notes

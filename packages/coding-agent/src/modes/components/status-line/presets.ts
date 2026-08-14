@@ -3,7 +3,7 @@ import type { PresetDef, StatusLinePreset } from "./types";
 export const STATUS_LINE_PRESETS: Record<StatusLinePreset, PresetDef> = {
 	default: {
 		leftSegments: ["pi", "model", "mode", "collab", "path", "git", "pr", "context_pct", "cost"],
-		rightSegments: ["session_name"],
+		rightSegments: ["session_name", "ttft", "token_rate", "cache_hit"],
 		separator: "powerline-thin",
 		segmentOptions: {
 			model: { showThinkingLevel: true },
