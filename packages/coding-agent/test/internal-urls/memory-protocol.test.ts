@@ -2,21 +2,21 @@ import { afterAll, afterEach, beforeEach, describe, expect, it } from "bun:test"
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { InternalUrlRouter } from "@oh-my-pi/pi-coding-agent/internal-urls";
-import { getMemoryRoot } from "@oh-my-pi/pi-coding-agent/memories";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { InternalUrlRouter } from "@dude1wudv/pi-coding-agent/internal-urls";
+import { getMemoryRoot } from "@dude1wudv/pi-coding-agent/memories";
 import {
 	loadMnemopi,
 	loadMnemopiCore,
 	MnemopiSessionState,
 	setMnemopiSessionState,
-} from "@oh-my-pi/pi-coding-agent/mnemopi/state";
-import { AgentRegistry } from "@oh-my-pi/pi-coding-agent/registry/agent-registry";
-import type { AgentSession } from "@oh-my-pi/pi-coding-agent/session/agent-session";
-import type { ToolSession } from "@oh-my-pi/pi-coding-agent/tools";
-import { GlobTool } from "@oh-my-pi/pi-coding-agent/tools/glob";
-import { ReadTool } from "@oh-my-pi/pi-coding-agent/tools/read";
-import { getAgentDir, removeWithRetries, setAgentDir, TempDir } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-coding-agent/mnemopi/state";
+import { AgentRegistry } from "@dude1wudv/pi-coding-agent/registry/agent-registry";
+import type { AgentSession } from "@dude1wudv/pi-coding-agent/session/agent-session";
+import type { ToolSession } from "@dude1wudv/pi-coding-agent/tools";
+import { GlobTool } from "@dude1wudv/pi-coding-agent/tools/glob";
+import { ReadTool } from "@dude1wudv/pi-coding-agent/tools/read";
+import { getAgentDir, removeWithRetries, setAgentDir, TempDir } from "@dude1wudv/pi-utils";
 
 // Mnemopi state is loaded lazily; preload so `new MnemopiSessionState(...)` can
 // resolve the module synchronously in the fixtures below.

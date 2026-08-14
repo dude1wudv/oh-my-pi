@@ -1,9 +1,9 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from "bun:test";
-import { EventController } from "@oh-my-pi/pi-coding-agent/modes/controllers/event-controller";
-import { initTheme } from "@oh-my-pi/pi-coding-agent/modes/theme/theme";
-import type { InteractiveModeContext } from "@oh-my-pi/pi-coding-agent/modes/types";
-import type { AgentSessionEvent } from "@oh-my-pi/pi-coding-agent/session/agent-session";
-import { PROPOSE_DEVICE_NAME } from "@oh-my-pi/pi-coding-agent/tools/resolve";
+import { EventController } from "@dude1wudv/pi-coding-agent/modes/controllers/event-controller";
+import { initTheme } from "@dude1wudv/pi-coding-agent/modes/theme/theme";
+import type { InteractiveModeContext } from "@dude1wudv/pi-coding-agent/modes/types";
+import type { AgentSessionEvent } from "@dude1wudv/pi-coding-agent/session/agent-session";
+import { PROPOSE_DEVICE_NAME } from "@dude1wudv/pi-coding-agent/tools/resolve";
 
 beforeAll(() => {
 	initTheme();

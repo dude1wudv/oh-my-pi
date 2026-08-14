@@ -1,4 +1,4 @@
-import { type } from "@oh-my-pi/omptype";
+import { type } from "@dude1wudv/omptype";
 import type { SpinnerFramesOverride } from "./symbols";
 
 // ============================================================================

@@ -7,7 +7,7 @@ import {
 	formatHashlineHeader,
 	InMemorySnapshotStore,
 	missingSnapshotTagMessage,
-} from "@oh-my-pi/hashline";
+} from "@dude1wudv/hashline";
 import {
 	adjustIndentation,
 	computeEditDiff,
@@ -15,8 +15,8 @@ import {
 	DEFAULT_FUZZY_THRESHOLD,
 	findMatch,
 	replaceText,
-} from "@oh-my-pi/pi-coding-agent/edit";
-import { removeWithRetries } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-coding-agent/edit";
+import { removeWithRetries } from "@dude1wudv/pi-utils";
 
 describe("findMatch", () => {
 	describe("exact matching", () => {

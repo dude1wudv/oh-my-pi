@@ -45,11 +45,11 @@
  * re-attached to the compaction summary message on every context rebuild.
  */
 
-import type { Api, ImageContent, Message, TextContent } from "@oh-my-pi/pi-ai";
-import { isFableOrMythos, parseAnthropicModel, semverGte } from "@oh-my-pi/pi-catalog/identity";
-import { renderSnapcompactPng, snapcompactSupportedChars } from "@oh-my-pi/pi-natives";
-import { formatGroupedPaths, prompt } from "@oh-my-pi/pi-utils";
-import { INTENT_FIELD } from "@oh-my-pi/pi-wire";
+import type { Api, ImageContent, Message, TextContent } from "@dude1wudv/pi-ai";
+import { isFableOrMythos, parseAnthropicModel, semverGte } from "@dude1wudv/pi-catalog/identity";
+import { renderSnapcompactPng, snapcompactSupportedChars } from "@dude1wudv/pi-natives";
+import { formatGroupedPaths, prompt } from "@dude1wudv/pi-utils";
+import { INTENT_FIELD } from "@dude1wudv/pi-wire";
 import fileOperationsTemplate from "./prompts/file-operations.md" with { type: "text" };
 import snapcompactSummaryPrompt from "./prompts/snapcompact-summary.md" with { type: "text" };
 

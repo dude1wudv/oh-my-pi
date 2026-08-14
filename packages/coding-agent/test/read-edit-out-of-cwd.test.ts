@@ -2,13 +2,13 @@ import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
-import type { AgentToolResult } from "@oh-my-pi/pi-agent-core";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { EditTool, type ExecuteHashlineSingleOptions, executeHashlineSingle } from "@oh-my-pi/pi-coding-agent/edit";
-import type { ToolSession } from "@oh-my-pi/pi-coding-agent/tools";
-import type { ReadToolDetails } from "@oh-my-pi/pi-coding-agent/tools/read";
-import { ReadTool } from "@oh-my-pi/pi-coding-agent/tools/read";
-import { removeWithRetries } from "@oh-my-pi/pi-utils";
+import type { AgentToolResult } from "@dude1wudv/pi-agent-core";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { EditTool, type ExecuteHashlineSingleOptions, executeHashlineSingle } from "@dude1wudv/pi-coding-agent/edit";
+import type { ToolSession } from "@dude1wudv/pi-coding-agent/tools";
+import type { ReadToolDetails } from "@dude1wudv/pi-coding-agent/tools/read";
+import { ReadTool } from "@dude1wudv/pi-coding-agent/tools/read";
+import { removeWithRetries } from "@dude1wudv/pi-utils";
 
 function textOutput(result: AgentToolResult<ReadToolDetails>): string {
 	return result.content

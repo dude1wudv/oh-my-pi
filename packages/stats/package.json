@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "name": "@oh-my-pi/omp-stats",
+  "name": "@dude1wudv/omp-stats",
   "version": "20.1.0",
   "description": "Local observability dashboard for pi AI usage statistics",
   "homepage": "https://omp.sh",
@@ -39,9 +39,9 @@
     "fmt": "biome format --write ."
   },
   "dependencies": {
-    "@oh-my-pi/pi-ai": "catalog:",
-    "@oh-my-pi/pi-catalog": "catalog:",
-    "@oh-my-pi/pi-utils": "catalog:",
+    "@dude1wudv/pi-ai": "catalog:",
+    "@dude1wudv/pi-catalog": "catalog:",
+    "@dude1wudv/pi-utils": "catalog:",
     "@tailwindcss/node": "catalog:",
     "chart.js": "catalog:",
     "lucide-react": "catalog:",

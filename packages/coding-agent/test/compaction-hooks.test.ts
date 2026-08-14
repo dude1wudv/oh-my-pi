@@ -6,23 +6,23 @@ import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { Agent } from "@oh-my-pi/pi-agent-core";
-import { getBundledModel } from "@oh-my-pi/pi-catalog/models";
-import { ModelRegistry } from "@oh-my-pi/pi-coding-agent/config/model-registry";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
+import { Agent } from "@dude1wudv/pi-agent-core";
+import { getBundledModel } from "@dude1wudv/pi-catalog/models";
+import { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
 import {
 	HookRunner,
 	type LoadedHook,
 	type SessionBeforeCompactEvent,
 	type SessionCompactEvent,
 	type SessionEvent,
-} from "@oh-my-pi/pi-coding-agent/extensibility/hooks";
-import { theme } from "@oh-my-pi/pi-coding-agent/modes/theme/theme";
-import { AgentSession } from "@oh-my-pi/pi-coding-agent/session/agent-session";
-import { AuthStorage } from "@oh-my-pi/pi-coding-agent/session/auth-storage";
-import { SessionManager } from "@oh-my-pi/pi-coding-agent/session/session-manager";
-import { createTools, type ToolSession } from "@oh-my-pi/pi-coding-agent/tools";
-import { removeSyncWithRetries, Snowflake } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-coding-agent/extensibility/hooks";
+import { theme } from "@dude1wudv/pi-coding-agent/modes/theme/theme";
+import { AgentSession } from "@dude1wudv/pi-coding-agent/session/agent-session";
+import { AuthStorage } from "@dude1wudv/pi-coding-agent/session/auth-storage";
+import { SessionManager } from "@dude1wudv/pi-coding-agent/session/session-manager";
+import { createTools, type ToolSession } from "@dude1wudv/pi-coding-agent/tools";
+import { removeSyncWithRetries, Snowflake } from "@dude1wudv/pi-utils";
 import { e2eApiKey } from "./utilities";
 
 describe.skipIf(!e2eApiKey("ANTHROPIC_API_KEY"))("Compaction hooks", () => {

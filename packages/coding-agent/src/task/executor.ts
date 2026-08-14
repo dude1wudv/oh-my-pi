@@ -5,10 +5,10 @@
  */
 
 import path from "node:path";
-import type { AgentEvent, AgentIdentity, AgentMessage, AgentTelemetryConfig } from "@oh-my-pi/pi-agent-core";
-import { EventLoopKeepalive, recordHandoff, resolveTelemetry } from "@oh-my-pi/pi-agent-core";
-import type { Api, Model, ServiceTierByFamily, Usage } from "@oh-my-pi/pi-ai";
-import { logger, popLoopPhase, prompt, pushLoopPhase, untilAborted } from "@oh-my-pi/pi-utils";
+import type { AgentEvent, AgentIdentity, AgentMessage, AgentTelemetryConfig } from "@dude1wudv/pi-agent-core";
+import { EventLoopKeepalive, recordHandoff, resolveTelemetry } from "@dude1wudv/pi-agent-core";
+import type { Api, Model, ServiceTierByFamily, Usage } from "@dude1wudv/pi-ai";
+import { logger, popLoopPhase, prompt, pushLoopPhase, untilAborted } from "@dude1wudv/pi-utils";
 import { ASYNC_JOB_MANAGER_SHUTDOWN_REASON, AsyncJobManager } from "../async";
 import type { Rule } from "../capability/rule";
 import { ModelRegistry } from "../config/model-registry";
@@ -2270,6 +2270,7 @@ async function finalizeRunResult(args: FinalizeRunArgs): Promise<SingleResult> {
 		error: exitCode !== 0 && stderr ? stderr : undefined,
 		aborted: wasAborted,
 		abortReason: finalAbortReason,
+		timedOut: runtimeLimitExceeded || undefined,
 		usage: monitor.hasUsage() ? monitor.accumulatedUsage : undefined,
 		outputPath,
 		extractedToolData: progress.extractedToolData,

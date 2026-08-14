@@ -16,7 +16,7 @@
  * Priority: 55 (tool-specific provider)
  */
 import * as path from "node:path";
-import { isRecord, logger, parseFrontmatter } from "@oh-my-pi/pi-utils";
+import { isRecord, logger, parseFrontmatter } from "@dude1wudv/pi-utils";
 import { JSONC } from "bun";
 import { registerProvider } from "../capability";
 import { type ContextFile, contextFileCapability } from "../capability/context-file";

@@ -1,8 +1,8 @@
 import { describe, expect, test } from "bun:test";
-import { buildParams } from "@oh-my-pi/pi-ai/providers/openai-responses";
-import type { Context } from "@oh-my-pi/pi-ai/types";
-import { Effort } from "@oh-my-pi/pi-catalog/effort";
-import { getBundledModel } from "@oh-my-pi/pi-catalog/models";
+import { buildParams } from "@dude1wudv/pi-ai/providers/openai-responses";
+import type { Context } from "@dude1wudv/pi-ai/types";
+import { Effort } from "@dude1wudv/pi-catalog/effort";
+import { getBundledModel } from "@dude1wudv/pi-catalog/models";
 
 const GPT_56_MODEL_IDS = [
 	"daybreak-blue-latest",

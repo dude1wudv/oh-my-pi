@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
-import { buildSpec, type CompletionSpec, generateCompletion } from "@oh-my-pi/pi-coding-agent/cli/completion-gen";
-import { generateLiveCompletion } from "@oh-my-pi/pi-coding-agent/commands/completions";
-import type { CliConfig, CommandCtor } from "@oh-my-pi/pi-utils/cli";
+import { buildSpec, type CompletionSpec, generateCompletion } from "@dude1wudv/pi-coding-agent/cli/completion-gen";
+import { generateLiveCompletion } from "@dude1wudv/pi-coding-agent/commands/completions";
+import type { CliConfig, CommandCtor } from "@dude1wudv/pi-utils/cli";
 
 // A compact synthetic spec exercising every value-source kind and an aliased
 // subcommand. The generators are pure functions of this shape, so pinning their

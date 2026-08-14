@@ -2,17 +2,17 @@ import { Database } from "bun:sqlite";
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
 
-import { formatHashlineHeader, stripHashlinePrefixes } from "@oh-my-pi/hashline";
-import { type } from "@oh-my-pi/omptype";
+import { formatHashlineHeader, stripHashlinePrefixes } from "@dude1wudv/hashline";
+import { type } from "@dude1wudv/omptype";
 import type {
 	AgentTool,
 	AgentToolContext,
 	AgentToolResult,
 	AgentToolUpdateCallback,
 	ToolApprovalDecision,
-} from "@oh-my-pi/pi-agent-core";
-import { type Component, Text } from "@oh-my-pi/pi-tui";
-import { isEnoent, isRecord, prompt, untilAborted } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-agent-core";
+import { type Component, Text } from "@dude1wudv/pi-tui";
+import { isEnoent, isRecord, prompt, untilAborted } from "@dude1wudv/pi-utils";
 
 import { canonicalSnapshotKey, getFileSnapshotStore } from "../edit/file-snapshot-store";
 import { normalizeToLF } from "../edit/normalize";

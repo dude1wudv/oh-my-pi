@@ -1,13 +1,13 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "bun:test";
-import { Agent } from "@oh-my-pi/pi-agent-core";
-import * as compactionModule from "@oh-my-pi/pi-agent-core/compaction";
-import type { Message } from "@oh-my-pi/pi-ai";
-import { type GeneratedProvider, getBundledModel } from "@oh-my-pi/pi-catalog/models";
-import { ModelRegistry } from "@oh-my-pi/pi-coding-agent/config/model-registry";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { AgentSession } from "@oh-my-pi/pi-coding-agent/session/agent-session";
-import { AuthStorage } from "@oh-my-pi/pi-coding-agent/session/auth-storage";
-import { SessionManager } from "@oh-my-pi/pi-coding-agent/session/session-manager";
+import { Agent } from "@dude1wudv/pi-agent-core";
+import * as compactionModule from "@dude1wudv/pi-agent-core/compaction";
+import type { Message } from "@dude1wudv/pi-ai";
+import { type GeneratedProvider, getBundledModel } from "@dude1wudv/pi-catalog/models";
+import { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { AgentSession } from "@dude1wudv/pi-coding-agent/session/agent-session";
+import { AuthStorage } from "@dude1wudv/pi-coding-agent/session/auth-storage";
+import { SessionManager } from "@dude1wudv/pi-coding-agent/session/session-manager";
 
 const UNRENDERABLE_SNAPCOMPACT_TEXT = "\uE000\uE001\uE002\uE003\uE004\uE005\uE006\uE007\uE008\uE009";
 

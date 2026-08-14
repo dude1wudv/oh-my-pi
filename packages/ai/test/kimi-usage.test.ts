@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
-import type { FetchImpl } from "@oh-my-pi/pi-ai/types";
-import type { UsageFetchContext, UsageFetchParams } from "@oh-my-pi/pi-ai/usage";
-import { kimiUsageProvider } from "@oh-my-pi/pi-ai/usage/kimi";
+import type { FetchImpl } from "@dude1wudv/pi-ai/types";
+import type { UsageFetchContext, UsageFetchParams } from "@dude1wudv/pi-ai/usage";
+import { kimiUsageProvider } from "@dude1wudv/pi-ai/usage/kimi";
 
 function makeCredential(): UsageFetchParams["credential"] {
 	return {

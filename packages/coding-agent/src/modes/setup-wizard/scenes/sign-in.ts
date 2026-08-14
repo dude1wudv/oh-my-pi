@@ -1,6 +1,6 @@
-import type { AuthStorage } from "@oh-my-pi/pi-ai";
-import { PASTE_CODE_LOGIN_PROVIDERS } from "@oh-my-pi/pi-ai";
-import type { OAuthProvider } from "@oh-my-pi/pi-ai/oauth/types";
+import type { AuthStorage } from "@dude1wudv/pi-ai";
+import { PASTE_CODE_LOGIN_PROVIDERS } from "@dude1wudv/pi-ai";
+import type { OAuthProvider } from "@dude1wudv/pi-ai/oauth/types";
 import {
 	type Component,
 	type Focusable,
@@ -8,8 +8,8 @@ import {
 	matchesKey,
 	type SgrMouseEvent,
 	wrapTextWithAnsi,
-} from "@oh-my-pi/pi-tui";
-import { getAgentDbPath } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-tui";
+import { getAgentDbPath } from "@dude1wudv/pi-utils";
 import { copyToClipboard } from "../../../utils/clipboard";
 import { OAuthSelectorComponent } from "../../components/oauth-selector";
 import { theme } from "../../theme/theme";

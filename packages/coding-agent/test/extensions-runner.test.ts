@@ -5,19 +5,19 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, expectTypeOf, it, vi } from "bun:test";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { Type } from "@oh-my-pi/omptype/typebox";
-import type { AgentMessage, AgentTool } from "@oh-my-pi/pi-agent-core";
-import type { ImageContent, TextContent } from "@oh-my-pi/pi-ai";
-import { getBundledModel } from "@oh-my-pi/pi-catalog/models";
-import { ModelRegistry } from "@oh-my-pi/pi-coding-agent/config/model-registry";
-import { ExtensionRuntime, loadExtensions } from "@oh-my-pi/pi-coding-agent/extensibility/extensions/loader";
+import { Type } from "@dude1wudv/omptype/typebox";
+import type { AgentMessage, AgentTool } from "@dude1wudv/pi-agent-core";
+import type { ImageContent, TextContent } from "@dude1wudv/pi-ai";
+import { getBundledModel } from "@dude1wudv/pi-catalog/models";
+import { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry";
+import { ExtensionRuntime, loadExtensions } from "@dude1wudv/pi-coding-agent/extensibility/extensions/loader";
 import {
 	EXTENSION_HANDLER_TIMEOUT_MS,
 	ExtensionRunner,
 	SESSION_SHUTDOWN_HANDLER_TIMEOUT_MS,
 	testSetExtensionHandlerTimeoutMs,
 	testSetSessionShutdownHandlerTimeoutMs,
-} from "@oh-my-pi/pi-coding-agent/extensibility/extensions/runner";
+} from "@dude1wudv/pi-coding-agent/extensibility/extensions/runner";
 import type {
 	Extension,
 	ExtensionError,
@@ -25,11 +25,11 @@ import type {
 	ExtensionUIContext,
 	InputEvent,
 	InputEventResult,
-} from "@oh-my-pi/pi-coding-agent/extensibility/extensions/types";
-import { ExtensionToolWrapper } from "@oh-my-pi/pi-coding-agent/extensibility/extensions/wrapper";
-import { AuthStorage } from "@oh-my-pi/pi-coding-agent/session/auth-storage";
-import { SessionManager } from "@oh-my-pi/pi-coding-agent/session/session-manager";
-import { getProjectAgentDir, logger, TempDir } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-coding-agent/extensibility/extensions/types";
+import { ExtensionToolWrapper } from "@dude1wudv/pi-coding-agent/extensibility/extensions/wrapper";
+import { AuthStorage } from "@dude1wudv/pi-coding-agent/session/auth-storage";
+import { SessionManager } from "@dude1wudv/pi-coding-agent/session/session-manager";
+import { getProjectAgentDir, logger, TempDir } from "@dude1wudv/pi-utils";
 
 describe("ExtensionRunner", () => {
 	let tempDir: TempDir;

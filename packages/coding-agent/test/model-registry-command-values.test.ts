@@ -2,12 +2,12 @@ import { afterEach, beforeEach, describe, expect, test } from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { withAuth } from "@oh-my-pi/pi-ai/auth-retry";
-import type { Api, Model } from "@oh-my-pi/pi-ai/types";
-import { buildModel } from "@oh-my-pi/pi-catalog/build";
-import { ModelRegistry } from "@oh-my-pi/pi-coding-agent/config/model-registry";
-import { AuthStorage } from "@oh-my-pi/pi-coding-agent/session/auth-storage";
-import { removeSyncWithRetries, Snowflake } from "@oh-my-pi/pi-utils";
+import { withAuth } from "@dude1wudv/pi-ai/auth-retry";
+import type { Api, Model } from "@dude1wudv/pi-ai/types";
+import { buildModel } from "@dude1wudv/pi-catalog/build";
+import { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry";
+import { AuthStorage } from "@dude1wudv/pi-coding-agent/session/auth-storage";
+import { removeSyncWithRetries, Snowflake } from "@dude1wudv/pi-utils";
 
 function shellQuote(value: string): string {
 	return `'${value.replaceAll("'", "'\\''")}'`;

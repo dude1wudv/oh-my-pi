@@ -26,7 +26,7 @@ So this file documents the legacy hook subsystem implementation itself (types/lo
 A hook module must default-export a factory:
 
 ```ts
-import type { HookAPI } from "@oh-my-pi/pi-coding-agent/extensibility/hooks";
+import type { HookAPI } from "/pi-coding-agent/extensibility/hooks";
 
 export default function hook(pi: HookAPI): void {
   pi.on("tool_call", async (event, ctx) => {
@@ -258,7 +258,7 @@ Hook status text set via `ctx.ui.setStatus(key, text)` is:
 ### Block unsafe bash commands
 
 ```ts
-import type { HookAPI } from "@oh-my-pi/pi-coding-agent/extensibility/hooks";
+import type { HookAPI } from "/pi-coding-agent/extensibility/hooks";
 
 export default function (pi: HookAPI): void {
   pi.on("tool_call", async (event, ctx) => {
@@ -276,7 +276,7 @@ export default function (pi: HookAPI): void {
 ### Redact tool output on post-execution
 
 ```ts
-import type { HookAPI } from "@oh-my-pi/pi-coding-agent/extensibility/hooks";
+import type { HookAPI } from "/pi-coding-agent/extensibility/hooks";
 
 export default function (pi: HookAPI): void {
   pi.on("tool_result", async (event) => {
@@ -298,7 +298,7 @@ export default function (pi: HookAPI): void {
 ### Modify model context per LLM call
 
 ```ts
-import type { HookAPI } from "@oh-my-pi/pi-coding-agent/extensibility/hooks";
+import type { HookAPI } from "/pi-coding-agent/extensibility/hooks";
 
 export default function (pi: HookAPI): void {
   pi.on("context", async (event) => {
@@ -313,7 +313,7 @@ export default function (pi: HookAPI): void {
 ### Register slash command with command-safe context methods
 
 ```ts
-import type { HookAPI } from "@oh-my-pi/pi-coding-agent/extensibility/hooks";
+import type { HookAPI } from "/pi-coding-agent/extensibility/hooks";
 
 export default function (pi: HookAPI): void {
   pi.registerCommand("handoff", {
@@ -339,11 +339,11 @@ export default function (pi: HookAPI): void {
 
 ## Export surface
 
-`packages/coding-agent/src/extensibility/hooks/index.ts` and the package subpath `@oh-my-pi/pi-coding-agent/extensibility/hooks` export:
+`packages/coding-agent/src/extensibility/hooks/index.ts` and the package subpath `/pi-coding-agent/extensibility/hooks` export:
 
 - loading APIs (`discoverAndLoadHooks`, `loadHooks`)
 - runner and wrapper (`HookRunner`, `HookToolWrapper`)
 - all hook types
 - `execCommand` re-export
 
-The package root (`@oh-my-pi/pi-coding-agent`) does not re-export `HookAPI`; import legacy hook types from the hooks subpath.
+The package root (`/pi-coding-agent`) does not re-export `HookAPI`; import legacy hook types from the hooks subpath.

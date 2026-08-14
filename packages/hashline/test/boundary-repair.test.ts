@@ -1,5 +1,5 @@
 import { describe, expect, it } from "bun:test";
-import { applyEdits, InMemorySnapshotStore, parsePatch, Recovery } from "@oh-my-pi/hashline";
+import { applyEdits, InMemorySnapshotStore, parsePatch, Recovery } from "@dude1wudv/hashline";
 
 /**
  * Applies with a code path, so the tree-sitter probe can judge whether an

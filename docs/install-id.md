@@ -4,7 +4,7 @@ A persistent per-install UUID shared across sessions and profiles. It supplies a
 
 ## API
 
-Exported from `@oh-my-pi/pi-utils` (`packages/utils/src/dirs.ts`):
+Exported from `/pi-utils` (`packages/utils/src/dirs.ts`):
 
 | Symbol                                  | Purpose                                                                                                                           |
 | --------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------- |

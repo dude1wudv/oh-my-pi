@@ -2,33 +2,33 @@ import { afterEach, describe, expect, it, spyOn, vi } from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import type { Model } from "@oh-my-pi/pi-ai";
-import { buildModel } from "@oh-my-pi/pi-catalog/build";
-import { resetSettingsForTest, Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { resolveLocalUrlToPath } from "@oh-my-pi/pi-coding-agent/internal-urls";
+import type { Model } from "@dude1wudv/pi-ai";
+import { buildModel } from "@dude1wudv/pi-catalog/build";
+import { resetSettingsForTest, Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { resolveLocalUrlToPath } from "@dude1wudv/pi-coding-agent/internal-urls";
 import {
 	ACP_BOOTSTRAP_RACE_GUARD_MS,
 	AcpAgent,
 	createAcpExtensionUiContext,
-} from "@oh-my-pi/pi-coding-agent/modes/acp/acp-agent";
-import type { PlanModeState } from "@oh-my-pi/pi-coding-agent/plan-mode/state";
+} from "@dude1wudv/pi-coding-agent/modes/acp/acp-agent";
+import type { PlanModeState } from "@dude1wudv/pi-coding-agent/plan-mode/state";
 import type {
 	AgentSession,
 	AgentSessionEvent,
 	UsageFallbackConfirmation,
-} from "@oh-my-pi/pi-coding-agent/session/agent-session";
-import { SILENT_ABORT_MARKER } from "@oh-my-pi/pi-coding-agent/session/messages";
-import { SessionManager } from "@oh-my-pi/pi-coding-agent/session/session-manager";
-import { DEFAULT_STT_MODEL_KEY, STT_MODEL_OPTIONS } from "@oh-my-pi/pi-coding-agent/stt/models";
-import { TaskTool } from "@oh-my-pi/pi-coding-agent/task";
-import type { ToolSession } from "@oh-my-pi/pi-coding-agent/tools";
+} from "@dude1wudv/pi-coding-agent/session/agent-session";
+import { SILENT_ABORT_MARKER } from "@dude1wudv/pi-coding-agent/session/messages";
+import { SessionManager } from "@dude1wudv/pi-coding-agent/session/session-manager";
+import { DEFAULT_STT_MODEL_KEY, STT_MODEL_OPTIONS } from "@dude1wudv/pi-coding-agent/stt/models";
+import { TaskTool } from "@dude1wudv/pi-coding-agent/task";
+import type { ToolSession } from "@dude1wudv/pi-coding-agent/tools";
 import {
 	DEFAULT_TTS_LOCAL_MODEL_KEY,
 	DEFAULT_TTS_VOICE,
 	TTS_LOCAL_MODELS,
 	TTS_LOCAL_VOICE_OPTIONS,
-} from "@oh-my-pi/pi-coding-agent/tts/models";
-import { getConfigRootDir, setAgentDir } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-coding-agent/tts/models";
+import { getConfigRootDir, setAgentDir } from "@dude1wudv/pi-utils";
 import type {
 	AgentSideConnection,
 	ClientCapabilities,
@@ -37,14 +37,14 @@ import type {
 	PromptRequest,
 	SessionNotification,
 	Validator,
-} from "@oh-my-pi/pi-utils/acp";
+} from "@dude1wudv/pi-utils/acp";
 import {
 	zForkSessionResponse,
 	zLoadSessionResponse,
 	zNewSessionResponse,
 	zPromptResponse,
 	zSessionNotification,
-} from "@oh-my-pi/pi-utils/acp";
+} from "@dude1wudv/pi-utils/acp";
 import { TOOL_NAME as DELAYED_MCP_TOOL_NAME } from "./fixtures/delayed-tool-mcp";
 
 /** Validates an ACP wire payload against the in-house protocol schemas. */

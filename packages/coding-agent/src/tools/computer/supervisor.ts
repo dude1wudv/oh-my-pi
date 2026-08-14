@@ -1,8 +1,8 @@
-import type { DesktopCapabilities } from "@oh-my-pi/pi-natives";
-import { withTimeout } from "@oh-my-pi/pi-utils/async";
-import * as logger from "@oh-my-pi/pi-utils/logger";
-import { Snowflake } from "@oh-my-pi/pi-utils/snowflake";
-import { workerHostEntry } from "@oh-my-pi/pi-utils/worker-host";
+import type { DesktopCapabilities } from "@dude1wudv/pi-natives";
+import { withTimeout } from "@dude1wudv/pi-utils/async";
+import * as logger from "@dude1wudv/pi-utils/logger";
+import { Snowflake } from "@dude1wudv/pi-utils/snowflake";
+import { workerHostEntry } from "@dude1wudv/pi-utils/worker-host";
 import type { ToolSession } from "../index";
 import { ToolAbortError, ToolError } from "../tool-errors";
 import {

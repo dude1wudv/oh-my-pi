@@ -1,8 +1,8 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import type { AgentToolResult } from "@oh-my-pi/pi-agent-core";
-import type { AssistantMessage, Model } from "@oh-my-pi/pi-ai";
-import { getBlobsDir, isEnoent, logger, type postmortem, VERSION } from "@oh-my-pi/pi-utils";
+import type { AgentToolResult } from "@dude1wudv/pi-agent-core";
+import type { AssistantMessage, Model } from "@dude1wudv/pi-ai";
+import { getBlobsDir, isEnoent, logger, type postmortem, VERSION } from "@dude1wudv/pi-utils";
 import {
 	type Agent,
 	type AgentSideConnection,
@@ -42,7 +42,7 @@ import {
 	type SetSessionModeRequest,
 	type SetSessionModeResponse,
 	type Usage,
-} from "@oh-my-pi/pi-utils/acp";
+} from "@dude1wudv/pi-utils/acp";
 import { disableProvider, enableProvider, reset as resetCapabilities } from "../../capability";
 import { Settings } from "../../config/settings";
 import { clearPluginRootsAndCaches, resolveActiveProjectRegistryPath } from "../../discovery/helpers";
@@ -66,6 +66,7 @@ import {
 	type PlanApprovalDetails,
 	resolveApprovedPlan,
 } from "../../plan-mode/approved-plan";
+import { PROJECT_PLAN_ENTRY_TYPE } from "../../plan-mode/state";
 import type { AgentSession, AgentSessionEvent } from "../../session/agent-session";
 import { BlobStore, resolveImageDataSync } from "../../session/blob-store";
 import { isSilentAbort, SKILL_PROMPT_MESSAGE_TYPE, USER_INTERRUPT_LABEL } from "../../session/messages";
@@ -1736,10 +1737,15 @@ export class AcpAgent implements Agent {
 			planContent,
 			title: resolvedTitle,
 		});
+		session.sessionManager.appendCustomEntry(PROJECT_PLAN_ENTRY_TYPE, {
+			path: projectPlan.projectPlanPath,
+			planId: projectPlan.planId,
+		});
 		session.setPlanReferencePath(planFilePath);
 		session.setPlanProposalHandler?.(null);
 		session.setPlanModeState(undefined);
 		session.setProjectPlanPath(projectPlan.projectPlanPath);
+		await session.setActiveToolsByName([...new Set([...session.getEnabledToolNames(), "project_plan"])]);
 		try {
 			await this.#connection.sessionUpdate({
 				sessionId: session.sessionId,

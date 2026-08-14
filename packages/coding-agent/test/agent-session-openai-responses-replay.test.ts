@@ -9,17 +9,17 @@ import type {
 	ProviderSessionState,
 	ToolResultMessage,
 	Usage,
-} from "@oh-my-pi/pi-ai/types";
-import { createOpenAIResponsesHistoryPayload } from "@oh-my-pi/pi-ai/utils";
-import { getBundledModel } from "@oh-my-pi/pi-catalog/models";
-import { ModelRegistry } from "@oh-my-pi/pi-coding-agent/config/model-registry";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { createAgentSession } from "@oh-my-pi/pi-coding-agent/sdk";
-import type { AgentSession } from "@oh-my-pi/pi-coding-agent/session/agent-session";
-import { AuthStorage } from "@oh-my-pi/pi-coding-agent/session/auth-storage";
-import type { SessionEntry, SessionMessageEntry } from "@oh-my-pi/pi-coding-agent/session/session-entries";
-import { SessionManager } from "@oh-my-pi/pi-coding-agent/session/session-manager";
-import { removeSyncWithRetries, Snowflake } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-ai/types";
+import { createOpenAIResponsesHistoryPayload } from "@dude1wudv/pi-ai/utils";
+import { getBundledModel } from "@dude1wudv/pi-catalog/models";
+import { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { createAgentSession } from "@dude1wudv/pi-coding-agent/sdk";
+import type { AgentSession } from "@dude1wudv/pi-coding-agent/session/agent-session";
+import { AuthStorage } from "@dude1wudv/pi-coding-agent/session/auth-storage";
+import type { SessionEntry, SessionMessageEntry } from "@dude1wudv/pi-coding-agent/session/session-entries";
+import { SessionManager } from "@dude1wudv/pi-coding-agent/session/session-manager";
+import { removeSyncWithRetries, Snowflake } from "@dude1wudv/pi-utils";
 
 function createUsage(): Usage {
 	return {

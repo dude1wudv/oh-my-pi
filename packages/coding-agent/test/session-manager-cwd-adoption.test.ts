@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it } from "bun:test";
 import * as path from "node:path";
-import { SessionManager } from "@oh-my-pi/pi-coding-agent/session/session-manager";
-import { FileSessionStorage } from "@oh-my-pi/pi-coding-agent/session/session-storage";
-import { removeWithRetries, TempDir } from "@oh-my-pi/pi-utils";
+import { SessionManager } from "@dude1wudv/pi-coding-agent/session/session-manager";
+import { FileSessionStorage } from "@dude1wudv/pi-coding-agent/session/session-storage";
+import { removeWithRetries, TempDir } from "@dude1wudv/pi-utils";
 
 const tempDirs: TempDir[] = [];
 

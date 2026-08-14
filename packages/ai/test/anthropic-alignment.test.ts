@@ -3,8 +3,8 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import * as tls from "node:tls";
-import { type as arkType } from "@oh-my-pi/omptype";
-import { Effort } from "@oh-my-pi/pi-ai";
+import { type as arkType } from "@dude1wudv/omptype";
+import { Effort } from "@dude1wudv/pi-ai";
 import {
 	applyClaudeToolPrefix,
 	buildAnthropicClientOptions,
@@ -17,10 +17,10 @@ import {
 	mapStainlessArch,
 	streamAnthropic,
 	stripClaudeToolPrefix,
-} from "@oh-my-pi/pi-ai/providers/anthropic";
-import type { MessageCreateParams } from "@oh-my-pi/pi-ai/providers/anthropic-wire";
-import { claudeCodeVersion } from "@oh-my-pi/pi-ai/providers/claude-code-fingerprint";
-import { getEnvApiKey, streamSimple } from "@oh-my-pi/pi-ai/stream";
+} from "@dude1wudv/pi-ai/providers/anthropic";
+import type { MessageCreateParams } from "@dude1wudv/pi-ai/providers/anthropic-wire";
+import { claudeCodeVersion } from "@dude1wudv/pi-ai/providers/claude-code-fingerprint";
+import { getEnvApiKey, streamSimple } from "@dude1wudv/pi-ai/stream";
 import type {
 	AssistantMessage,
 	Context,
@@ -29,9 +29,9 @@ import type {
 	TJsonSchema,
 	TokenTaskBudget,
 	Tool,
-} from "@oh-my-pi/pi-ai/types";
-import { buildModel } from "@oh-my-pi/pi-catalog/build";
-import { removeSyncWithRetries } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-ai/types";
+import { buildModel } from "@dude1wudv/pi-catalog/build";
+import { removeSyncWithRetries } from "@dude1wudv/pi-utils";
 import { withEnv } from "./helpers";
 
 const ANTHROPIC_MODEL_SPEC: ModelSpec<"anthropic-messages"> = {

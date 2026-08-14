@@ -1,14 +1,14 @@
 import { afterEach, describe, expect, it, vi } from "bun:test";
-import type { ModelRegistry } from "@oh-my-pi/pi-coding-agent/config/model-registry";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import type { LoadExtensionsResult } from "@oh-my-pi/pi-coding-agent/extensibility/extensions/types";
-import { AgentRegistry } from "@oh-my-pi/pi-coding-agent/registry/agent-registry";
-import type { CreateAgentSessionOptions, CreateAgentSessionResult } from "@oh-my-pi/pi-coding-agent/sdk";
-import * as sdkModule from "@oh-my-pi/pi-coding-agent/sdk";
-import type { AgentSession, AgentSessionEvent, PromptOptions } from "@oh-my-pi/pi-coding-agent/session/agent-session";
-import { runSubprocess } from "@oh-my-pi/pi-coding-agent/task/executor";
-import type { AgentDefinition } from "@oh-my-pi/pi-coding-agent/task/types";
-import { EventBus } from "@oh-my-pi/pi-coding-agent/utils/event-bus";
+import type { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import type { LoadExtensionsResult } from "@dude1wudv/pi-coding-agent/extensibility/extensions/types";
+import { AgentRegistry } from "@dude1wudv/pi-coding-agent/registry/agent-registry";
+import type { CreateAgentSessionOptions, CreateAgentSessionResult } from "@dude1wudv/pi-coding-agent/sdk";
+import * as sdkModule from "@dude1wudv/pi-coding-agent/sdk";
+import type { AgentSession, AgentSessionEvent, PromptOptions } from "@dude1wudv/pi-coding-agent/session/agent-session";
+import { runSubprocess } from "@dude1wudv/pi-coding-agent/task/executor";
+import type { AgentDefinition } from "@dude1wudv/pi-coding-agent/task/types";
+import { EventBus } from "@dude1wudv/pi-coding-agent/utils/event-bus";
 
 /**
  * Contract: when `task.maxRuntimeMs` is set, a subagent whose inference call
@@ -108,6 +108,7 @@ describe("runSubprocess wall clock (task.maxRuntimeMs)", () => {
 		const elapsedMs = Date.now() - startedAt;
 
 		expect(result.aborted).toBe(true);
+		expect(result.timedOut).toBe(true);
 		expect(result.exitCode).toBe(1);
 		expect(result.abortReason).toContain("runtime limit exceeded");
 		expect(result.abortReason).toContain("task.maxRuntimeMs=50");
@@ -162,6 +163,7 @@ describe("runSubprocess wall clock (task.maxRuntimeMs)", () => {
 		});
 
 		expect(result.aborted).toBe(false);
+		expect(result.timedOut).toBeUndefined();
 		expect(result.abortReason).toBeUndefined();
 	});
 

@@ -36,8 +36,8 @@
  * `completeSimple`) re-sample it a few times and then let a stubborn loop cook
  * through one unguarded pass. Disable detection with `PI_NO_THINKING_LOOP_GUARD=1`.
  */
-import { modelFamilyToken } from "@oh-my-pi/pi-catalog/identity";
-import { logger } from "@oh-my-pi/pi-utils";
+import { modelFamilyToken } from "@dude1wudv/pi-catalog/identity";
+import { logger } from "@dude1wudv/pi-utils";
 import * as AIError from "../error";
 import type { Api, AssistantMessage, Model, StreamOptions } from "../types";
 import { AssistantMessageEventStream } from "./event-stream";

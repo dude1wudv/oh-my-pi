@@ -11,17 +11,17 @@ import {
 	type OAuthAccess,
 	withAuth,
 	withOAuthAccess,
-} from "@oh-my-pi/pi-ai";
-import { resolveCodexResponsesUrl } from "@oh-my-pi/pi-ai/providers/openai-codex-responses";
-import { getBundledModels } from "@oh-my-pi/pi-catalog/models";
+} from "@dude1wudv/pi-ai";
+import { resolveCodexResponsesUrl } from "@dude1wudv/pi-ai/providers/openai-codex-responses";
+import { getBundledModels } from "@dude1wudv/pi-catalog/models";
 import {
 	CODEX_BASE_URL,
 	CODEX_CLIENT_VERSION,
 	getCodexAccountId,
 	OPENAI_HEADER_VALUES,
 	OPENAI_HEADERS,
-} from "@oh-my-pi/pi-catalog/wire/codex";
-import { $env, readSseJson, USER_AGENT } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-catalog/wire/codex";
+import { $env, readSseJson, USER_AGENT } from "@dude1wudv/pi-utils";
 import type { ModelRegistry } from "../../../config/model-registry";
 import type { SearchResponse, SearchSource } from "../../../web/search/types";
 import { SearchProviderError } from "../../../web/search/types";

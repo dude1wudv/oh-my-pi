@@ -1,4 +1,4 @@
-import { type } from "@oh-my-pi/omptype";
+import { type } from "@dude1wudv/omptype";
 import { parseKnownModel, semverEqual } from "../identity/classify";
 import type { FetchImpl, ModelSpec } from "../types";
 import { discoveryFetch } from "../utils";

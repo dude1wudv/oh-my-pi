@@ -2,24 +2,24 @@ import { afterEach, describe, expect, it, vi } from "bun:test";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import path from "node:path";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
 import {
 	artifactsDirsFromRegistry,
 	resetRegisteredArtifactDirsForTests,
-} from "@oh-my-pi/pi-coding-agent/internal-urls/registry-helpers";
-import * as planHandoff from "@oh-my-pi/pi-coding-agent/plan-mode/plan-handoff";
-import * as discoveryModule from "@oh-my-pi/pi-coding-agent/task/discovery";
-import * as executorModule from "@oh-my-pi/pi-coding-agent/task/executor";
-import * as isolationRunner from "@oh-my-pi/pi-coding-agent/task/isolation-runner";
+} from "@dude1wudv/pi-coding-agent/internal-urls/registry-helpers";
+import * as planHandoff from "@dude1wudv/pi-coding-agent/plan-mode/plan-handoff";
+import * as discoveryModule from "@dude1wudv/pi-coding-agent/task/discovery";
+import * as executorModule from "@dude1wudv/pi-coding-agent/task/executor";
+import * as isolationRunner from "@dude1wudv/pi-coding-agent/task/isolation-runner";
 import {
 	buildStructuredSubagentRecoveryHint,
 	resolveEffectiveSubagentPolicy,
 	runStructuredSubagent,
 	StructuredSubagentError,
 	type StructuredSubagentRequest,
-} from "@oh-my-pi/pi-coding-agent/task/structured-subagent";
-import type { AgentDefinition, SingleResult } from "@oh-my-pi/pi-coding-agent/task/types";
-import type { ToolSession } from "@oh-my-pi/pi-coding-agent/tools";
+} from "@dude1wudv/pi-coding-agent/task/structured-subagent";
+import type { AgentDefinition, SingleResult } from "@dude1wudv/pi-coding-agent/task/types";
+import type { ToolSession } from "@dude1wudv/pi-coding-agent/tools";
 
 const AGENT: AgentDefinition = {
 	name: "worker",

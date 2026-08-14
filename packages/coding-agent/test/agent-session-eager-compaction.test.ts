@@ -1,20 +1,20 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "bun:test";
 import * as path from "node:path";
-import { type } from "@oh-my-pi/omptype";
-import { Agent, type AgentMessage, type AgentTool } from "@oh-my-pi/pi-agent-core";
-import * as compactionModule from "@oh-my-pi/pi-agent-core/compaction";
-import type { Model, TextContent } from "@oh-my-pi/pi-ai";
-import * as codexResponses from "@oh-my-pi/pi-ai/providers/openai-codex-responses";
-import { AssistantMessageEventStream } from "@oh-my-pi/pi-ai/utils/event-stream";
-import { getBundledModel } from "@oh-my-pi/pi-catalog/models";
-import { ModelRegistry } from "@oh-my-pi/pi-coding-agent/config/model-registry";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { AgentSession } from "@oh-my-pi/pi-coding-agent/session/agent-session";
-import { AuthStorage } from "@oh-my-pi/pi-coding-agent/session/auth-storage";
-import { convertToLlm } from "@oh-my-pi/pi-coding-agent/session/messages";
-import { SessionManager } from "@oh-my-pi/pi-coding-agent/session/session-manager";
-import { TodoTool, type ToolSession, USER_TODO_EDIT_CUSTOM_TYPE } from "@oh-my-pi/pi-coding-agent/tools";
-import { TempDir } from "@oh-my-pi/pi-utils";
+import { type } from "@dude1wudv/omptype";
+import { Agent, type AgentMessage, type AgentTool } from "@dude1wudv/pi-agent-core";
+import * as compactionModule from "@dude1wudv/pi-agent-core/compaction";
+import type { Model, TextContent } from "@dude1wudv/pi-ai";
+import * as codexResponses from "@dude1wudv/pi-ai/providers/openai-codex-responses";
+import { AssistantMessageEventStream } from "@dude1wudv/pi-ai/utils/event-stream";
+import { getBundledModel } from "@dude1wudv/pi-catalog/models";
+import { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { AgentSession } from "@dude1wudv/pi-coding-agent/session/agent-session";
+import { AuthStorage } from "@dude1wudv/pi-coding-agent/session/auth-storage";
+import { convertToLlm } from "@dude1wudv/pi-coding-agent/session/messages";
+import { SessionManager } from "@dude1wudv/pi-coding-agent/session/session-manager";
+import { TodoTool, type ToolSession, USER_TODO_EDIT_CUSTOM_TYPE } from "@dude1wudv/pi-coding-agent/tools";
+import { TempDir } from "@dude1wudv/pi-utils";
 
 // Re-injecting eager preludes after compaction: the first-message preludes are the
 // oldest messages, so compaction summarizes them away and the agent silently loses

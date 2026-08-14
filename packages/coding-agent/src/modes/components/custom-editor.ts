@@ -1,5 +1,5 @@
 import { fileURLToPath } from "node:url";
-import type { ImageContent } from "@oh-my-pi/pi-ai";
+import type { ImageContent } from "@dude1wudv/pi-ai";
 import {
 	addKeyAliases,
 	canonicalKeyId,
@@ -9,8 +9,8 @@ import {
 	parseKey,
 	parseKittySequence,
 	TUI,
-} from "@oh-my-pi/pi-tui";
-import { BracketedPasteHandler } from "@oh-my-pi/pi-tui/bracketed-paste";
+} from "@dude1wudv/pi-tui";
+import { BracketedPasteHandler } from "@dude1wudv/pi-tui/bracketed-paste";
 import type { AppKeybinding } from "../../config/keybindings";
 import { isSettingsInitialized, settings } from "../../config/settings";
 import { imageReferenceHyperlink, PLACEHOLDER_REGEX, renderPlaceholders } from "../image-references";

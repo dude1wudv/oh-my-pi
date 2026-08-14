@@ -1,4 +1,4 @@
-import { isRecord, ptree } from "@oh-my-pi/pi-utils";
+import { isRecord, ptree } from "@dude1wudv/pi-utils";
 
 export { isRecord };
 

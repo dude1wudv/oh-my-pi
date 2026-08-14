@@ -6,8 +6,8 @@ import {
 	chromiumExecutableProbeForTest,
 	stealthIgnoreDefaultArgsForTest,
 	systemChromiumCandidatesForTest,
-} from "@oh-my-pi/pi-coding-agent/tools/browser/launch";
-import { TempDir } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-coding-agent/tools/browser/launch";
+import { TempDir } from "@dude1wudv/pi-utils";
 
 const EXECUTABLE_PROBE = path.resolve(import.meta.dir, "../fixtures/browser-executable-probe.ts");
 

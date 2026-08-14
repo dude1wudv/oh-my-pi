@@ -7,13 +7,13 @@ import { afterEach, beforeEach, describe, expect, test, vi } from "bun:test";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import type { InteractiveModeContext } from "@oh-my-pi/pi-coding-agent/modes/types";
-import { executeBuiltinSlashCommand } from "@oh-my-pi/pi-coding-agent/slash-commands/builtin-registry";
-import type { TuiSlashCommandRuntime } from "@oh-my-pi/pi-coding-agent/slash-commands/types";
-import { TaskTool } from "@oh-my-pi/pi-coding-agent/task";
-import type { ToolSession } from "@oh-my-pi/pi-coding-agent/tools";
-import { getProjectDir, removeWithRetries, setProjectDir } from "@oh-my-pi/pi-utils";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import type { InteractiveModeContext } from "@dude1wudv/pi-coding-agent/modes/types";
+import { executeBuiltinSlashCommand } from "@dude1wudv/pi-coding-agent/slash-commands/builtin-registry";
+import type { TuiSlashCommandRuntime } from "@dude1wudv/pi-coding-agent/slash-commands/types";
+import { TaskTool } from "@dude1wudv/pi-coding-agent/task";
+import type { ToolSession } from "@dude1wudv/pi-coding-agent/tools";
+import { getProjectDir, removeWithRetries, setProjectDir } from "@dude1wudv/pi-utils";
 
 const originalProjectDir = getProjectDir();
 

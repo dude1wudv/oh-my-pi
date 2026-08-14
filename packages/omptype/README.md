@@ -1,4 +1,4 @@
-# @oh-my-pi/omptype
+# @dude1wudv/omptype
 
 Fast, ArkType-compatible schema validation for JavaScript and TypeScript.
 Schemas start with a small interpreter and lazily compile after repeated use,
@@ -7,9 +7,9 @@ keeping construction cheap without giving up hot-path validation speed.
 ## Installation
 
 ```sh
-npm install @oh-my-pi/omptype
+npm install @dude1wudv/omptype
 # or
-bun add @oh-my-pi/omptype
+bun add @dude1wudv/omptype
 ```
 
 Runs on Node 20+ (published as compiled ESM with bundled type declarations)
@@ -19,7 +19,7 @@ export condition). No runtime dependencies.
 ## Usage
 
 ```ts
-import { type } from "@oh-my-pi/omptype";
+import { type } from "@dude1wudv/omptype";
 
 const Config = type({
   name: "string",
@@ -74,8 +74,8 @@ options.
 TypeBox-style and Zod-style builders produce native omptype schemas:
 
 ```ts
-import { Type, type Static } from "@oh-my-pi/omptype/typebox";
-import { z } from "@oh-my-pi/omptype/zod";
+import { Type, type Static } from "@dude1wudv/omptype/typebox";
+import { z } from "@dude1wudv/omptype/zod";
 
 const TypeBoxUser = Type.Object({ name: Type.String() });
 type TypeBoxUser = Static<typeof TypeBoxUser>;
@@ -84,7 +84,7 @@ const ZodUser = z.object({ name: z.string() });
 const user = ZodUser.parse({ name: "Ada" });
 ```
 
-`@oh-my-pi/omptype/ark` provides the repository's ArkType compatibility facade
+`@dude1wudv/omptype/ark` provides the repository's ArkType compatibility facade
 and re-exports the same `type` and `scope` implementations.
 
 ## Performance

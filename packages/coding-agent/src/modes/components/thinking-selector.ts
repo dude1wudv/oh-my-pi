@@ -1,5 +1,5 @@
-import type { Effort } from "@oh-my-pi/pi-ai";
-import { Container, type SelectItem, SelectList, type SgrMouseEvent } from "@oh-my-pi/pi-tui";
+import type { Effort } from "@dude1wudv/pi-ai";
+import { Container, type SelectItem, SelectList, type SgrMouseEvent } from "@dude1wudv/pi-tui";
 import { getSelectListTheme } from "../../modes/theme/theme";
 import { getThinkingLevelMetadata } from "../../thinking";
 import { DynamicBorder } from "./dynamic-border";

@@ -1,4 +1,4 @@
-import type { ResolvedThinkingLevel } from "@oh-my-pi/pi-agent-core";
+import type { ResolvedThinkingLevel } from "@dude1wudv/pi-agent-core";
 import type {
 	Api,
 	ApiKeyResolver,
@@ -12,12 +12,12 @@ import type {
 	ServiceTier,
 	ServiceTierByFamily,
 	SimpleStreamOptions,
-} from "@oh-my-pi/pi-ai";
-import { resolveModelServiceTier, streamSimple } from "@oh-my-pi/pi-ai";
-import { buildModelProviderPriorityRank } from "@oh-my-pi/pi-catalog/identity";
-import { replaceTabs, truncateToWidth } from "@oh-my-pi/pi-tui";
-import { formatDuration, getProjectDir, prompt } from "@oh-my-pi/pi-utils";
-import chalk from "@oh-my-pi/pi-utils/chalk";
+} from "@dude1wudv/pi-ai";
+import { resolveModelServiceTier, streamSimple } from "@dude1wudv/pi-ai";
+import { buildModelProviderPriorityRank } from "@dude1wudv/pi-catalog/identity";
+import { replaceTabs, truncateToWidth } from "@dude1wudv/pi-tui";
+import { formatDuration, getProjectDir, prompt } from "@dude1wudv/pi-utils";
+import chalk from "@dude1wudv/pi-utils/chalk";
 import type { ApiKeyResolverModel } from "../config/api-key-resolver";
 import { ModelRegistry } from "../config/model-registry";
 import {

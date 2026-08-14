@@ -2,9 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, spyOn } from "bun:test";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
-import { computeFileHash } from "@oh-my-pi/hashline";
-import type { AgentToolResult } from "@oh-my-pi/pi-agent-core";
-import { resetSettingsForTest, Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
+import { computeFileHash } from "@dude1wudv/hashline";
+import type { AgentToolResult } from "@dude1wudv/pi-agent-core";
+import { resetSettingsForTest, Settings } from "@dude1wudv/pi-coding-agent/config/settings";
 import {
 	DEFAULT_FUZZY_THRESHOLD,
 	type EditToolDetails,
@@ -12,14 +12,14 @@ import {
 	executePatchSingle,
 	executeReplace,
 	type hashlineEditParamsSchema,
-} from "@oh-my-pi/pi-coding-agent/edit";
-import { HashlineFilesystem } from "@oh-my-pi/pi-coding-agent/edit/hashline/filesystem";
-import { resolveLocalUrlToPath } from "@oh-my-pi/pi-coding-agent/internal-urls";
-import type { WritethroughCallback } from "@oh-my-pi/pi-coding-agent/lsp";
-import type { PlanModeState } from "@oh-my-pi/pi-coding-agent/plan-mode/state";
-import type { ClientBridge } from "@oh-my-pi/pi-coding-agent/session/client-bridge";
-import type { ToolSession } from "@oh-my-pi/pi-coding-agent/tools";
-import { removeWithRetries } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-coding-agent/edit";
+import { HashlineFilesystem } from "@dude1wudv/pi-coding-agent/edit/hashline/filesystem";
+import { resolveLocalUrlToPath } from "@dude1wudv/pi-coding-agent/internal-urls";
+import type { WritethroughCallback } from "@dude1wudv/pi-coding-agent/lsp";
+import type { PlanModeState } from "@dude1wudv/pi-coding-agent/plan-mode/state";
+import type { ClientBridge } from "@dude1wudv/pi-coding-agent/session/client-bridge";
+import type { ToolSession } from "@dude1wudv/pi-coding-agent/tools";
+import { removeWithRetries } from "@dude1wudv/pi-utils";
 
 // ─── Shared helpers ───────────────────────────────────────────────────────────
 

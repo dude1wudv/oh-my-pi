@@ -6,8 +6,8 @@
  * lifecycle hook dispatch.
  */
 import { afterAll, afterEach, beforeAll, describe, expect, it } from "bun:test";
-import { type } from "@oh-my-pi/omptype";
-import { agentLoop } from "@oh-my-pi/pi-agent-core/agent-loop";
+import { type } from "@dude1wudv/omptype";
+import { agentLoop } from "@dude1wudv/pi-agent-core/agent-loop";
 import {
 	type AgentTelemetryConfig,
 	type ChatUsageEvent,
@@ -21,11 +21,11 @@ import {
 	recordManualChatTelemetry,
 	resolveTelemetry,
 	type TelemetryHookContext,
-} from "@oh-my-pi/pi-agent-core/telemetry";
-import type { AgentContext, AgentEvent, AgentLoopConfig, AgentMessage, AgentTool } from "@oh-my-pi/pi-agent-core/types";
-import type { Message } from "@oh-my-pi/pi-ai";
-import { createMockModel } from "@oh-my-pi/pi-ai/providers/mock";
-import type { EventStream } from "@oh-my-pi/pi-ai/utils/event-stream";
+} from "@dude1wudv/pi-agent-core/telemetry";
+import type { AgentContext, AgentEvent, AgentLoopConfig, AgentMessage, AgentTool } from "@dude1wudv/pi-agent-core/types";
+import type { Message } from "@dude1wudv/pi-ai";
+import { createMockModel } from "@dude1wudv/pi-ai/providers/mock";
+import type { EventStream } from "@dude1wudv/pi-ai/utils/event-stream";
 import { context, SpanStatusCode, trace } from "@opentelemetry/api";
 import { AsyncLocalStorageContextManager } from "@opentelemetry/context-async-hooks";
 import {

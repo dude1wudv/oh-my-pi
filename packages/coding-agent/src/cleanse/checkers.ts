@@ -1,6 +1,6 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { $which, isRecord, ptree, sanitizeText } from "@oh-my-pi/pi-utils";
+import { $which, isRecord, ptree, sanitizeText } from "@dude1wudv/pi-utils";
 import * as git from "../utils/git";
 import { CLEANSE_PARSER_KINDS, type CleanseParserKind, parseCleanseDiagnostics } from "./parsers";
 import type { CleanseCheckResult, CleanseDiagnostic, CleanseDiagnosticReport, SkippedCleanseCheck } from "./types";

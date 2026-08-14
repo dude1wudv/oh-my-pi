@@ -7,9 +7,9 @@ import type {
 	AgentToolResult,
 	AgentToolUpdateCallback,
 	ToolLoadMode,
-} from "@oh-my-pi/pi-agent-core";
-import type { ComputerSafetyCheck, ImageContent, Static, TextContent, TSchema } from "@oh-my-pi/pi-ai";
-import { sanitizeText, untilAborted } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-agent-core";
+import type { ComputerSafetyCheck, ImageContent, Static, TextContent, TSchema } from "@dude1wudv/pi-ai";
+import { sanitizeText, untilAborted } from "@dude1wudv/pi-utils";
 import type { Settings } from "../../config/settings";
 import type { Theme } from "../../modes/theme/theme";
 import { type ApprovalMode, formatApprovalPrompt, resolveApproval, truncateForPrompt } from "../../tools/approval";

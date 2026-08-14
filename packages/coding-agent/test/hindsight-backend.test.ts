@@ -8,12 +8,12 @@
  */
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
-import type { AgentMessage } from "@oh-my-pi/pi-agent-core";
-import { resetSettingsForTest, Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { hindsightBackend, reloadMentalModelsForSession } from "@oh-my-pi/pi-coding-agent/hindsight/backend";
-import { HindsightApi } from "@oh-my-pi/pi-coding-agent/hindsight/client";
-import type { HindsightSessionState } from "@oh-my-pi/pi-coding-agent/hindsight/state";
-import type { AgentSessionEventListener } from "@oh-my-pi/pi-coding-agent/session/agent-session";
+import type { AgentMessage } from "@dude1wudv/pi-agent-core";
+import { resetSettingsForTest, Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { hindsightBackend, reloadMentalModelsForSession } from "@dude1wudv/pi-coding-agent/hindsight/backend";
+import { HindsightApi } from "@dude1wudv/pi-coding-agent/hindsight/client";
+import type { HindsightSessionState } from "@dude1wudv/pi-coding-agent/hindsight/state";
+import type { AgentSessionEventListener } from "@dude1wudv/pi-coding-agent/session/agent-session";
 
 interface FakeSessionDeps {
 	sessionId: string | null;

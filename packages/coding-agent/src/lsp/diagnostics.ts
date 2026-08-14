@@ -1,6 +1,6 @@
 import * as fs from "node:fs";
 import path from "node:path";
-import { logger } from "@oh-my-pi/pi-utils";
+import { logger } from "@dude1wudv/pi-utils";
 import { formatPathRelativeToCwd } from "../tools/path-utils";
 import { throwIfAborted } from "../tools/tool-errors";
 import { getOrCreateClient, sendRequest, supportsDocumentDiagnostics, waitForProjectLoaded } from "./client";

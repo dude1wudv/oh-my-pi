@@ -1,6 +1,6 @@
 import { Buffer } from "node:buffer";
-import { toNumber } from "@oh-my-pi/pi-catalog/utils";
-import { USER_AGENT } from "@oh-my-pi/pi-utils";
+import { toNumber } from "@dude1wudv/pi-catalog/utils";
+import { USER_AGENT } from "@dude1wudv/pi-utils";
 import type {
 	CredentialRankingContext,
 	CredentialRankingStrategy,

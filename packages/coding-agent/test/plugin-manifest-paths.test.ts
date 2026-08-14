@@ -5,9 +5,9 @@ import * as path from "node:path";
 import {
 	resolvePluginExtensionPaths,
 	resolvePluginToolPaths,
-} from "@oh-my-pi/pi-coding-agent/extensibility/plugins/loader";
-import type { InstalledPlugin, PluginManifest } from "@oh-my-pi/pi-coding-agent/extensibility/plugins/types";
-import { removeSyncWithRetries } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-coding-agent/extensibility/plugins/loader";
+import type { InstalledPlugin, PluginManifest } from "@dude1wudv/pi-coding-agent/extensibility/plugins/types";
+import { removeSyncWithRetries } from "@dude1wudv/pi-utils";
 
 function makePlugin(pluginPath: string, manifest: PluginManifest): InstalledPlugin {
 	return {

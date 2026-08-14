@@ -1,4 +1,4 @@
-import type { AssistantMessage, ImageContent } from "@oh-my-pi/pi-ai";
+import type { AssistantMessage, ImageContent } from "@dude1wudv/pi-ai";
 import {
 	Container,
 	Image,
@@ -9,9 +9,9 @@ import {
 	Spacer,
 	TERMINAL,
 	Text,
-} from "@oh-my-pi/pi-tui";
-import { formatNumber } from "@oh-my-pi/pi-utils";
-import chalk from "@oh-my-pi/pi-utils/chalk";
+} from "@dude1wudv/pi-tui";
+import { formatNumber } from "@dude1wudv/pi-utils";
+import chalk from "@dude1wudv/pi-utils/chalk";
 import type { AssistantThinkingRenderer } from "../../extensibility/extensions/types";
 import { getMarkdownTheme, theme } from "../../modes/theme/theme";
 import { expandKeyHint, getPreviewLines, resolveImageOptions, TRUNCATE_LENGTHS } from "../../tools/render-utils";

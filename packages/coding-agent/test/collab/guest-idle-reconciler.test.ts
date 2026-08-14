@@ -18,9 +18,9 @@ import {
 	type GuestSnapshotActivityReconcilerCtx,
 	reconcileGuestIdleHostState,
 	reconcileGuestSnapshotHostState,
-} from "@oh-my-pi/pi-coding-agent/collab/guest";
-import { resetSettingsForTest, Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { StatusLineComponent } from "@oh-my-pi/pi-coding-agent/modes/components/status-line";
+} from "@dude1wudv/pi-coding-agent/collab/guest";
+import { resetSettingsForTest, Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { StatusLineComponent } from "@dude1wudv/pi-coding-agent/modes/components/status-line";
 
 beforeAll(async () => {
 	resetSettingsForTest();

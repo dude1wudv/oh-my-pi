@@ -1,8 +1,8 @@
 import { describe, expect, it } from "bun:test";
-import { Effort, type FetchImpl } from "@oh-my-pi/pi-ai";
-import { streamSimple } from "@oh-my-pi/pi-ai/stream";
-import type { Context, Model } from "@oh-my-pi/pi-ai/types";
-import { buildModel } from "@oh-my-pi/pi-catalog/build";
+import { Effort, type FetchImpl } from "@dude1wudv/pi-ai";
+import { streamSimple } from "@dude1wudv/pi-ai/stream";
+import type { Context, Model } from "@dude1wudv/pi-ai/types";
+import { buildModel } from "@dude1wudv/pi-catalog/build";
 
 interface GeminiCliThinkingConfig {
 	thinkingLevel?: string;

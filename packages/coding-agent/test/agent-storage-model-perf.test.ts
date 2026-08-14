@@ -1,10 +1,10 @@
 import { Database } from "bun:sqlite";
 import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
 import * as path from "node:path";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { AgentStorage } from "@oh-my-pi/pi-coding-agent/session/agent-storage";
-import { createSubagentSettings } from "@oh-my-pi/pi-coding-agent/task/executor";
-import { TempDir } from "@oh-my-pi/pi-utils";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { AgentStorage } from "@dude1wudv/pi-coding-agent/session/agent-storage";
+import { createSubagentSettings } from "@dude1wudv/pi-coding-agent/task/executor";
+import { TempDir } from "@dude1wudv/pi-utils";
 
 const MODEL_PERF_FLUSH_DELAY_MS = 100;
 

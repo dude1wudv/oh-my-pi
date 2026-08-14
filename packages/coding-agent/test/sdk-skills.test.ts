@@ -2,16 +2,16 @@ import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { ModelRegistry } from "@oh-my-pi/pi-coding-agent/config/model-registry";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { getActiveSkills } from "@oh-my-pi/pi-coding-agent/extensibility/skills";
-import type { Skill } from "@oh-my-pi/pi-coding-agent/sdk";
-import { createAgentSession } from "@oh-my-pi/pi-coding-agent/sdk";
-import type { AgentSession } from "@oh-my-pi/pi-coding-agent/session/agent-session";
-import { AuthStorage } from "@oh-my-pi/pi-coding-agent/session/auth-storage";
-import { SessionManager } from "@oh-my-pi/pi-coding-agent/session/session-manager";
-import { removeSyncWithRetries } from "@oh-my-pi/pi-utils";
-import { getAgentDir, setAgentDir } from "@oh-my-pi/pi-utils/dirs";
+import { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { getActiveSkills } from "@dude1wudv/pi-coding-agent/extensibility/skills";
+import type { Skill } from "@dude1wudv/pi-coding-agent/sdk";
+import { createAgentSession } from "@dude1wudv/pi-coding-agent/sdk";
+import type { AgentSession } from "@dude1wudv/pi-coding-agent/session/agent-session";
+import { AuthStorage } from "@dude1wudv/pi-coding-agent/session/auth-storage";
+import { SessionManager } from "@dude1wudv/pi-coding-agent/session/session-manager";
+import { removeSyncWithRetries } from "@dude1wudv/pi-utils";
+import { getAgentDir, setAgentDir } from "@dude1wudv/pi-utils/dirs";
 import { cleanupTempHome } from "./helpers/temp-home-cleanup";
 
 function createIsolatedSkillsSettings(): Settings {

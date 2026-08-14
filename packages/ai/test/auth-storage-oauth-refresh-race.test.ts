@@ -7,8 +7,8 @@ import {
 	AuthStorage,
 	type CredentialDisabledEvent,
 	SqliteAuthCredentialStore,
-} from "@oh-my-pi/pi-ai/auth-storage";
-import * as oauthUtils from "@oh-my-pi/pi-ai/registry/oauth";
+} from "@dude1wudv/pi-ai/auth-storage";
+import * as oauthUtils from "@dude1wudv/pi-ai/registry/oauth";
 import { removeWithRetries } from "../../utils/src/temp";
 import { withEnv } from "./helpers";
 

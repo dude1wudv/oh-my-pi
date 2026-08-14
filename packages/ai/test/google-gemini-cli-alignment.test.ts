@@ -1,15 +1,15 @@
 import { describe, expect, it } from "bun:test";
-import * as geminiCliProvider from "@oh-my-pi/pi-ai/providers/google-gemini-cli";
+import * as geminiCliProvider from "@dude1wudv/pi-ai/providers/google-gemini-cli";
 import {
 	buildRequest,
 	parseGeminiCliCredentials,
 	shouldRefreshGeminiCliCredentials,
 	streamGoogleGeminiCli,
-} from "@oh-my-pi/pi-ai/providers/google-gemini-cli";
-import { getOAuthApiKey } from "@oh-my-pi/pi-ai/registry/oauth";
-import type { AssistantMessageEvent, Context, FetchImpl, Model, TJsonSchema } from "@oh-my-pi/pi-ai/types";
-import { buildModel } from "@oh-my-pi/pi-catalog/build";
-import type { ModelSpec } from "@oh-my-pi/pi-catalog/types";
+} from "@dude1wudv/pi-ai/providers/google-gemini-cli";
+import { getOAuthApiKey } from "@dude1wudv/pi-ai/registry/oauth";
+import type { AssistantMessageEvent, Context, FetchImpl, Model, TJsonSchema } from "@dude1wudv/pi-ai/types";
+import { buildModel } from "@dude1wudv/pi-catalog/build";
+import type { ModelSpec } from "@dude1wudv/pi-catalog/types";
 
 function createModel(provider: "google-gemini-cli" | "google-antigravity"): Model<"google-gemini-cli"> {
 	return buildModel({

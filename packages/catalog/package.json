@@ -1,6 +1,6 @@
 {
   "type": "module",
-  "name": "@oh-my-pi/pi-catalog",
+  "name": "@dude1wudv/pi-catalog",
   "version": "20.1.0",
   "description": "Model catalog for omp: bundled model database, provider discovery descriptors, model identity, classification, and equivalence",
   "homepage": "https://omp.sh",
@@ -35,11 +35,11 @@
   },
   "dependencies": {
     "@bufbuild/protobuf": "catalog:",
-    "@oh-my-pi/omptype": "catalog:",
-    "@oh-my-pi/pi-utils": "catalog:"
+    "@dude1wudv/omptype": "catalog:",
+    "@dude1wudv/pi-utils": "catalog:"
   },
   "devDependencies": {
-    "@oh-my-pi/pi-ai": "catalog:",
+    "@dude1wudv/pi-ai": "catalog:",
     "@types/bun": "catalog:"
   },
   "engines": {

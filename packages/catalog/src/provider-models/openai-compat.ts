@@ -1,5 +1,5 @@
-import { USER_AGENT } from "@oh-my-pi/pi-utils";
-import * as logger from "@oh-my-pi/pi-utils/logger";
+import { USER_AGENT } from "@dude1wudv/pi-utils";
+import * as logger from "@dude1wudv/pi-utils/logger";
 import {
 	DEFAULT_OPENAI_COMPATIBLE_DISCOVERY_TIMEOUT_MS,
 	fetchOpenAICompatibleModels,

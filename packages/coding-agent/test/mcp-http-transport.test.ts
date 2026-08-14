@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "bun:test";
-import { connectToServer } from "@oh-my-pi/pi-coding-agent/mcp/client";
-import { HttpTransport } from "@oh-my-pi/pi-coding-agent/mcp/transports/http";
+import { connectToServer } from "@dude1wudv/pi-coding-agent/mcp/client";
+import { HttpTransport } from "@dude1wudv/pi-coding-agent/mcp/transports/http";
 
 const encoder = new TextEncoder();
 const REQUEST_TIMEOUT_MS = 50;

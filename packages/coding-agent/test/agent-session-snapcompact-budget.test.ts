@@ -19,17 +19,17 @@
  */
 
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "bun:test";
-import { Agent } from "@oh-my-pi/pi-agent-core";
-import { effectiveReserveTokens, estimateTokens, prepareCompaction } from "@oh-my-pi/pi-agent-core/compaction";
-import { getBundledModel } from "@oh-my-pi/pi-catalog/models";
-import { ModelRegistry } from "@oh-my-pi/pi-coding-agent/config/model-registry";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { encodeRpcFrame, MAX_RPC_FRAME_BYTES } from "@oh-my-pi/pi-coding-agent/modes/rpc/rpc-frame";
-import { computeNonMessageTokens } from "@oh-my-pi/pi-coding-agent/modes/utils/context-usage";
-import { AgentSession, type AgentSessionEvent } from "@oh-my-pi/pi-coding-agent/session/agent-session";
-import { AuthStorage } from "@oh-my-pi/pi-coding-agent/session/auth-storage";
-import { SessionManager } from "@oh-my-pi/pi-coding-agent/session/session-manager";
-import * as snapcompact from "@oh-my-pi/snapcompact";
+import { Agent } from "@dude1wudv/pi-agent-core";
+import { effectiveReserveTokens, estimateTokens, prepareCompaction } from "@dude1wudv/pi-agent-core/compaction";
+import { getBundledModel } from "@dude1wudv/pi-catalog/models";
+import { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { encodeRpcFrame, MAX_RPC_FRAME_BYTES } from "@dude1wudv/pi-coding-agent/modes/rpc/rpc-frame";
+import { computeNonMessageTokens } from "@dude1wudv/pi-coding-agent/modes/utils/context-usage";
+import { AgentSession, type AgentSessionEvent } from "@dude1wudv/pi-coding-agent/session/agent-session";
+import { AuthStorage } from "@dude1wudv/pi-coding-agent/session/auth-storage";
+import { SessionManager } from "@dude1wudv/pi-coding-agent/session/session-manager";
+import * as snapcompact from "@dude1wudv/snapcompact";
 
 describe("AgentSession snapcompact frame-budget sizing", () => {
 	let session: AgentSession;

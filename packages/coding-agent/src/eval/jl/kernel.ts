@@ -6,7 +6,7 @@
  * script, and the runner's TSV/Base64 wire protocol.
  */
 import * as path from "node:path";
-import { $flag, Snowflake } from "@oh-my-pi/pi-utils";
+import { $flag, Snowflake } from "@dude1wudv/pi-utils";
 import { $ } from "bun";
 import { Settings } from "../../config/settings";
 import { BaseKernel, getRemainingTimeMs, type KernelStartOptions } from "../kernel-base";

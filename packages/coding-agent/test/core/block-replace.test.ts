@@ -2,15 +2,15 @@ import { beforeAll, describe, expect, it } from "bun:test";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
-import { formatHashlineHeader } from "@oh-my-pi/hashline";
-import { resetSettingsForTest, Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
+import { formatHashlineHeader } from "@dude1wudv/hashline";
+import { resetSettingsForTest, Settings } from "@dude1wudv/pi-coding-agent/config/settings";
 import {
 	type ExecuteHashlineSingleOptions,
 	executeHashlineSingle,
 	getFileSnapshotStore,
-} from "@oh-my-pi/pi-coding-agent/edit";
-import type { ToolSession } from "@oh-my-pi/pi-coding-agent/tools";
-import { removeWithRetries } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-coding-agent/edit";
+import type { ToolSession } from "@dude1wudv/pi-coding-agent/tools";
+import { removeWithRetries } from "@dude1wudv/pi-utils";
 
 beforeAll(async () => {
 	resetSettingsForTest();

@@ -2,14 +2,14 @@ import { afterEach, beforeAll, describe, expect, it, type Mock, vi } from "bun:t
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
-import type { AgentMessage } from "@oh-my-pi/pi-agent-core";
-import type { AssistantMessage, Usage } from "@oh-my-pi/pi-ai";
-import type { Rule } from "@oh-my-pi/pi-coding-agent/capability/rule";
-import { OmfgController } from "@oh-my-pi/pi-coding-agent/modes/controllers/omfg-controller";
-import { initTheme } from "@oh-my-pi/pi-coding-agent/modes/theme/theme";
-import type { InteractiveModeContext } from "@oh-my-pi/pi-coding-agent/modes/types";
-import { Container, type TUI } from "@oh-my-pi/pi-tui";
-import { removeWithRetries } from "@oh-my-pi/pi-utils";
+import type { AgentMessage } from "@dude1wudv/pi-agent-core";
+import type { AssistantMessage, Usage } from "@dude1wudv/pi-ai";
+import type { Rule } from "@dude1wudv/pi-coding-agent/capability/rule";
+import { OmfgController } from "@dude1wudv/pi-coding-agent/modes/controllers/omfg-controller";
+import { initTheme } from "@dude1wudv/pi-coding-agent/modes/theme/theme";
+import type { InteractiveModeContext } from "@dude1wudv/pi-coding-agent/modes/types";
+import { Container, type TUI } from "@dude1wudv/pi-tui";
+import { removeWithRetries } from "@dude1wudv/pi-utils";
 
 const PROJECT_OPTION = "This project (.omp/rules)";
 const GLOBAL_OPTION = "Global — all projects (~/.omp/agent/rules)";

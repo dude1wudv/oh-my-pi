@@ -1,13 +1,13 @@
 import { describe, expect, test } from "bun:test";
-import { unregisterOAuthProvider } from "@oh-my-pi/pi-ai/oauth";
-import { ModelRegistry } from "@oh-my-pi/pi-coding-agent/config/model-registry";
-import { ExtensionRuntime, loadExtensionFromFactory } from "@oh-my-pi/pi-coding-agent/extensibility/extensions/loader";
-import { ExtensionRunner } from "@oh-my-pi/pi-coding-agent/extensibility/extensions/runner";
-import type { ProviderConfig } from "@oh-my-pi/pi-coding-agent/extensibility/extensions/types";
-import { AuthStorage } from "@oh-my-pi/pi-coding-agent/session/auth-storage";
-import { SessionManager } from "@oh-my-pi/pi-coding-agent/session/session-manager";
-import { EventBus } from "@oh-my-pi/pi-coding-agent/utils/event-bus";
-import { TempDir } from "@oh-my-pi/pi-utils";
+import { unregisterOAuthProvider } from "@dude1wudv/pi-ai/oauth";
+import { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry";
+import { ExtensionRuntime, loadExtensionFromFactory } from "@dude1wudv/pi-coding-agent/extensibility/extensions/loader";
+import { ExtensionRunner } from "@dude1wudv/pi-coding-agent/extensibility/extensions/runner";
+import type { ProviderConfig } from "@dude1wudv/pi-coding-agent/extensibility/extensions/types";
+import { AuthStorage } from "@dude1wudv/pi-coding-agent/session/auth-storage";
+import { SessionManager } from "@dude1wudv/pi-coding-agent/session/session-manager";
+import { EventBus } from "@dude1wudv/pi-coding-agent/utils/event-bus";
+import { TempDir } from "@dude1wudv/pi-utils";
 
 const testProviderConfig: ProviderConfig = {
 	baseUrl: "https://example.invalid/v1",

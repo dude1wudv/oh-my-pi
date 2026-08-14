@@ -2,13 +2,13 @@ import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import type { AgentToolContext } from "@oh-my-pi/pi-agent-core";
-import { getBundledModel } from "@oh-my-pi/pi-catalog/models";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { createAgentSession } from "@oh-my-pi/pi-coding-agent/sdk";
-import type { AgentSession } from "@oh-my-pi/pi-coding-agent/session/agent-session";
-import { SessionManager } from "@oh-my-pi/pi-coding-agent/session/session-manager";
-import { removeSyncWithRetries, Snowflake } from "@oh-my-pi/pi-utils";
+import type { AgentToolContext } from "@dude1wudv/pi-agent-core";
+import { getBundledModel } from "@dude1wudv/pi-catalog/models";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { createAgentSession } from "@dude1wudv/pi-coding-agent/sdk";
+import type { AgentSession } from "@dude1wudv/pi-coding-agent/session/agent-session";
+import { SessionManager } from "@dude1wudv/pi-coding-agent/session/session-manager";
+import { removeSyncWithRetries, Snowflake } from "@dude1wudv/pi-utils";
 
 const BASE_SETTINGS = {
 	"async.enabled": false,

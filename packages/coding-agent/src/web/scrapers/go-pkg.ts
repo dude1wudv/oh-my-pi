@@ -1,4 +1,4 @@
-import { tryParseJson } from "@oh-my-pi/pi-utils";
+import { tryParseJson } from "@dude1wudv/pi-utils";
 import type { RenderResult, SpecialHandler } from "./types";
 import { buildResult, htmlToBasicMarkdown, loadPage } from "./types";
 
@@ -96,7 +96,7 @@ export const handleGoPkg: SpecialHandler = async (
 			});
 		}
 
-		const { parseHTML } = await import("@oh-my-pi/pi-utils/dom");
+		const { parseHTML } = await import("@dude1wudv/pi-utils/dom");
 		const doc = parseHTML(pageResult.content).document;
 
 		// Extract actual module path from breadcrumb or header

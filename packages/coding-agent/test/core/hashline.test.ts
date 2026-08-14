@@ -6,9 +6,9 @@ import {
 	type InMemorySnapshotStore as FileReadCache,
 	formatHashlineHeader,
 	MismatchError as HashlineMismatchError,
-} from "@oh-my-pi/hashline";
-import { type Type, type } from "@oh-my-pi/omptype";
-import { resetSettingsForTest, Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
+} from "@dude1wudv/hashline";
+import { type Type, type } from "@dude1wudv/omptype";
+import { resetSettingsForTest, Settings } from "@dude1wudv/pi-coding-agent/config/settings";
 import {
 	canonicalSnapshotKey,
 	type ExecuteHashlineSingleOptions,
@@ -16,10 +16,10 @@ import {
 	getFileSnapshotStore as getFileReadCache,
 	HashlineFilesystem,
 	hashlineEditParamsSchema,
-} from "@oh-my-pi/pi-coding-agent/edit";
-import { resolveLocalUrlToPath } from "@oh-my-pi/pi-coding-agent/internal-urls";
-import type { ToolSession } from "@oh-my-pi/pi-coding-agent/tools";
-import { removeWithRetries } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-coding-agent/edit";
+import { resolveLocalUrlToPath } from "@dude1wudv/pi-coding-agent/internal-urls";
+import type { ToolSession } from "@dude1wudv/pi-coding-agent/tools";
+import { removeWithRetries } from "@dude1wudv/pi-utils";
 
 beforeAll(async () => {
 	resetSettingsForTest();

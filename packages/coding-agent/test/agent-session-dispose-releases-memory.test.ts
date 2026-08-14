@@ -1,20 +1,20 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
 import * as path from "node:path";
-import { Agent, type AgentMessage, AppendOnlyContextManager } from "@oh-my-pi/pi-agent-core";
-import type { AssistantMessage } from "@oh-my-pi/pi-ai";
-import { createMockModel } from "@oh-my-pi/pi-ai/providers/mock";
-import { getBundledModel } from "@oh-my-pi/pi-catalog/models";
-import { AsyncJobManager } from "@oh-my-pi/pi-coding-agent/async";
-import { ModelRegistry } from "@oh-my-pi/pi-coding-agent/config/model-registry";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { ExtensionRuntime, loadExtensionFromFactory } from "@oh-my-pi/pi-coding-agent/extensibility/extensions/loader";
-import { ExtensionRunner } from "@oh-my-pi/pi-coding-agent/extensibility/extensions/runner";
-import { AgentSession } from "@oh-my-pi/pi-coding-agent/session/agent-session";
-import type { AuthStorage } from "@oh-my-pi/pi-coding-agent/session/auth-storage";
-import { SessionManager } from "@oh-my-pi/pi-coding-agent/session/session-manager";
-import { FileSessionStorage } from "@oh-my-pi/pi-coding-agent/session/session-storage";
-import { EventBus } from "@oh-my-pi/pi-coding-agent/utils/event-bus";
-import { TempDir } from "@oh-my-pi/pi-utils";
+import { Agent, type AgentMessage, AppendOnlyContextManager } from "@dude1wudv/pi-agent-core";
+import type { AssistantMessage } from "@dude1wudv/pi-ai";
+import { createMockModel } from "@dude1wudv/pi-ai/providers/mock";
+import { getBundledModel } from "@dude1wudv/pi-catalog/models";
+import { AsyncJobManager } from "@dude1wudv/pi-coding-agent/async";
+import { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { ExtensionRuntime, loadExtensionFromFactory } from "@dude1wudv/pi-coding-agent/extensibility/extensions/loader";
+import { ExtensionRunner } from "@dude1wudv/pi-coding-agent/extensibility/extensions/runner";
+import { AgentSession } from "@dude1wudv/pi-coding-agent/session/agent-session";
+import type { AuthStorage } from "@dude1wudv/pi-coding-agent/session/auth-storage";
+import { SessionManager } from "@dude1wudv/pi-coding-agent/session/session-manager";
+import { FileSessionStorage } from "@dude1wudv/pi-coding-agent/session/session-storage";
+import { EventBus } from "@dude1wudv/pi-coding-agent/utils/event-bus";
+import { TempDir } from "@dude1wudv/pi-utils";
 import { createInMemoryAuthStorage } from "./helpers/agent-session-setup";
 
 // Regression: a keep-alive subagent's AgentSession is disposed at park() but

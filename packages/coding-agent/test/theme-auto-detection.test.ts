@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
-import * as themeModule from "@oh-my-pi/pi-coding-agent/modes/theme/theme";
-import * as nativesModule from "@oh-my-pi/pi-natives";
-import { type MacAppearanceObserver, MacOSAppearance } from "@oh-my-pi/pi-natives";
-import type { Terminal, TerminalAppearance } from "@oh-my-pi/pi-tui";
+import * as themeModule from "@dude1wudv/pi-coding-agent/modes/theme/theme";
+import * as nativesModule from "@dude1wudv/pi-natives";
+import { type MacAppearanceObserver, MacOSAppearance } from "@dude1wudv/pi-natives";
+import type { Terminal, TerminalAppearance } from "@dude1wudv/pi-tui";
 
 const originalPlatform = process.platform;
 const originalColorfgbg = Bun.env.COLORFGBG;

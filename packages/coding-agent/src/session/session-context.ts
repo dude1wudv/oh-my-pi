@@ -1,6 +1,6 @@
-import type { AgentMessage } from "@oh-my-pi/pi-agent-core";
-import { coerceServiceTierByFamily, type ProviderPayload, type ServiceTierByFamily } from "@oh-my-pi/pi-ai";
-import * as snapcompact from "@oh-my-pi/snapcompact";
+import type { AgentMessage } from "@dude1wudv/pi-agent-core";
+import { coerceServiceTierByFamily, type ProviderPayload, type ServiceTierByFamily } from "@dude1wudv/pi-ai";
+import * as snapcompact from "@dude1wudv/snapcompact";
 import {
 	createBranchSummaryMessage,
 	createCompactionSummaryMessage,

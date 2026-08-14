@@ -1,6 +1,6 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from "bun:test";
-import type { AssistantMessage } from "@oh-my-pi/pi-ai";
-import { AssistantMessageComponent } from "@oh-my-pi/pi-coding-agent/modes/components/assistant-message";
+import type { AssistantMessage } from "@dude1wudv/pi-ai";
+import { AssistantMessageComponent } from "@dude1wudv/pi-coding-agent/modes/components/assistant-message";
 import {
 	BlockUnitCounter,
 	buildDisplayMessage,
@@ -10,9 +10,9 @@ import {
 	STREAMING_REVEAL_FRAME_MS,
 	StreamingRevealController,
 	visibleUnits,
-} from "@oh-my-pi/pi-coding-agent/modes/controllers/streaming-reveal";
-import { initTheme } from "@oh-my-pi/pi-coding-agent/modes/theme/theme";
-import { getSegmenter } from "@oh-my-pi/pi-tui";
+} from "@dude1wudv/pi-coding-agent/modes/controllers/streaming-reveal";
+import { initTheme } from "@dude1wudv/pi-coding-agent/modes/theme/theme";
+import { getSegmenter } from "@dude1wudv/pi-tui";
 
 beforeAll(async () => {
 	await initTheme(false);

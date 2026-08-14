@@ -40,14 +40,14 @@
  * This file pins the wire output across the relevant axes.
  */
 import { describe, expect, it } from "bun:test";
-import { renderDemotedThinking } from "@oh-my-pi/pi-ai/dialect";
-import { convertMessages } from "@oh-my-pi/pi-ai/providers/openai-completions";
+import { renderDemotedThinking } from "@dude1wudv/pi-ai/dialect";
+import { convertMessages } from "@dude1wudv/pi-ai/providers/openai-completions";
 import {
 	applyChatCompletionsReasoningParams,
 	type OpenAICompletionsParams,
-} from "@oh-my-pi/pi-ai/providers/openai-shared";
-import type { AssistantMessage, Message, Model, ModelSpec, ThinkingContent, UserMessage } from "@oh-my-pi/pi-ai/types";
-import { buildModel } from "@oh-my-pi/pi-catalog/build";
+} from "@dude1wudv/pi-ai/providers/openai-shared";
+import type { AssistantMessage, Message, Model, ModelSpec, ThinkingContent, UserMessage } from "@dude1wudv/pi-ai/types";
+import { buildModel } from "@dude1wudv/pi-catalog/build";
 
 function isPlainObject(value: unknown): value is Record<string, unknown> {
 	return value !== null && typeof value === "object" && !Array.isArray(value);

@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
-import { isRecord, logger, WhichCachePolicy } from "@oh-my-pi/pi-utils";
+import { isRecord, logger } from "@dude1wudv/pi-utils";
 import { YAML } from "bun";
 import { getConfigDirPaths } from "../config";
 import { getPreloadedPluginRoots } from "../discovery/helpers";
@@ -12,6 +12,7 @@ import type { DapAdapterConfig, DapResolvedAdapter } from "./types";
 const EXTENSIONLESS_DEBUGGER_ORDER: readonly string[] = ["gdb", "lldb-dap"];
 const JS_DEBUG_SERVER_ENV = "JS_DEBUG_DAP_SERVER";
 const DAP_PORT_ARGUMENT = "$" + "{port}";
+const WHICH_CACHE_POLICY_FRESH = 2;
 
 interface NormalizedConfig {
 	adapters: Record<string, unknown>;
@@ -212,7 +213,7 @@ function resolveDefaultJsDebugAdapter(
 	const serverPath = resolveJsDebugServerPath(cwd);
 	if (!serverPath) return null;
 	const nodeCommand = resolveCommand("node", cwd, {
-		cache: WhichCachePolicy.Fresh,
+		cache: WHICH_CACHE_POLICY_FRESH,
 		PATH: process.env.PATH,
 		localRoots,
 	});
@@ -246,7 +247,7 @@ function resolveAdapterFromConfig(
 	const commandIsBare =
 		!path.isAbsolute(config.command) && !config.command.includes("/") && !config.command.includes("\\");
 	const resolvedCommand = resolveCommand(normalizedCommand, cwd, {
-		cache: WhichCachePolicy.Fresh,
+		cache: WHICH_CACHE_POLICY_FRESH,
 		PATH: process.env.PATH,
 		localRoots: commandIsBare ? localRoots : undefined,
 	});

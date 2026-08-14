@@ -5,7 +5,7 @@ import {
 	type AgentTool,
 	AppendOnlyContextManager,
 	type StreamFn,
-} from "@oh-my-pi/pi-agent-core";
+} from "@dude1wudv/pi-agent-core";
 import {
 	type Api,
 	type Context,
@@ -17,21 +17,21 @@ import {
 	registerCustomApi,
 	type SimpleStreamOptions,
 	type TextContent,
-} from "@oh-my-pi/pi-ai";
-import { AssistantMessageEventStream } from "@oh-my-pi/pi-ai/utils/event-stream";
-import { buildModel } from "@oh-my-pi/pi-catalog/build";
-import { ModelRegistry } from "@oh-my-pi/pi-coding-agent/config/model-registry";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import * as memoryBackend from "@oh-my-pi/pi-coding-agent/memory-backend";
-import type { MemoryBackend } from "@oh-my-pi/pi-coding-agent/memory-backend/types";
-import { type MnemopiSessionState, setMnemopiSessionState } from "@oh-my-pi/pi-coding-agent/mnemopi/state";
-import { createAgentSession, type ExtensionContext, type ExtensionFactory } from "@oh-my-pi/pi-coding-agent/sdk";
-import { obfuscateProviderContext, SecretObfuscator } from "@oh-my-pi/pi-coding-agent/secrets";
-import { AgentSession, type AgentSessionEvent } from "@oh-my-pi/pi-coding-agent/session/agent-session";
-import { AuthStorage } from "@oh-my-pi/pi-coding-agent/session/auth-storage";
-import { convertToLlm, wrapSteeringForModel } from "@oh-my-pi/pi-coding-agent/session/messages";
-import { SessionManager } from "@oh-my-pi/pi-coding-agent/session/session-manager";
-import { TempDir } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-ai";
+import { AssistantMessageEventStream } from "@dude1wudv/pi-ai/utils/event-stream";
+import { buildModel } from "@dude1wudv/pi-catalog/build";
+import { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import * as memoryBackend from "@dude1wudv/pi-coding-agent/memory-backend";
+import type { MemoryBackend } from "@dude1wudv/pi-coding-agent/memory-backend/types";
+import { type MnemopiSessionState, setMnemopiSessionState } from "@dude1wudv/pi-coding-agent/mnemopi/state";
+import { createAgentSession, type ExtensionContext, type ExtensionFactory } from "@dude1wudv/pi-coding-agent/sdk";
+import { obfuscateProviderContext, SecretObfuscator } from "@dude1wudv/pi-coding-agent/secrets";
+import { AgentSession, type AgentSessionEvent } from "@dude1wudv/pi-coding-agent/session/agent-session";
+import { AuthStorage } from "@dude1wudv/pi-coding-agent/session/auth-storage";
+import { convertToLlm, wrapSteeringForModel } from "@dude1wudv/pi-coding-agent/session/messages";
+import { SessionManager } from "@dude1wudv/pi-coding-agent/session/session-manager";
+import { TempDir } from "@dude1wudv/pi-utils";
 import { createAssistantMessage } from "./helpers/agent-session-setup";
 
 function createAgent(): Agent {

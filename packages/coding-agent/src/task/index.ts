@@ -14,11 +14,12 @@
  *   - Session artifacts for debugging
  */
 import path from "node:path";
-import type { AgentTool, AgentToolResult, AgentToolUpdateCallback } from "@oh-my-pi/pi-agent-core";
-import type { Usage } from "@oh-my-pi/pi-ai";
-import { $env, logger, prompt } from "@oh-my-pi/pi-utils";
+import type { AgentTool, AgentToolResult, AgentToolUpdateCallback } from "@dude1wudv/pi-agent-core";
+import type { Usage } from "@dude1wudv/pi-ai";
+import { $env, logger, prompt } from "@dude1wudv/pi-utils";
 import type { ToolSession } from "..";
 import type { Theme } from "../modes/theme/theme";
+import type { ProjectPlanUpdateEvent } from "../plan-mode/state";
 import subagentUserPromptTemplate from "../prompts/system/subagent-user-prompt.md" with { type: "text" };
 import taskDescriptionTemplate from "../prompts/tools/task.md" with { type: "text" };
 import taskAsyncContractTemplate from "../prompts/tools/task-async-contract.md" with { type: "text" };
@@ -312,6 +313,22 @@ interface SyncSpawnRef {
 	item: TaskItem;
 	index: number;
 	preAllocatedId?: string;
+	taskId?: string;
+	planTask?: ProjectPlanTask;
+}
+
+interface ProjectPlanTask {
+	taskId: string;
+	owner: string;
+	scope?: string;
+}
+
+type ProjectPlanUpdater = NonNullable<ToolSession["updateProjectPlan"]>;
+type TaskSettlementStatus = "success" | "failure" | "cancellation" | "timeout";
+
+interface TaskSettlement {
+	status: TaskSettlementStatus;
+	artifact?: string;
 }
 
 /** Merged view of a sync spawn set's payloads: joined text plus flattened results/usage/paths. */
@@ -613,6 +630,7 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 			parentSpawns: this.session.getSessionSpawns() ?? "*",
 		});
 	}
+
 	private constructor(
 		private readonly session: ToolSession,
 		discoveredAgents: AgentDefinition[],
@@ -623,6 +641,87 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 
 	#isBatchEnabled(): boolean {
 		return this.session.settings.get("task.batch");
+	}
+	#getProjectPlanUpdater(): ProjectPlanUpdater | undefined {
+		const projectPlanPath = this.session.getProjectPlanPath?.();
+		const updater = this.session.updateProjectPlan;
+		return projectPlanPath && updater ? updater : undefined;
+	}
+
+	#getAgentOutputManager(): AgentOutputManager {
+		let outputManager = this.session.agentOutputManager;
+		if (!outputManager) {
+			outputManager = new AgentOutputManager(this.session.getArtifactsDir ?? (() => null));
+			this.session.agentOutputManager = outputManager;
+		}
+		return outputManager;
+	}
+
+	async #emitProjectPlanEvent(updater: ProjectPlanUpdater | undefined, event: ProjectPlanUpdateEvent): Promise<void> {
+		if (!updater) return;
+		try {
+			await updater(event);
+		} catch (error) {
+			logger.warn("task: project-plan update failed", {
+				event,
+				error: error instanceof Error ? error.message : String(error),
+			});
+		}
+	}
+
+	#classifyTaskResult(result: SingleResult | undefined): TaskSettlement {
+		if (!result) return { status: "failure" };
+		if (result.timedOut === true) {
+			return result.outputPath ? { status: "timeout", artifact: result.outputPath } : { status: "timeout" };
+		}
+		if (result.aborted) {
+			return result.outputPath
+				? { status: "cancellation", artifact: result.outputPath }
+				: { status: "cancellation" };
+		}
+		if (result.exitCode === 0 && !result.error) {
+			return result.outputPath ? { status: "success", artifact: result.outputPath } : { status: "success" };
+		}
+		return result.outputPath ? { status: "failure", artifact: result.outputPath } : { status: "failure" };
+	}
+
+	async #emitTaskStarted(updater: ProjectPlanUpdater | undefined, task?: ProjectPlanTask): Promise<void> {
+		if (!task) return;
+		await this.#emitProjectPlanEvent(updater, {
+			type: "task_started",
+			taskId: task.taskId,
+			owner: task.owner,
+			...(task.scope !== undefined ? { scope: task.scope } : {}),
+		});
+	}
+
+	async #emitTaskSettled(
+		updater: ProjectPlanUpdater | undefined,
+		task: ProjectPlanTask | undefined,
+		settlement: TaskSettlement,
+	): Promise<void> {
+		if (!task) return;
+		await this.#emitProjectPlanEvent(updater, {
+			type: "task_settled",
+			taskId: task.taskId,
+			status: settlement.status,
+			...(settlement.artifact !== undefined ? { artifact: settlement.artifact } : {}),
+		});
+	}
+
+	async #emitDispatchFailed(
+		updater: ProjectPlanUpdater | undefined,
+		task: ProjectPlanTask | undefined,
+		error: string,
+	): Promise<void> {
+		if (!task) return;
+		await this.#emitProjectPlanEvent(updater, {
+			type: "dispatch_failed",
+			taskId: task.taskId,
+			error,
+			owner: task.owner,
+			...(task.scope !== undefined ? { scope: task.scope } : {}),
+		});
 	}
 
 	#getSpawnSemaphore(): Semaphore {
@@ -670,6 +769,105 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 		const { agents } = await discoverAgentsForCreate(session.cwd);
 		return new TaskTool(session, agents);
 	}
+	/**
+	 * Run a set of spawns to completion inline, bounded by the session spawn
+	 * semaphore. `preAllocatedId` reuses an id claimed up front (mixed calls);
+	 * `index` is each item's position in the original call so progress rows and
+	 * merged results keep stable ordering. Per-item progress snapshots flow
+	 * through `onItemProgress`. Returns per-spawn payloads in input order;
+	 * `undefined` marks a spawn cancelled before it started.
+	 */
+	async #runSyncSpawns(args: {
+		toolCallId: string;
+		params: TaskParams;
+		defaultAgent: string;
+		spawns: SyncSpawnRef[];
+		signal?: AbortSignal;
+		projectPlanUpdater?: ProjectPlanUpdater;
+		onItemProgress?: (index: number, progress: AgentProgress) => void;
+	}): Promise<(AgentToolResult<TaskToolDetails> | undefined)[]> {
+		const { toolCallId, params, defaultAgent, spawns, signal, projectPlanUpdater, onItemProgress } = args;
+		const settledPlanTaskIds = new Set<string>();
+		const settlePlanTask = async (spawn: SyncSpawnRef, settlement: TaskSettlement): Promise<void> => {
+			const task = spawn.planTask;
+			if (!projectPlanUpdater || !task || settledPlanTaskIds.has(task.taskId)) return;
+			settledPlanTaskIds.add(task.taskId);
+			await this.#emitTaskSettled(projectPlanUpdater, task, settlement);
+		};
+		const semaphore = this.#getSpawnSemaphore();
+		const { results } = await mapWithConcurrencyLimitAllSettled(
+			spawns,
+			spawns.length,
+			async (spawn, _position, workerSignal) => {
+				const invokedAt = Date.now();
+				let semaphoreHeld = false;
+				let settled = false;
+				const settle = async (settlement: TaskSettlement): Promise<void> => {
+					if (settled) return;
+					settled = true;
+					await settlePlanTask(spawn, settlement);
+				};
+				try {
+					await semaphore.acquire(workerSignal);
+					semaphoreHeld = true;
+				} catch (error) {
+					await settle({ status: workerSignal.aborted ? "cancellation" : "failure" });
+					if (workerSignal.aborted) return undefined;
+					throw error;
+				}
+				const acquiredAt = Date.now();
+				try {
+					if (workerSignal.aborted) {
+						await settle({ status: "cancellation" });
+						return undefined;
+					}
+					const itemOnUpdate: AgentToolUpdateCallback<TaskToolDetails> | undefined = onItemProgress
+						? update => {
+								const progress = update.details?.progress?.[0];
+								if (progress) onItemProgress(spawn.index, progress);
+							}
+						: undefined;
+					await this.#emitTaskStarted(projectPlanUpdater, spawn.planTask);
+					const payload = await this.#executeSync(
+						toolCallId,
+						spawnParamsFor(params, spawn.item, defaultAgent),
+						workerSignal,
+						itemOnUpdate,
+						spawn.preAllocatedId,
+						spawn.index,
+						false,
+						{ invokedAt, acquiredAt },
+					);
+					await settle(this.#classifyTaskResult(payload.details?.results[0]));
+					return payload;
+				} catch (error) {
+					await settle({ status: "failure" });
+					throw error;
+				} finally {
+					if (semaphoreHeld) this.#releaseSpawnSemaphore();
+				}
+			},
+			signal,
+		);
+		for (const [position, settled] of results.entries()) {
+			if (!settled) await settlePlanTask(spawns[position]!, { status: "cancellation" });
+		}
+		return results.map((settled, position) => {
+			if (!settled) return undefined;
+			if (settled.status === "fulfilled") return settled.value;
+			const message = settled.reason instanceof Error ? settled.reason.message : String(settled.reason);
+			const item = spawns[position].item;
+			return {
+				content: [
+					{
+						type: "text",
+						text: `Task ${item.name?.trim() || `#${spawns[position].index + 1}`} failed: ${message}`,
+					},
+				],
+				details: { projectAgentsDir: null, results: [], totalDurationMs: 0 },
+			};
+		});
+	}
 
 	async execute(
 		toolCallId: string,
@@ -691,6 +889,30 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 		const spawnItems = resolveSpawnItems(params);
 		const normalizedSpawnParams = spawnItems.map(item => spawnParamsFor(params, item, defaultAgent));
 		const resolvedAgents = normalizedSpawnParams.map(spawn => spawn.agent ?? defaultAgent);
+		const projectPlanUpdater = this.#getProjectPlanUpdater();
+		let projectPlanTasks: ProjectPlanTask[] | undefined;
+		if (projectPlanUpdater) {
+			const outputManager = this.#getAgentOutputManager();
+			const scope = params.context?.trim() || undefined;
+			projectPlanTasks = [];
+			for (const [index, item] of spawnItems.entries()) {
+				projectPlanTasks.push({
+					taskId: await outputManager.allocate(item.name?.trim() || generateTaskName()),
+					owner: resolvedAgents[index]!,
+					...(scope !== undefined ? { scope } : {}),
+				});
+			}
+			for (const [index, item] of spawnItems.entries()) {
+				const planTask = projectPlanTasks[index]!;
+				await this.#emitProjectPlanEvent(projectPlanUpdater, {
+					type: "task_created",
+					taskId: planTask.taskId,
+					task: (item.task ?? "").trim(),
+					owner: planTask.owner,
+					...(planTask.scope !== undefined ? { scope: planTask.scope } : {}),
+				});
+			}
+		}
 		// Resolve every item before choosing an execution path. No executor or
 		// job manager may observe a batch unless every effective policy is valid.
 		const preflights = await Promise.all(
@@ -706,6 +928,14 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 			.map((preflight, index) => ("error" in preflight ? { index, error: preflight.error } : undefined))
 			.filter((failure): failure is { index: number; error: string } => failure !== undefined);
 		if (preflightFailures.length > 0) {
+			for (const [index] of spawnItems.entries()) {
+				const preflight = preflights[index]!;
+				const error =
+					("error" in preflight
+						? preflight.error
+						: "batch preflight aborted because another item failed preflight") ?? "unknown preflight failure";
+				await this.#emitDispatchFailed(projectPlanUpdater, projectPlanTasks?.[index], error);
+			}
 			if (!batchEnabled) {
 				return createTaskModeError(`Task execution failed: ${preflightFailures[0]!.error}`);
 			}
@@ -757,10 +987,17 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 			const result = await this.#executeSyncFanout(
 				toolCallId,
 				params,
-				spawnItems.map((item, index) => ({ item, index })),
+				spawnItems.map((item, index) => ({
+					item,
+					index,
+					preAllocatedId: projectPlanTasks?.[index]?.taskId,
+					taskId: projectPlanTasks?.[index]?.taskId,
+					planTask: projectPlanTasks?.[index],
+				})),
 				defaultAgent,
 				signal,
 				onUpdate,
+				projectPlanUpdater,
 			);
 			if (!advisory) return result;
 			let appended = false;
@@ -812,40 +1049,45 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 				await this.#executeSyncFanout(
 					toolCallId,
 					params,
-					spawnItems.map((item, index) => ({ item, index })),
+					spawnItems.map((item, index) => ({
+						item,
+						index,
+						preAllocatedId: projectPlanTasks?.[index]?.taskId,
+						taskId: projectPlanTasks?.[index]?.taskId,
+						planTask: projectPlanTasks?.[index],
+					})),
 					defaultAgent,
 					signal,
 					onUpdate,
+					projectPlanUpdater,
 				),
 			);
 		}
-
-		// Async IDs are claimed before job registration, so retain the fallback
-		// manager on the session rather than recreating it for every call.
-		let outputManager = this.session.agentOutputManager;
-		if (!outputManager) {
-			outputManager = new AgentOutputManager(this.session.getArtifactsDir ?? (() => null));
-			this.session.agentOutputManager = outputManager;
-		}
+		const outputManager = this.#getAgentOutputManager();
 		const callStartedAt = Date.now();
 		const spawns: Array<{
 			agentId: string;
 			item: TaskItem;
 			index: number;
 			blocking: boolean;
+			taskId?: string;
+			planTask?: ProjectPlanTask;
 			progress: AgentProgress;
 		}> = [];
 		for (const [index, item] of spawnItems.entries()) {
 			const agentType = resolvedAgents[index]!;
 			const policy = policies[index]!;
 			const agentSource = policy.agent.source;
-			const agentId = await outputManager.allocate(item.name?.trim() || generateTaskName());
+			const planTask = projectPlanTasks?.[index];
+			const agentId = planTask?.taskId ?? (await outputManager.allocate(item.name?.trim() || generateTaskName()));
 			const assignment = (item.task ?? "").trim();
 			spawns.push({
 				agentId,
 				item,
 				index,
 				blocking: itemBlocking[index],
+				taskId: planTask?.taskId,
+				planTask,
 				progress: {
 					index,
 					id: agentId,
@@ -903,6 +1145,13 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 				batchId,
 			},
 		});
+		const settledAsyncIds = new Set<string>();
+		const onAsyncSettled = (agentId: string, failed: boolean): void => {
+			if (settledAsyncIds.has(agentId)) return;
+			settledAsyncIds.add(agentId);
+			settledCount += 1;
+			if (failed) failedCount += 1;
+		};
 
 		const started: Array<{ agentId: string; jobId: string }> = [];
 		const failedSchedules: string[] = [];
@@ -913,23 +1162,24 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 					toolCallId,
 					spawnParams: spawnParamsFor(params, spawn.item, defaultAgent),
 					agentId: spawn.agentId,
+					taskId: spawn.taskId,
+					planTask: spawn.planTask,
+					projectPlanUpdater,
 					progress: spawn.progress,
 					ircEnabled,
 					buildDetails: buildAsyncDetails,
 					onUpdate,
-					onSettled: failed => {
-						settledCount += 1;
-						if (failed) failedCount += 1;
-					},
+					onSettled: failed => onAsyncSettled(spawn.agentId, failed),
 				});
 				if (started.length === 0) primaryJobId = jobId;
 				started.push({ agentId: spawn.agentId, jobId });
+				await this.#emitTaskStarted(projectPlanUpdater, spawn.planTask);
 			} catch (error) {
 				const message = error instanceof Error ? error.message : String(error);
 				failedSchedules.push(`${spawn.agentId}: ${message}`);
 				spawn.progress.status = "failed";
-				settledCount += 1;
-				failedCount += 1;
+				await this.#emitDispatchFailed(projectPlanUpdater, spawn.planTask, message);
+				onAsyncSettled(spawn.agentId, true);
 			}
 		}
 
@@ -1011,7 +1261,13 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 			params,
 			defaultAgent,
 			signal,
-			spawns: syncSpawns.map(spawn => ({ item: spawn.item, index: spawn.index, preAllocatedId: spawn.agentId })),
+			spawns: syncSpawns.map(spawn => ({
+				item: spawn.item,
+				index: spawn.index,
+				preAllocatedId: spawn.agentId,
+				taskId: spawn.taskId,
+				planTask: spawn.planTask,
+			})),
 			onItemProgress: onUpdate
 				? (index, progress) => {
 						const spawn = spawns.find(candidate => candidate.index === index);
@@ -1022,6 +1278,7 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 						});
 					}
 				: undefined,
+			projectPlanUpdater,
 		});
 		const merged = mergeSyncPayloads(
 			syncSpawns.map(spawn => ({ item: spawn.item, index: spawn.index })),
@@ -1072,14 +1329,37 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 		toolCallId: string;
 		spawnParams: TaskParams;
 		agentId: string;
+		taskId?: string;
+		planTask?: ProjectPlanTask;
+		projectPlanUpdater?: ProjectPlanUpdater;
 		progress: AgentProgress;
 		ircEnabled: boolean;
 		buildDetails: () => TaskToolDetails;
 		onUpdate?: AgentToolUpdateCallback<TaskToolDetails>;
 		onSettled?: (failed: boolean) => void;
 	}): string {
-		const { manager, toolCallId, spawnParams, agentId, progress, ircEnabled, buildDetails, onUpdate, onSettled } =
-			options;
+		const {
+			manager,
+			toolCallId,
+			spawnParams,
+			agentId,
+			taskId,
+			planTask,
+			projectPlanUpdater,
+			progress,
+			ircEnabled,
+			buildDetails,
+			onUpdate,
+			onSettled,
+		} = options;
+		const lifecycleTask = planTask && taskId === planTask.taskId ? planTask : undefined;
+		let settled = false;
+		const settleOnce = async (settlement: TaskSettlement): Promise<void> => {
+			if (settled) return;
+			settled = true;
+			await this.#emitTaskSettled(projectPlanUpdater, lifecycleTask, settlement);
+			onSettled?.(settlement.status !== "success");
+		};
 		const buildFollowUpHint = async (aborted: boolean): Promise<string> => {
 			if (aborted) {
 				const ref = AgentRegistry.global().get(agentId);
@@ -1126,7 +1406,7 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 				if (!semaphoreHeld || runSignal.aborted) {
 					releasePermit();
 					progress.status = "aborted";
-					onSettled?.(true);
+					await settleOnce({ status: "cancellation" });
 					throw new Error("Aborted before execution");
 				}
 				try {
@@ -1199,7 +1479,7 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 						delete progress.resolvedModel;
 						delete progress.resolvedModelIsFallback;
 					}
-					onSettled?.(resultFailed);
+					await settleOnce(this.#classifyTaskResult(singleResult));
 					const statusText = resultFailed
 						? `Background task ${agentId} failed.`
 						: `Background task ${agentId} complete.`;
@@ -1216,7 +1496,7 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 					}
 					progress.status = "failed";
 					progress.durationMs = Math.max(0, Date.now() - startedAt);
-					onSettled?.(true);
+					await settleOnce({ status: "failure" });
 					const statusText = `Background task ${agentId} failed.`;
 					await reportProgress(statusText, buildDetails() as unknown as Record<string, unknown>);
 					const message = error instanceof Error ? error.message : String(error);
@@ -1251,15 +1531,34 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 		defaultAgent: string,
 		signal?: AbortSignal,
 		onUpdate?: AgentToolUpdateCallback<TaskToolDetails>,
+		projectPlanUpdater?: ProjectPlanUpdater,
 	): Promise<AgentToolResult<TaskToolDetails>> {
 		if (spawns.length === 1) {
 			const spawn = spawns[0]!;
 			const semaphore = this.#getSpawnSemaphore();
 			const invokedAt = Date.now();
-			await semaphore.acquire(signal);
+			let semaphoreHeld = false;
+			let settled = false;
+			const settle = async (settlement: TaskSettlement): Promise<void> => {
+				if (settled) return;
+				settled = true;
+				await this.#emitTaskSettled(projectPlanUpdater, spawn.planTask, settlement);
+			};
+			try {
+				await semaphore.acquire(signal);
+				semaphoreHeld = true;
+			} catch (error) {
+				await settle({ status: signal?.aborted ? "cancellation" : "failure" });
+				throw error;
+			}
 			const acquiredAt = Date.now();
 			try {
-				return await this.#executeSync(
+				if (signal?.aborted) {
+					await settle({ status: "cancellation" });
+					throw new Error("Aborted before execution");
+				}
+				await this.#emitTaskStarted(projectPlanUpdater, spawn.planTask);
+				const result = await this.#executeSync(
 					toolCallId,
 					spawnParamsFor(params, spawn.item, defaultAgent),
 					signal,
@@ -1269,8 +1568,13 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 					false,
 					{ invokedAt, acquiredAt },
 				);
+				await settle(this.#classifyTaskResult(result.details?.results[0]));
+				return result;
+			} catch (error) {
+				await settle({ status: "failure" });
+				throw error;
 			} finally {
-				this.#releaseSpawnSemaphore();
+				if (semaphoreHeld) this.#releaseSpawnSemaphore();
 			}
 		}
 
@@ -1289,7 +1593,6 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 				},
 			});
 		};
-
 		const payloads = await this.#runSyncSpawns({
 			toolCallId,
 			params,
@@ -1302,6 +1605,7 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 						emitCombined();
 					}
 				: undefined,
+			projectPlanUpdater,
 		});
 
 		const merged = mergeSyncPayloads(spawns, payloads);
@@ -1315,78 +1619,6 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 				outputPaths: merged.outputPaths,
 			},
 		};
-	}
-
-	/**
-	 * Run a set of spawns to completion inline, bounded by the session spawn
-	 * semaphore. `preAllocatedId` reuses an id claimed up front (mixed calls);
-	 * `index` is each item's position in the original call so progress rows and
-	 * merged results keep stable ordering. Per-item progress snapshots flow
-	 * through `onItemProgress`. Returns per-spawn payloads in input order;
-	 * `undefined` marks a spawn cancelled before it started.
-	 */
-	async #runSyncSpawns(args: {
-		toolCallId: string;
-		params: TaskParams;
-		defaultAgent: string;
-		spawns: SyncSpawnRef[];
-		signal?: AbortSignal;
-		onItemProgress?: (index: number, progress: AgentProgress) => void;
-	}): Promise<(AgentToolResult<TaskToolDetails> | undefined)[]> {
-		const { toolCallId, params, defaultAgent, spawns, signal, onItemProgress } = args;
-		const semaphore = this.#getSpawnSemaphore();
-		const { results } = await mapWithConcurrencyLimitAllSettled(
-			spawns,
-			spawns.length,
-			async (spawn, _position, workerSignal) => {
-				const invokedAt = Date.now();
-				let semaphoreHeld = false;
-				try {
-					await semaphore.acquire(workerSignal);
-					semaphoreHeld = true;
-				} catch (error) {
-					if (workerSignal.aborted) return undefined;
-					throw error;
-				}
-				const acquiredAt = Date.now();
-				try {
-					const itemOnUpdate: AgentToolUpdateCallback<TaskToolDetails> | undefined = onItemProgress
-						? update => {
-								const progress = update.details?.progress?.[0];
-								if (progress) onItemProgress(spawn.index, progress);
-							}
-						: undefined;
-					return await this.#executeSync(
-						toolCallId,
-						spawnParamsFor(params, spawn.item, defaultAgent),
-						workerSignal,
-						itemOnUpdate,
-						spawn.preAllocatedId,
-						spawn.index,
-						false,
-						{ invokedAt, acquiredAt },
-					);
-				} finally {
-					if (semaphoreHeld) this.#releaseSpawnSemaphore();
-				}
-			},
-			signal,
-		);
-		return results.map((settled, position) => {
-			if (!settled) return undefined;
-			if (settled.status === "fulfilled") return settled.value;
-			const message = settled.reason instanceof Error ? settled.reason.message : String(settled.reason);
-			const item = spawns[position].item;
-			return {
-				content: [
-					{
-						type: "text",
-						text: `Task ${item.name?.trim() || `#${spawns[position].index + 1}`} failed: ${message}`,
-					},
-				],
-				details: { projectAgentsDir: null, results: [], totalDurationMs: 0 },
-			};
-		});
 	}
 
 	/**

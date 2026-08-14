@@ -60,9 +60,9 @@ The exported file preserves the complete approved plan, including any `Critical 
 
 Main is the sole owner of project-plan writes. Subagents NEVER edit `.omp/plans/`. Updates are narrow changes to the matching task checkbox, dispatch row, barrier counters, metadata, or verification item; do not rewrite unrelated approved content. During `WAIT_ALL`, update only internal collection state and the necessary row/counter fields; do not read, summarize, or rewrite partial artifacts.
 
+Runtime `task` execution automatically persists `task_created`, `task_started`, `task_settled`, and `dispatch_failed` for the approved plan. After `WAIT_ALL`, Main MUST use the `project_plan` tool for `artifact_accepted`, each observed `verification_recorded`, and the final `status_changed`; never infer those semantic events from delivery or artifact existence.
+
 When a new session enters a project, first list recent files in `.omp/plans/` but do not treat any old plan as the current task automatically. If the user explicitly continues a plan, or its metadata marks it active, read the complete document and recover its `Status`, unchecked tasks, `running` and terminal dispatch rows, and barrier counters. A recovered `running` row is only logical state: never infer that an old job ID is still running. If its job is expired or unavailable, record `timeout` when dispatch had started, or `dispatch failure` when dispatch never established, then decide whether to re-dispatch; never silently mark it successful.
-
-
 ## What a plan is
 
 Plan: execution spec, not design doc. Approval may clear/compact the conversation; another engineer/fresh agent implements solely from the file. A competent implementer unfamiliar with the conversation MUST execute top-to-bottom with ZERO design decisions; file contains every choice.

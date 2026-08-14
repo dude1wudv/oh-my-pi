@@ -22,8 +22,8 @@ import {
 	type PatchSectionResult,
 	type PreparedSection,
 	startClipboardBatch,
-} from "@oh-my-pi/hashline";
-import type { AgentToolResult } from "@oh-my-pi/pi-agent-core";
+} from "@dude1wudv/hashline";
+import type { AgentToolResult } from "@dude1wudv/pi-agent-core";
 import type { FileDiagnosticsResult, WritethroughCallback, WritethroughDeferredHandle } from "../../lsp";
 import type { ToolSession } from "../../tools";
 import { outputMeta } from "../../tools/output-meta";

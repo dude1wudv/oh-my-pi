@@ -1,9 +1,9 @@
 import { afterEach, describe, expect, it, vi } from "bun:test";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { LiveSessionController } from "@oh-my-pi/pi-coding-agent/live/controller";
-import { LiveVisualizer } from "@oh-my-pi/pi-coding-agent/live/visualizer";
-import { LiveCommandController } from "@oh-my-pi/pi-coding-agent/modes/controllers/live-command-controller";
-import type { InteractiveModeContext } from "@oh-my-pi/pi-coding-agent/modes/types";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { LiveSessionController } from "@dude1wudv/pi-coding-agent/live/controller";
+import { LiveVisualizer } from "@dude1wudv/pi-coding-agent/live/visualizer";
+import { LiveCommandController } from "@dude1wudv/pi-coding-agent/modes/controllers/live-command-controller";
+import type { InteractiveModeContext } from "@dude1wudv/pi-coding-agent/modes/types";
 
 /** Fake InteractiveModeContext plus typed capture channels for focus/mount traffic. */
 interface ContextHarness {

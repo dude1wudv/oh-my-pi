@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it } from "bun:test";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { TempDir } from "@oh-my-pi/pi-utils";
+import { TempDir } from "@dude1wudv/pi-utils";
 import { getEditorCommand, openInEditor, resolveEditorSpawnCommand } from "../src/utils/external-editor";
 
 interface MutableProcess {

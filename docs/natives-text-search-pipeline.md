@@ -1,6 +1,6 @@
 # Natives Text/Search Pipeline
 
-This document maps the `@oh-my-pi/pi-natives` text/search/code surface from generated JS/TS exports to Rust N-API modules and back to JS result objects.
+This document maps the `/pi-natives` text/search/code surface from generated JS/TS exports to Rust N-API modules and back to JS result objects.
 
 Terminology follows `docs/natives-architecture.md`:
 

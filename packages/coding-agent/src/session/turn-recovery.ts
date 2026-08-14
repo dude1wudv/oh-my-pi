@@ -5,7 +5,7 @@ import {
 	type AgentMessage,
 	isSyntheticToolResultMessage,
 	type ThinkingLevel,
-} from "@oh-my-pi/pi-agent-core";
+} from "@dude1wudv/pi-agent-core";
 import type {
 	AssistantMessage,
 	AssistantRetryRecovery,
@@ -17,13 +17,13 @@ import type {
 	TextContent,
 	ThinkingContent,
 	ToolChoice,
-} from "@oh-my-pi/pi-ai";
-import { calculateRateLimitBackoffMs, parseRateLimitReason } from "@oh-my-pi/pi-ai";
-import * as AIError from "@oh-my-pi/pi-ai/error";
-import { kCursorExecResolved } from "@oh-my-pi/pi-ai/utils/block-symbols";
-import { isFireworksFastModelId, toFireworksBaseModelId } from "@oh-my-pi/pi-catalog/fireworks-model-id";
-import { modelsAreEqual } from "@oh-my-pi/pi-catalog/models";
-import { extractRetryHint, logger, prompt } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-ai";
+import { calculateRateLimitBackoffMs, parseRateLimitReason } from "@dude1wudv/pi-ai";
+import * as AIError from "@dude1wudv/pi-ai/error";
+import { kCursorExecResolved } from "@dude1wudv/pi-ai/utils/block-symbols";
+import { isFireworksFastModelId, toFireworksBaseModelId } from "@dude1wudv/pi-catalog/fireworks-model-id";
+import { modelsAreEqual } from "@dude1wudv/pi-catalog/models";
+import { extractRetryHint, logger, prompt } from "@dude1wudv/pi-utils";
 import type { ModelRegistry } from "../config/model-registry";
 import { formatModelStringWithRouting, resolveModelOverride } from "../config/model-resolver";
 

@@ -1,19 +1,19 @@
 import { mkdtemp, rm, stat, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import * as path from "node:path";
-import { formatHashlineHeader } from "@oh-my-pi/hashline";
-import { type } from "@oh-my-pi/omptype";
+import { formatHashlineHeader } from "@dude1wudv/hashline";
+import { type } from "@dude1wudv/omptype";
 import type {
 	AgentTool,
 	AgentToolContext,
 	AgentToolResult,
 	AgentToolUpdateCallback,
 	ToolTier,
-} from "@oh-my-pi/pi-agent-core";
-import { type GrepMatch, GrepOutputMode, type GrepResult, grep } from "@oh-my-pi/pi-natives";
-import type { Component } from "@oh-my-pi/pi-tui";
-import { Text } from "@oh-my-pi/pi-tui";
-import { prompt, untilAborted } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-agent-core";
+import { type GrepMatch, GrepOutputMode, type GrepResult, grep } from "@dude1wudv/pi-natives";
+import type { Component } from "@dude1wudv/pi-tui";
+import { Text } from "@dude1wudv/pi-tui";
+import { prompt, untilAborted } from "@dude1wudv/pi-utils";
 import { recordFileSnapshot, recordSeenLinesFromBody } from "../edit/file-snapshot-store";
 import type { RenderResultOptions } from "../extensibility/custom-tools/types";
 import type { LocalProtocolOptions } from "../internal-urls/local-protocol";

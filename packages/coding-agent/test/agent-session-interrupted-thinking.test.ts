@@ -1,24 +1,24 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
 import * as path from "node:path";
-import { Agent } from "@oh-my-pi/pi-agent-core";
-import type { Api, AssistantMessage, Model, ThinkingContent } from "@oh-my-pi/pi-ai";
-import { getBundledModel } from "@oh-my-pi/pi-catalog/models";
-import { ModelRegistry } from "@oh-my-pi/pi-coding-agent/config/model-registry";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { ExtensionRuntime, loadExtensionFromFactory } from "@oh-my-pi/pi-coding-agent/extensibility/extensions/loader";
-import { ExtensionRunner } from "@oh-my-pi/pi-coding-agent/extensibility/extensions/runner";
-import { AgentSession } from "@oh-my-pi/pi-coding-agent/session/agent-session";
-import type { AuthStorage } from "@oh-my-pi/pi-coding-agent/session/auth-storage";
+import { Agent } from "@dude1wudv/pi-agent-core";
+import type { Api, AssistantMessage, Model, ThinkingContent } from "@dude1wudv/pi-ai";
+import { getBundledModel } from "@dude1wudv/pi-catalog/models";
+import { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { ExtensionRuntime, loadExtensionFromFactory } from "@dude1wudv/pi-coding-agent/extensibility/extensions/loader";
+import { ExtensionRunner } from "@dude1wudv/pi-coding-agent/extensibility/extensions/runner";
+import { AgentSession } from "@dude1wudv/pi-coding-agent/session/agent-session";
+import type { AuthStorage } from "@dude1wudv/pi-coding-agent/session/auth-storage";
 import {
 	type CustomMessage,
 	convertToLlm,
 	INTERRUPTED_THINKING_MESSAGE_TYPE,
 	USER_INTERRUPT_LABEL,
-} from "@oh-my-pi/pi-coding-agent/session/messages";
-import type { SessionEntry } from "@oh-my-pi/pi-coding-agent/session/session-entries";
-import { SessionManager } from "@oh-my-pi/pi-coding-agent/session/session-manager";
-import { EventBus } from "@oh-my-pi/pi-coding-agent/utils/event-bus";
-import { TempDir } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-coding-agent/session/messages";
+import type { SessionEntry } from "@dude1wudv/pi-coding-agent/session/session-entries";
+import { SessionManager } from "@dude1wudv/pi-coding-agent/session/session-manager";
+import { EventBus } from "@dude1wudv/pi-coding-agent/utils/event-bus";
+import { TempDir } from "@dude1wudv/pi-utils";
 import { createInMemoryAuthStorage } from "./helpers/agent-session-setup";
 
 const REASONING_TEXT = "I have partly reasoned through the implementation and should preserve this.";

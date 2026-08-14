@@ -5,10 +5,10 @@
  * providers with provider-specific parameters exposed conditionally.
  */
 
-import { type } from "@oh-my-pi/omptype";
-import type { AgentTool, AgentToolContext, AgentToolResult, AgentToolUpdateCallback } from "@oh-my-pi/pi-agent-core";
-import type { AuthStorage } from "@oh-my-pi/pi-ai";
-import { prompt } from "@oh-my-pi/pi-utils";
+import { type } from "@dude1wudv/omptype";
+import type { AgentTool, AgentToolContext, AgentToolResult, AgentToolUpdateCallback } from "@dude1wudv/pi-agent-core";
+import type { AuthStorage } from "@dude1wudv/pi-ai";
+import { prompt } from "@dude1wudv/pi-utils";
 import { ModelRegistry } from "../../config/model-registry";
 import { settings } from "../../config/settings";
 import type { CustomTool, CustomToolContext, RenderResultOptions } from "../../extensibility/custom-tools/types";

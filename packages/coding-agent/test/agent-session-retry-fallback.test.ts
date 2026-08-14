@@ -1,32 +1,32 @@
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "bun:test";
 import * as path from "node:path";
 import { scheduler } from "node:timers/promises";
-import { type } from "@oh-my-pi/omptype";
-import { Agent, type AgentTool } from "@oh-my-pi/pi-agent-core";
+import { type } from "@dude1wudv/omptype";
+import { Agent, type AgentTool } from "@dude1wudv/pi-agent-core";
 import {
 	type AssistantMessage,
 	Effort,
 	type Model,
 	type ModelUsageHealth,
 	type ProviderSessionState,
-} from "@oh-my-pi/pi-ai";
-import * as AIError from "@oh-my-pi/pi-ai/error";
-import { createMockModel } from "@oh-my-pi/pi-ai/providers/mock";
-import { buildModel } from "@oh-my-pi/pi-catalog/build";
-import { writeModelCache } from "@oh-my-pi/pi-catalog/model-cache";
-import { getBundledModel } from "@oh-my-pi/pi-catalog/models";
-import { ModelRegistry } from "@oh-my-pi/pi-coding-agent/config/model-registry";
-import { parseModelPattern, parseModelString } from "@oh-my-pi/pi-coding-agent/config/model-resolver";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { ExtensionRuntime, loadExtensionFromFactory } from "@oh-my-pi/pi-coding-agent/extensibility/extensions/loader";
-import { ExtensionRunner } from "@oh-my-pi/pi-coding-agent/extensibility/extensions/runner";
-import { initTheme } from "@oh-my-pi/pi-coding-agent/modes/theme/theme";
-import { AgentSession, type AgentSessionEvent } from "@oh-my-pi/pi-coding-agent/session/agent-session";
-import { AuthStorage } from "@oh-my-pi/pi-coding-agent/session/auth-storage";
-import type { ServingModel } from "@oh-my-pi/pi-coding-agent/session/retry-fallback-chains";
-import { SessionManager } from "@oh-my-pi/pi-coding-agent/session/session-manager";
-import { EventBus } from "@oh-my-pi/pi-coding-agent/utils/event-bus";
-import { TempDir } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-ai";
+import * as AIError from "@dude1wudv/pi-ai/error";
+import { createMockModel } from "@dude1wudv/pi-ai/providers/mock";
+import { buildModel } from "@dude1wudv/pi-catalog/build";
+import { writeModelCache } from "@dude1wudv/pi-catalog/model-cache";
+import { getBundledModel } from "@dude1wudv/pi-catalog/models";
+import { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry";
+import { parseModelPattern, parseModelString } from "@dude1wudv/pi-coding-agent/config/model-resolver";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { ExtensionRuntime, loadExtensionFromFactory } from "@dude1wudv/pi-coding-agent/extensibility/extensions/loader";
+import { ExtensionRunner } from "@dude1wudv/pi-coding-agent/extensibility/extensions/runner";
+import { initTheme } from "@dude1wudv/pi-coding-agent/modes/theme/theme";
+import { AgentSession, type AgentSessionEvent } from "@dude1wudv/pi-coding-agent/session/agent-session";
+import { AuthStorage } from "@dude1wudv/pi-coding-agent/session/auth-storage";
+import type { ServingModel } from "@dude1wudv/pi-coding-agent/session/retry-fallback-chains";
+import { SessionManager } from "@dude1wudv/pi-coding-agent/session/session-manager";
+import { EventBus } from "@dude1wudv/pi-coding-agent/utils/event-bus";
+import { TempDir } from "@dude1wudv/pi-utils";
 
 type AutoRetryStartEvent = Extract<AgentSessionEvent, { type: "auto_retry_start" }>;
 type AutoRetryEndEvent = Extract<AgentSessionEvent, { type: "auto_retry_end" }>;

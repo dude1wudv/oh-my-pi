@@ -1,5 +1,5 @@
-import type { UsageLimit, UsageReport } from "@oh-my-pi/pi-ai";
-import { sanitizeText } from "@oh-my-pi/pi-utils";
+import type { UsageLimit, UsageReport } from "@dude1wudv/pi-ai";
+import { sanitizeText } from "@dude1wudv/pi-utils";
 import type { OAuthAccountIdentity } from "../../session/auth-storage";
 import type { SlashCommandRuntime } from "../types";
 import { reportMatchesActiveAccount } from "./active-oauth-account";

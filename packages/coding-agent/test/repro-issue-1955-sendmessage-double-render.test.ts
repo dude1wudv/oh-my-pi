@@ -1,20 +1,20 @@
 import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from "bun:test";
-import type { AgentMessage } from "@oh-my-pi/pi-agent-core";
-import type { ImageContent, TextContent } from "@oh-my-pi/pi-ai";
-import { resetSettingsForTest, Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
+import type { AgentMessage } from "@dude1wudv/pi-agent-core";
+import type { ImageContent, TextContent } from "@dude1wudv/pi-ai";
+import { resetSettingsForTest, Settings } from "@dude1wudv/pi-coding-agent/config/settings";
 import type {
 	ExtensionActions,
 	ExtensionCommandContextActions,
 	ExtensionContextActions,
 	ExtensionUIContext,
-} from "@oh-my-pi/pi-coding-agent/extensibility/extensions";
-import { ExtensionUiController } from "@oh-my-pi/pi-coding-agent/modes/controllers/extension-ui-controller";
-import { initTheme } from "@oh-my-pi/pi-coding-agent/modes/theme/theme";
-import type { InteractiveModeContext, RenderSessionContextOptions } from "@oh-my-pi/pi-coding-agent/modes/types";
-import { UiHelpers } from "@oh-my-pi/pi-coding-agent/modes/utils/ui-helpers";
-import { buildSessionContext, type SessionContext } from "@oh-my-pi/pi-coding-agent/session/session-context";
-import type { CustomMessageEntry, SessionEntry } from "@oh-my-pi/pi-coding-agent/session/session-entries";
-import { Container } from "@oh-my-pi/pi-tui";
+} from "@dude1wudv/pi-coding-agent/extensibility/extensions";
+import { ExtensionUiController } from "@dude1wudv/pi-coding-agent/modes/controllers/extension-ui-controller";
+import { initTheme } from "@dude1wudv/pi-coding-agent/modes/theme/theme";
+import type { InteractiveModeContext, RenderSessionContextOptions } from "@dude1wudv/pi-coding-agent/modes/types";
+import { UiHelpers } from "@dude1wudv/pi-coding-agent/modes/utils/ui-helpers";
+import { buildSessionContext, type SessionContext } from "@dude1wudv/pi-coding-agent/session/session-context";
+import type { CustomMessageEntry, SessionEntry } from "@dude1wudv/pi-coding-agent/session/session-entries";
+import { Container } from "@dude1wudv/pi-tui";
 
 /**
  * Issue #1955: `sendMessage` with `display: true` renders twice during

@@ -4,10 +4,10 @@
 import { dlopen, FFIType, ptr } from "bun:ffi";
 import * as path from "node:path";
 
-import { type Api, type AssistantMessage, completeSimple, type Model } from "@oh-my-pi/pi-ai";
-import { StreamMarkupHealing } from "@oh-my-pi/pi-ai/utils/stream-markup-healing";
-import { isConPTYHosted } from "@oh-my-pi/pi-tui";
-import { isTerminalHeadless, logger, prompt } from "@oh-my-pi/pi-utils";
+import { type Api, type AssistantMessage, completeSimple, type Model } from "@dude1wudv/pi-ai";
+import { StreamMarkupHealing } from "@dude1wudv/pi-ai/utils/stream-markup-healing";
+import { isConPTYHosted } from "@dude1wudv/pi-tui";
+import { isTerminalHeadless, logger, prompt } from "@dude1wudv/pi-utils";
 import type { ModelRegistry } from "../config/model-registry";
 
 import { resolveRoleSelection } from "../config/model-resolver";

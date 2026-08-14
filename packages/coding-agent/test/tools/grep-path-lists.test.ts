@@ -2,25 +2,25 @@ import { afterAll, beforeAll, beforeEach, describe, expect, it } from "bun:test"
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
-import type { AgentMessage } from "@oh-my-pi/pi-agent-core";
-import { validateToolArguments } from "@oh-my-pi/pi-ai/utils/validation";
-import { resetSettingsForTest, Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { canonicalSnapshotKey } from "@oh-my-pi/pi-coding-agent/edit/file-snapshot-store";
-import type { RenderResultOptions } from "@oh-my-pi/pi-coding-agent/extensibility/custom-tools/types";
-import { AgentTranscriptViewer } from "@oh-my-pi/pi-coding-agent/modes/components/agent-transcript-viewer";
-import { TreeSelectorComponent } from "@oh-my-pi/pi-coding-agent/modes/components/tree-selector";
+import type { AgentMessage } from "@dude1wudv/pi-agent-core";
+import { validateToolArguments } from "@dude1wudv/pi-ai/utils/validation";
+import { resetSettingsForTest, Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { canonicalSnapshotKey } from "@dude1wudv/pi-coding-agent/edit/file-snapshot-store";
+import type { RenderResultOptions } from "@dude1wudv/pi-coding-agent/extensibility/custom-tools/types";
+import { AgentTranscriptViewer } from "@dude1wudv/pi-coding-agent/modes/components/agent-transcript-viewer";
+import { TreeSelectorComponent } from "@dude1wudv/pi-coding-agent/modes/components/tree-selector";
 import type {
 	ObservableSession,
 	SessionObserverRegistry,
-} from "@oh-my-pi/pi-coding-agent/modes/session-observer-registry";
-import type { Theme } from "@oh-my-pi/pi-coding-agent/modes/theme/theme";
-import { initTheme } from "@oh-my-pi/pi-coding-agent/modes/theme/theme";
-import { AgentRegistry } from "@oh-my-pi/pi-coding-agent/registry/agent-registry";
-import type { SessionEntry, SessionTreeNode } from "@oh-my-pi/pi-coding-agent/session/session-entries";
-import { ToolChoiceQueue } from "@oh-my-pi/pi-coding-agent/session/tool-choice-queue";
-import { createTools, type ToolSession } from "@oh-my-pi/pi-coding-agent/tools";
-import type { Text } from "@oh-my-pi/pi-tui";
-import { removeWithRetries } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-coding-agent/modes/session-observer-registry";
+import type { Theme } from "@dude1wudv/pi-coding-agent/modes/theme/theme";
+import { initTheme } from "@dude1wudv/pi-coding-agent/modes/theme/theme";
+import { AgentRegistry } from "@dude1wudv/pi-coding-agent/registry/agent-registry";
+import type { SessionEntry, SessionTreeNode } from "@dude1wudv/pi-coding-agent/session/session-entries";
+import { ToolChoiceQueue } from "@dude1wudv/pi-coding-agent/session/tool-choice-queue";
+import { createTools, type ToolSession } from "@dude1wudv/pi-coding-agent/tools";
+import type { Text } from "@dude1wudv/pi-tui";
+import { removeWithRetries } from "@dude1wudv/pi-utils";
 import { grepToolRenderer } from "../../src/tools/grep";
 
 function createTestSession(cwd: string, overrides: Partial<ToolSession> = {}): ToolSession {

@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
 import { stripVTControlCharacters } from "node:util";
-import { resetSettingsForTest, Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
+import { resetSettingsForTest, Settings } from "@dude1wudv/pi-coding-agent/config/settings";
 import {
 	SEARCH_PROVIDER_ORDER,
 	setExcludedSearchProviders,
 	setSearchProviderOrder,
-} from "@oh-my-pi/pi-coding-agent/web/search/provider";
-import { __resetDirsFromEnvForTests, setAgentDir, TempDir } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-coding-agent/web/search/provider";
+import { __resetDirsFromEnvForTests, setAgentDir, TempDir } from "@dude1wudv/pi-utils";
 import { runSearchCommand } from "../../../src/cli/web-search-cli";
 
 const WEB_SEARCH_ENV_KEYS = [

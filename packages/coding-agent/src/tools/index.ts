@@ -1,7 +1,7 @@
-import type { Clipboard, InMemorySnapshotStore } from "@oh-my-pi/hashline";
-import type { AgentOptions, AgentTelemetryConfig, AgentTool } from "@oh-my-pi/pi-agent-core";
-import type { FetchImpl, ImageContent, Model, ServiceTierByFamily, ToolChoice } from "@oh-my-pi/pi-ai";
-import { logger } from "@oh-my-pi/pi-utils";
+import type { Clipboard, InMemorySnapshotStore } from "@dude1wudv/hashline";
+import type { AgentOptions, AgentTelemetryConfig, AgentTool } from "@dude1wudv/pi-agent-core";
+import type { FetchImpl, ImageContent, Model, ServiceTierByFamily, ToolChoice } from "@dude1wudv/pi-ai";
+import { logger } from "@dude1wudv/pi-utils";
 import type { AsyncJobManager } from "../async/job-manager";
 import type { Rule } from "../capability/rule";
 import type { PromptTemplate } from "../config/prompt-templates";
@@ -20,7 +20,7 @@ import type { DaemonCompletionNotification } from "../launch/protocol";
 import { LspTool } from "../lsp";
 import type { MCPManager } from "../mcp";
 import type { MnemopiSessionState } from "../mnemopi/state";
-import type { PlanModeState } from "../plan-mode/state";
+import type { PlanModeState, ProjectPlanUpdateEvent } from "../plan-mode/state";
 import type { AgentLifecycleManager } from "../registry/agent-lifecycle";
 import type { AgentRegistry } from "../registry/agent-registry";
 import type { ArtifactManager } from "../session/artifacts";
@@ -59,6 +59,7 @@ import { MemoryRecallTool } from "./memory-recall";
 import { MemoryReflectTool } from "./memory-reflect";
 import { MemoryRetainTool } from "./memory-retain";
 import { wrapToolWithMetaNotice } from "./output-meta";
+import { ProjectPlanTool } from "./project-plan";
 import { ReadTool } from "./read";
 import type { PlanProposalHandler } from "./resolve";
 import { SecurityScanTool } from "./security-scan";
@@ -98,6 +99,7 @@ export * from "./memory-edit";
 export * from "./memory-recall";
 export * from "./memory-reflect";
 export * from "./memory-retain";
+export * from "./project-plan";
 export * from "./read";
 export * from "./report-tool-issue";
 export * from "./resolve";
@@ -152,6 +154,12 @@ export interface DeferredDiagnosticsEntry {
 
 /** Session context for tool factories */
 export interface ToolSession {
+	/** Whether this is the durable Main session rather than a child session. */
+	isMainSession?: boolean;
+	/** Return the approved project-plan path, when one is attached. */
+	getProjectPlanPath?: () => string | undefined;
+	/** Serialize one Main-owned project-plan event to the approved file. */
+	updateProjectPlan?: (event: ProjectPlanUpdateEvent) => Promise<void>;
 	/** Current working directory */
 	cwd: string;
 	/** Additional workspace directories beyond cwd (multi-root), forwarded to subagents. */
@@ -433,6 +441,7 @@ export const BUILTIN_TOOLS: Record<BuiltinToolName, ToolFactory> = {
 	checkpoint: CheckpointTool.createIf,
 	rewind: RewindTool.createIf,
 	task: s => TaskTool.create(s),
+	project_plan: ProjectPlanTool.createIf,
 	hub: s => new HubTool(s),
 	todo: s => new TodoTool(s),
 	web_search: s => new WebSearchTool(s),
@@ -598,6 +607,7 @@ export async function createTools(session: ToolSession, toolNames?: string[]): P
 			const goalState = session.getGoalModeState?.();
 			return goalState === undefined || goalState.enabled === true || goalState.goal.status === "dropped";
 		}
+		if (name === "project_plan") return session.isMainSession === true;
 		if (name === "lsp") return enableLsp && session.settings.get("lsp.enabled");
 		if (name === "bash") return session.settings.get("bash.enabled");
 		if (name === "eval") return allowEval;
@@ -651,6 +661,8 @@ export async function createTools(session: ToolSession, toolNames?: string[]): P
 		requestedTools.push("yield");
 	}
 
+	const projectPlanPath = session.isMainSession === true ? session.getProjectPlanPath?.() : undefined;
+	const projectPlanAttached = typeof projectPlanPath === "string" && projectPlanPath.trim().length > 0;
 	const filteredRequestedTools = requestedTools?.filter(name => name in allTools && isToolAllowed(name));
 	const baseEntries =
 		filteredRequestedTools !== undefined
@@ -663,8 +675,9 @@ export async function createTools(session: ToolSession, toolNames?: string[]): P
 					...(includeYield ? ([["yield", HIDDEN_TOOLS.yield]] as const) : []),
 					...(goalModeActive ? ([["goal", HIDDEN_TOOLS.goal]] as const) : []),
 				];
+	const activeEntries = projectPlanAttached ? baseEntries : baseEntries.filter(([name]) => name !== "project_plan");
 
-	const activeToolNames = new Set(baseEntries.map(([name]) => name));
+	const activeToolNames = new Set(activeEntries.map(([name]) => name));
 	if (session.setActiveToolNames) {
 		session.setActiveToolNames(activeToolNames);
 	} else {
@@ -672,7 +685,7 @@ export async function createTools(session: ToolSession, toolNames?: string[]): P
 	}
 
 	const baseResults = await Promise.all(
-		baseEntries.map(async ([name, factory]) => {
+		activeEntries.map(async ([name, factory]) => {
 			const tool = await logger.time(`createTools:${name}`, factory as ToolFactory, session);
 			return tool ? wrapToolWithMetaNotice(tool) : null;
 		}),
@@ -682,7 +695,14 @@ export async function createTools(session: ToolSession, toolNames?: string[]): P
 	session.toolRegistry = toolRegistry;
 	const builtInNames = new Set(tools.map(tool => tool.name));
 	for (const tool of tools) toolRegistry.set(tool.name, tool);
-
+	if (session.isMainSession === true && !toolRegistry.has("project_plan")) {
+		const projectPlanTool = await logger.time("createTools:project_plan", BUILTIN_TOOLS.project_plan, session);
+		if (projectPlanTool) {
+			const wrapped = wrapToolWithMetaNotice(projectPlanTool);
+			toolRegistry.set(wrapped.name, wrapped);
+			builtInNames.add(wrapped.name);
+		}
+	}
 	// Ordinary sessions use xd:// for discoverable built-ins, custom tools, and
 	// MCP tools. Structured children must expose only their host-provided names,
 	// so never allocate a registry that later SDK assembly could populate.

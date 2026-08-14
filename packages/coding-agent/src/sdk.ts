@@ -8,7 +8,7 @@ import {
 	AppendOnlyContextManager,
 	filterProviderReplayMessages,
 	type ThinkingLevel,
-} from "@oh-my-pi/pi-agent-core";
+} from "@dude1wudv/pi-agent-core";
 import type {
 	Context,
 	CredentialDisabledEvent,
@@ -19,17 +19,17 @@ import type {
 	ProviderSessionState,
 	ServiceTier,
 	SimpleStreamOptions,
-} from "@oh-my-pi/pi-ai";
-import { resolveApiKeyOnce } from "@oh-my-pi/pi-ai/auth-retry";
-import type { Dialect } from "@oh-my-pi/pi-ai/dialect";
+} from "@dude1wudv/pi-ai";
+import { resolveApiKeyOnce } from "@dude1wudv/pi-ai/auth-retry";
+import type { Dialect } from "@dude1wudv/pi-ai/dialect";
 import {
 	getOpenAICodexTransportDetails,
 	prewarmOpenAICodexResponses,
-} from "@oh-my-pi/pi-ai/providers/openai-codex-responses";
-import { FALLBACK_DIALECT, preferredDialect } from "@oh-my-pi/pi-catalog/identity";
-import type { Component } from "@oh-my-pi/pi-tui";
-import { $env, $flag, getAgentDir, getProjectDir, logger, postmortem, prompt, Snowflake } from "@oh-my-pi/pi-utils";
-import { INTENT_FIELD } from "@oh-my-pi/pi-wire";
+} from "@dude1wudv/pi-ai/providers/openai-codex-responses";
+import { FALLBACK_DIALECT, preferredDialect } from "@dude1wudv/pi-catalog/identity";
+import type { Component } from "@dude1wudv/pi-tui";
+import { $env, $flag, getAgentDir, getProjectDir, logger, postmortem, prompt, Snowflake } from "@dude1wudv/pi-utils";
+import { INTENT_FIELD } from "@dude1wudv/pi-wire";
 import {
 	discoverAdvisorConfigs,
 	discoverWatchdogFiles,
@@ -65,6 +65,7 @@ import { buildServiceTierByFamily } from "./config/service-tier";
 import { Settings, type SkillsSettings } from "./config/settings";
 import { CursorExecHandlers, type CursorMcpResourceAdapter } from "./cursor";
 import { createBridgeEditTool, createBridgeGrepFactory } from "./cursor-bridge-tools";
+import { PROJECT_PLAN_ENTRY_TYPE, resolveProjectPlanPath } from "./plan-mode/state";
 import "./discovery";
 import { initializeWithSettings } from "./discovery";
 import { withOmpExtensionRootScope } from "./discovery/omp-extension-roots";
@@ -1201,7 +1202,7 @@ export function createAutoLearnCaptureRunner(
  * const { session } = await createAgentSession();
  *
  * // With explicit model
- * import { getModel } from '@oh-my-pi/pi-ai';
+ * import { getModel } from '/pi-ai';
  * const { session } = await createAgentSession({
  *   model: getModel('anthropic', 'claude-opus-4-5'),
  *   thinkingLevel: 'high',
@@ -1617,6 +1618,27 @@ async function createAgentSessionScoped(options: CreateAgentSessionOptions): Pro
 	const resolvedAgentDisplayName =
 		options.agentDisplayName ?? ((options.taskDepth ?? 0) > 0 || options.parentTaskPrefix ? "sub" : "main");
 	const agentKind = (options.taskDepth ?? 0) > 0 || options.parentTaskPrefix ? ("sub" as const) : ("main" as const);
+	const restoredProjectPlanPath = (() => {
+		if (agentKind !== "main") return undefined;
+		const branch = sessionManager.getBranch();
+		for (let index = branch.length - 1; index >= 0; index--) {
+			const entry = branch[index];
+			if (entry.type !== "custom" || entry.customType !== PROJECT_PLAN_ENTRY_TYPE) continue;
+			const candidate = (entry.data as { path?: unknown } | undefined)?.path;
+			if (typeof candidate !== "string") {
+				logger.warn("Ignoring malformed project-plan session entry", { entryId: entry.id });
+				return undefined;
+			}
+			try {
+				resolveProjectPlanPath(sessionManager.getCwd(), candidate);
+				return candidate;
+			} catch (error) {
+				logger.warn("Ignoring invalid project-plan session entry", { entryId: entry.id, error });
+				return undefined;
+			}
+		}
+		return undefined;
+	})();
 	let registeredAgentRef: AgentRef | undefined;
 	/**
 	 * Forget the agent ref on teardown — unless it is a retained terminal ref.
@@ -1658,6 +1680,11 @@ async function createAgentSessionScoped(options: CreateAgentSessionOptions): Pro
 			}
 		};
 		const toolSession: ToolSession = {
+			isMainSession: agentKind === "main",
+			getProjectPlanPath: () => session?.getProjectPlanPath() ?? restoredProjectPlanPath,
+			updateProjectPlan: event =>
+				session?.updateProjectPlan(event) ??
+				Promise.reject(new Error("No approved project plan is attached to this session.")),
 			get cwd() {
 				return sessionManager.getCwd();
 			},
@@ -3305,6 +3332,9 @@ async function createAgentSessionScoped(options: CreateAgentSessionOptions): Pro
 		// (defaulting to read/grep/glob).
 		const advisorToolSession: ToolSession = {
 			...toolSession,
+			isMainSession: false,
+			getProjectPlanPath: undefined,
+			updateProjectPlan: undefined,
 			get cwd() {
 				return sessionManager.getCwd();
 			},
@@ -3469,6 +3499,7 @@ async function createAgentSessionScoped(options: CreateAgentSessionOptions): Pro
 			titleSystemPrompt: options.titleSystemPrompt,
 		});
 		hasSession = true;
+		if (restoredProjectPlanPath) session.setProjectPlanPath(restoredProjectPlanPath);
 		// Extension factories normally register tools before session construction,
 		// but Pi-compatible extensions may discover them asynchronously from a
 		// session_start handler. Install those late registrations into the live

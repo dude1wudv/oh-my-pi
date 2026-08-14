@@ -1,5 +1,5 @@
 import * as net from "node:net";
-import { Process, ProcessStatus } from "@oh-my-pi/pi-natives";
+import { Process, ProcessStatus } from "@dude1wudv/pi-natives";
 import type { Browser, Page } from "puppeteer-core";
 import { ToolError, throwIfAborted } from "../tool-errors";
 

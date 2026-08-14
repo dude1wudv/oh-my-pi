@@ -1,5 +1,5 @@
-import { toNumber } from "@oh-my-pi/pi-catalog/utils";
-import { $env } from "@oh-my-pi/pi-utils";
+import { toNumber } from "@dude1wudv/pi-catalog/utils";
+import { $env } from "@dude1wudv/pi-utils";
 import { getKimiCommonHeaders } from "../registry/oauth/kimi";
 import type {
 	UsageAmount,

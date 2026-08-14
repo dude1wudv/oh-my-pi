@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import { getThemeByName } from "@oh-my-pi/pi-coding-agent/modes/theme/theme";
-import { sanitizeText } from "@oh-my-pi/pi-utils";
+import { getThemeByName } from "@dude1wudv/pi-coding-agent/modes/theme/theme";
+import { sanitizeText } from "@dude1wudv/pi-utils";
 import { globToolRenderer } from "../../src/tools/glob";
 
 describe("globToolRenderer", () => {

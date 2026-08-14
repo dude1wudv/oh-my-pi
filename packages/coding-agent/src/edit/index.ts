@@ -1,9 +1,9 @@
-import { MismatchError as HashlineMismatchError } from "@oh-my-pi/hashline";
-import hashlineGrammar from "@oh-my-pi/hashline/grammar.lark" with { type: "text" };
-import hashlineDescription from "@oh-my-pi/hashline/prompt.md" with { type: "text" };
-import type { AgentTool, AgentToolContext, AgentToolResult, AgentToolUpdateCallback } from "@oh-my-pi/pi-agent-core";
-import type { ToolExample } from "@oh-my-pi/pi-ai";
-import { isEnoent, isEnotdir, prompt } from "@oh-my-pi/pi-utils";
+import { MismatchError as HashlineMismatchError } from "@dude1wudv/hashline";
+import hashlineGrammar from "@dude1wudv/hashline/grammar.lark" with { type: "text" };
+import hashlineDescription from "@dude1wudv/hashline/prompt.md" with { type: "text" };
+import type { AgentTool, AgentToolContext, AgentToolResult, AgentToolUpdateCallback } from "@dude1wudv/pi-agent-core";
+import type { ToolExample } from "@dude1wudv/pi-ai";
+import { isEnoent, isEnotdir, prompt } from "@dude1wudv/pi-utils";
 import { createLspWritethrough, flushLspWritethroughBatch, type WritethroughCallback, writethroughNoop } from "../lsp";
 import { DeferredDiagnostics } from "../lsp/deferred-diagnostics";
 import { getDiagnosticsLedger } from "../lsp/diagnostics-ledger";
@@ -24,7 +24,7 @@ import { type EditToolDetails, type EditToolPerFileResult, getLspBatchRequest, t
 import { pruneOversizedEditSnapshots } from "./snapshot-details";
 import { EDIT_MODE_STRATEGIES } from "./streaming";
 
-export * from "@oh-my-pi/hashline";
+export * from "@dude1wudv/hashline";
 export { DEFAULT_EDIT_MODE, type EditMode, normalizeEditMode } from "../utils/edit-mode";
 export * from "./apply-patch";
 export * from "./diff";

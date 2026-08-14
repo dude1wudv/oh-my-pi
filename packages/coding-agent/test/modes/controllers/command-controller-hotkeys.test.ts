@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it } from "bun:test";
-import { setKeyHintPlatform } from "@oh-my-pi/pi-coding-agent/config/keybindings";
-import { buildHotkeysMarkdown } from "@oh-my-pi/pi-coding-agent/modes/utils/hotkeys-markdown";
+import { setKeyHintPlatform } from "@dude1wudv/pi-coding-agent/config/keybindings";
+import { buildHotkeysMarkdown } from "@dude1wudv/pi-coding-agent/modes/utils/hotkeys-markdown";
 
 describe("buildHotkeysMarkdown", () => {
 	afterEach(() => setKeyHintPlatform(undefined));

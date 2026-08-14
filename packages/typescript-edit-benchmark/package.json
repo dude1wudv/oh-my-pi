@@ -1,7 +1,7 @@
 {
   "type": "module",
   "private": true,
-  "name": "@oh-my-pi/typescript-edit-benchmark",
+  "name": "@dude1wudv/typescript-edit-benchmark",
   "version": "0.0.1",
   "description": "Edit benchmark suite using TypeScript source code mutations",
   "homepage": "https://omp.sh",
@@ -34,16 +34,16 @@
     "@babel/parser": "catalog:",
     "@babel/traverse": "catalog:",
     "@babel/types": "catalog:",
-    "@oh-my-pi/hashline": "catalog:",
-    "@oh-my-pi/pi-agent-core": "catalog:",
-    "@oh-my-pi/pi-coding-agent": "catalog:",
-    "@oh-my-pi/pi-utils": "catalog:",
+    "@dude1wudv/hashline": "catalog:",
+    "@dude1wudv/pi-agent-core": "catalog:",
+    "@dude1wudv/pi-coding-agent": "catalog:",
+    "@dude1wudv/pi-utils": "catalog:",
     "diff": "catalog:",
-    "@oh-my-pi/pi-natives": "catalog:",
+    "@dude1wudv/pi-natives": "catalog:",
     "prettier": "catalog:",
     "regexp-tree": "catalog:",
-    "@oh-my-pi/pi-ai": "catalog:",
-    "@oh-my-pi/pi-tui": "catalog:"
+    "@dude1wudv/pi-ai": "catalog:",
+    "@dude1wudv/pi-tui": "catalog:"
   },
   "devDependencies": {
     "@types/babel__generator": "catalog:",

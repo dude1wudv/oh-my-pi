@@ -197,13 +197,13 @@ The tool returns one result per call; no streaming partial output is emitted fro
 - Network
   - CDP attach paths poll `http://127.0.0.1:<port>/json/version` or the supplied `cdp_url` `/json/version`.
   - Headless/browser-attach sessions create CDP websocket connections.
-  - Headless first-use Chromium download uses the in-house `@oh-my-pi/pi-utils/browsers` installer.
+  - Headless first-use Chromium download uses the in-house `/pi-utils/browsers` installer.
   - Loopback relay mode may start the machine-global `omp.browser.relay` daemon. The extension connects outbound to the relay, and Puppeteer connects to its CDP-compatible endpoint.
   - User `page` / `tab` operations perform normal browser network traffic.
 - Subprocesses / native bindings
   - Headless mode launches Chromium through Puppeteer.
   - `app.path` mode may spawn the target executable via `Bun.spawn()`.
-  - `killExistingByPath()` / `gracefulKillTreeOnce()` use `@oh-my-pi/pi-natives` process inspection/termination.
+  - `killExistingByPath()` / `gracefulKillTreeOnce()` use `/pi-natives` process inspection/termination.
   - Worker mode uses Bun `Worker`; fallback mode does not.
 - Session state (transcript, memory, jobs, checkpoints, registries)
   - Browser handles are cached in a process-global `Map` keyed by browser kind in `packages/coding-agent/src/tools/browser/registry.ts`.

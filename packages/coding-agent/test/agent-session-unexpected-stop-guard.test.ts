@@ -1,14 +1,14 @@
 import { afterAll, afterEach, describe, expect, it, vi } from "bun:test";
-import { type } from "@oh-my-pi/omptype";
-import { Agent, type AgentMessage, type AgentTool } from "@oh-my-pi/pi-agent-core";
-import { createMockModel, type MockModel, type MockResponse } from "@oh-my-pi/pi-ai/providers/mock";
-import { ModelRegistry } from "@oh-my-pi/pi-coding-agent/config/model-registry";
-import { type SettingPath, Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { AgentSession } from "@oh-my-pi/pi-coding-agent/session/agent-session";
-import { convertToLlm } from "@oh-my-pi/pi-coding-agent/session/messages";
-import { SessionManager } from "@oh-my-pi/pi-coding-agent/session/session-manager";
-import * as unexpectedStopClassifier from "@oh-my-pi/pi-coding-agent/session/unexpected-stop-classifier";
-import { logger, TempDir } from "@oh-my-pi/pi-utils";
+import { type } from "@dude1wudv/omptype";
+import { Agent, type AgentMessage, type AgentTool } from "@dude1wudv/pi-agent-core";
+import { createMockModel, type MockModel, type MockResponse } from "@dude1wudv/pi-ai/providers/mock";
+import { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry";
+import { type SettingPath, Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { AgentSession } from "@dude1wudv/pi-coding-agent/session/agent-session";
+import { convertToLlm } from "@dude1wudv/pi-coding-agent/session/messages";
+import { SessionManager } from "@dude1wudv/pi-coding-agent/session/session-manager";
+import * as unexpectedStopClassifier from "@dude1wudv/pi-coding-agent/session/unexpected-stop-classifier";
+import { logger, TempDir } from "@dude1wudv/pi-utils";
 import { createInMemoryAuthStorage } from "./helpers/agent-session-setup";
 
 const recordToolSchema = type({ value: type("string") });

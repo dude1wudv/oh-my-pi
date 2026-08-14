@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "bun:test";
-import { type Component, type NativeScrollbackLiveRegion, TUI } from "@oh-my-pi/pi-tui";
+import { type Component, type NativeScrollbackLiveRegion, TUI } from "@dude1wudv/pi-tui";
 import { VirtualTerminal } from "./virtual-terminal";
 
 // Kitty OSC 66 text-sizing marker and the erase sequences the renderer emits.

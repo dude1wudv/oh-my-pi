@@ -20,20 +20,20 @@
  *     unrelated provider call.
  */
 import { afterEach, describe, expect, it, vi } from "bun:test";
-import type { StreamFn } from "@oh-my-pi/pi-agent-core";
+import type { StreamFn } from "@dude1wudv/pi-agent-core";
 import {
 	type CompactionPreparation,
 	compact,
 	createFileOps,
 	DEFAULT_COMPACTION_SETTINGS,
-} from "@oh-my-pi/pi-agent-core/compaction";
-import type { AgentMessage } from "@oh-my-pi/pi-agent-core/types";
-import type { AssistantMessage, Model } from "@oh-my-pi/pi-ai";
-import * as ai from "@oh-my-pi/pi-ai";
-import { AssistantMessageEventStream } from "@oh-my-pi/pi-ai/utils/event-stream";
-import { getBundledModel } from "@oh-my-pi/pi-catalog/models";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { wrapStreamFnWithProviderConcurrency } from "@oh-my-pi/pi-coding-agent/task/provider-concurrency";
+} from "@dude1wudv/pi-agent-core/compaction";
+import type { AgentMessage } from "@dude1wudv/pi-agent-core/types";
+import type { AssistantMessage, Model } from "@dude1wudv/pi-ai";
+import * as ai from "@dude1wudv/pi-ai";
+import { AssistantMessageEventStream } from "@dude1wudv/pi-ai/utils/event-stream";
+import { getBundledModel } from "@dude1wudv/pi-catalog/models";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { wrapStreamFnWithProviderConcurrency } from "@dude1wudv/pi-coding-agent/task/provider-concurrency";
 
 interface Deferred {
 	promise: Promise<void>;

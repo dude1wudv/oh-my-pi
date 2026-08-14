@@ -15,19 +15,19 @@
  *   CLI flags, scope globs — onto that pipeline.
  */
 
-import { ThinkingLevel } from "@oh-my-pi/pi-agent-core";
-import type { Api, Effort, KnownProvider, Model, ModelSpec } from "@oh-my-pi/pi-ai";
-import { buildModel } from "@oh-my-pi/pi-catalog/build";
-import { modelMatchesHost } from "@oh-my-pi/pi-catalog/hosts";
-import { buildModelProviderPriorityRank } from "@oh-my-pi/pi-catalog/identity";
-import { stripThinkingVariantToken } from "@oh-my-pi/pi-catalog/identity/family";
-import { clampThinkingLevelForModel } from "@oh-my-pi/pi-catalog/model-thinking";
-import { modelsAreEqual } from "@oh-my-pi/pi-catalog/models";
-import { DEFAULT_MODEL_PER_PROVIDER } from "@oh-my-pi/pi-catalog/provider-models";
-import { resolveBareVariantAlias, resolveVariantAlias } from "@oh-my-pi/pi-catalog/variant-collapse";
-import { fuzzyMatch } from "@oh-my-pi/pi-tui";
-import { logger } from "@oh-my-pi/pi-utils";
-import chalk from "@oh-my-pi/pi-utils/chalk";
+import { ThinkingLevel } from "@dude1wudv/pi-agent-core";
+import type { Api, Effort, KnownProvider, Model, ModelSpec } from "@dude1wudv/pi-ai";
+import { buildModel } from "@dude1wudv/pi-catalog/build";
+import { modelMatchesHost } from "@dude1wudv/pi-catalog/hosts";
+import { buildModelProviderPriorityRank } from "@dude1wudv/pi-catalog/identity";
+import { stripThinkingVariantToken } from "@dude1wudv/pi-catalog/identity/family";
+import { clampThinkingLevelForModel } from "@dude1wudv/pi-catalog/model-thinking";
+import { modelsAreEqual } from "@dude1wudv/pi-catalog/models";
+import { DEFAULT_MODEL_PER_PROVIDER } from "@dude1wudv/pi-catalog/provider-models";
+import { resolveBareVariantAlias, resolveVariantAlias } from "@dude1wudv/pi-catalog/variant-collapse";
+import { fuzzyMatch } from "@dude1wudv/pi-tui";
+import { logger } from "@dude1wudv/pi-utils";
+import chalk from "@dude1wudv/pi-utils/chalk";
 import MODEL_PRIO from "../priority.json" with { type: "json" };
 import {
 	AUTO_THINKING,

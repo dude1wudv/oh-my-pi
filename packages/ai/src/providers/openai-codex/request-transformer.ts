@@ -1,7 +1,7 @@
-import { Effort } from "@oh-my-pi/pi-catalog/effort";
-import { supportsAllTurnsReasoningContext, supportsCodexReasoningSummary } from "@oh-my-pi/pi-catalog/identity";
-import { requireSupportedEffort } from "@oh-my-pi/pi-catalog/model-thinking";
-import { $env } from "@oh-my-pi/pi-utils";
+import { Effort } from "@dude1wudv/pi-catalog/effort";
+import { supportsAllTurnsReasoningContext, supportsCodexReasoningSummary } from "@dude1wudv/pi-catalog/identity";
+import { requireSupportedEffort } from "@dude1wudv/pi-catalog/model-thinking";
+import { $env } from "@dude1wudv/pi-utils";
 import type { Model } from "../../types";
 import { mapOpenAIReasoningEffort } from "../openai-shared";
 

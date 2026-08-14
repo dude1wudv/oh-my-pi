@@ -1,4 +1,4 @@
-import { logger } from "@oh-my-pi/pi-utils";
+import { logger } from "@dude1wudv/pi-utils";
 
 /**
  * Narrow a value to a thenable so a rejection handler can be attached.

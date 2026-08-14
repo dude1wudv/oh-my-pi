@@ -1,5 +1,5 @@
 import * as fs from "node:fs";
-import { isEnoent, logger, once, untilAborted } from "@oh-my-pi/pi-utils";
+import { isEnoent, logger, once, untilAborted } from "@dude1wudv/pi-utils";
 import type { BunFile } from "bun";
 import { FileChangeType, notifyWorkspaceWatchedFiles } from "./client";
 import { getServersForFile } from "./config";

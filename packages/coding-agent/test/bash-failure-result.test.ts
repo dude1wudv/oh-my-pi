@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, mock, spyOn } from "bun:test";
-import type { ToolSession } from "@oh-my-pi/pi-coding-agent/tools";
-import { BashTool } from "@oh-my-pi/pi-coding-agent/tools/bash";
-import { Shell } from "@oh-my-pi/pi-natives";
+import type { ToolSession } from "@dude1wudv/pi-coding-agent/tools";
+import { BashTool } from "@dude1wudv/pi-coding-agent/tools/bash";
+import { Shell } from "@dude1wudv/pi-natives";
 
 afterEach(() => {
 	mock.restore();

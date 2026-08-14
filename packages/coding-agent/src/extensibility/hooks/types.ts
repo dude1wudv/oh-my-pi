@@ -1,9 +1,9 @@
-import type { type as ArkType } from "@oh-my-pi/omptype";
-import type * as TypeBox from "@oh-my-pi/omptype/typebox";
-import type * as zod from "@oh-my-pi/omptype/zod";
-import type { ImageContent, Message, Model, TextContent } from "@oh-my-pi/pi-ai";
-import type { Component, TUI } from "@oh-my-pi/pi-tui";
-import type { logger as PiLogger } from "@oh-my-pi/pi-utils";
+import type { type as ArkType } from "@dude1wudv/omptype";
+import type * as TypeBox from "@dude1wudv/omptype/typebox";
+import type * as zod from "@dude1wudv/omptype/zod";
+import type { ImageContent, Message, Model, TextContent } from "@dude1wudv/pi-ai";
+import type { Component, TUI } from "@dude1wudv/pi-tui";
+import type { logger as PiLogger } from "@dude1wudv/pi-utils";
 import type { ModelRegistry } from "../../config/model-registry";
 import type { EditToolDetails } from "../../edit";
 import type { ExecOptions, ExecResult } from "../../exec/exec";

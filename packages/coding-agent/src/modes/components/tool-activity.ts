@@ -1,4 +1,4 @@
-import { type Component, Container } from "@oh-my-pi/pi-tui";
+import { type Component, Container } from "@dude1wudv/pi-tui";
 
 export interface ToolActivityComponent {
 	setToolActivityVisible(visible: boolean): void;

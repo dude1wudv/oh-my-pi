@@ -1,4 +1,4 @@
-import type { FetchImpl } from "@oh-my-pi/pi-ai";
+import type { FetchImpl } from "@dude1wudv/pi-ai";
 
 export interface CompleteOptions {
 	maxTokens?: number;

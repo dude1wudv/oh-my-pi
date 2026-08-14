@@ -1,11 +1,11 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, type Mock, vi } from "bun:test";
-import type { AgentMessage } from "@oh-my-pi/pi-agent-core";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { SelectorController } from "@oh-my-pi/pi-coding-agent/modes/controllers/selector-controller";
-import { initTheme } from "@oh-my-pi/pi-coding-agent/modes/theme/theme";
-import type { InteractiveModeContext } from "@oh-my-pi/pi-coding-agent/modes/types";
-import type { SessionTreeNode } from "@oh-my-pi/pi-coding-agent/session/session-entries";
-import { setKittyProtocolActive } from "@oh-my-pi/pi-tui/keys";
+import type { AgentMessage } from "@dude1wudv/pi-agent-core";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { SelectorController } from "@dude1wudv/pi-coding-agent/modes/controllers/selector-controller";
+import { initTheme } from "@dude1wudv/pi-coding-agent/modes/theme/theme";
+import type { InteractiveModeContext } from "@dude1wudv/pi-coding-agent/modes/types";
+import type { SessionTreeNode } from "@dude1wudv/pi-coding-agent/session/session-entries";
+import { setKittyProtocolActive } from "@dude1wudv/pi-tui/keys";
 import { beginSettingsTest, restoreSettingsTestState, type SettingsTestState } from "./helpers/settings-test-state";
 
 const SHIFT_ENTER = "\x1b[13;2u";

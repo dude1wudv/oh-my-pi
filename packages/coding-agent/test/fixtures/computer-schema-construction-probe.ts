@@ -1,6 +1,6 @@
-import { type as arkType } from "@oh-my-pi/omptype";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { BUILTIN_TOOLS, ComputerTool, createTools, type ToolSession } from "@oh-my-pi/pi-coding-agent/tools";
+import { type as arkType } from "@dude1wudv/omptype";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { BUILTIN_TOOLS, ComputerTool, createTools, type ToolSession } from "@dude1wudv/pi-coding-agent/tools";
 
 declare global {
 	var __computerSchemaConstructionCount: number;

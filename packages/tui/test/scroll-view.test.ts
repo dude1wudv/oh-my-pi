@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
-import { ScrollView } from "@oh-my-pi/pi-tui/components/scroll-view";
-import { Ellipsis, visibleWidth } from "@oh-my-pi/pi-tui/utils";
+import { ScrollView } from "@dude1wudv/pi-tui/components/scroll-view";
+import { Ellipsis, visibleWidth } from "@dude1wudv/pi-tui/utils";
 
 const theme = {
 	track: () => "T",

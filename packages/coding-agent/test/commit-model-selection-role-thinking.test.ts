@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
-import { Effort } from "@oh-my-pi/pi-ai";
-import { getBundledModel } from "@oh-my-pi/pi-catalog/models";
-import { resolvePrimaryModel, resolveSmolModel } from "@oh-my-pi/pi-coding-agent/commit/model-selection";
+import { Effort } from "@dude1wudv/pi-ai";
+import { getBundledModel } from "@dude1wudv/pi-catalog/models";
+import { resolvePrimaryModel, resolveSmolModel } from "@dude1wudv/pi-coding-agent/commit/model-selection";
 
 function getModelOrThrow(id: string) {
 	const model = getBundledModel("anthropic", id);

@@ -8,15 +8,15 @@ import { afterAll, afterEach, beforeAll, describe, expect, test, vi } from "bun:
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
-import { Effort } from "@oh-my-pi/pi-ai";
-import { buildModel } from "@oh-my-pi/pi-catalog/build";
-import type { ModelRegistry } from "@oh-my-pi/pi-coding-agent/config/model-registry";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { AgentsHubComponent } from "@oh-my-pi/pi-coding-agent/modes/components/agents-hub";
-import { initTheme } from "@oh-my-pi/pi-coding-agent/modes/theme/theme";
-import * as discovery from "@oh-my-pi/pi-coding-agent/task/discovery";
-import type { TUI } from "@oh-my-pi/pi-tui";
-import { removeWithRetries } from "@oh-my-pi/pi-utils";
+import { Effort } from "@dude1wudv/pi-ai";
+import { buildModel } from "@dude1wudv/pi-catalog/build";
+import type { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { AgentsHubComponent } from "@dude1wudv/pi-coding-agent/modes/components/agents-hub";
+import { initTheme } from "@dude1wudv/pi-coding-agent/modes/theme/theme";
+import * as discovery from "@dude1wudv/pi-coding-agent/task/discovery";
+import type { TUI } from "@dude1wudv/pi-tui";
+import { removeWithRetries } from "@dude1wudv/pi-utils";
 
 const ANSI_PATTERN = /\x1b\[[0-?]*[ -/]*[@-~]/g;
 let tempCwd: string;

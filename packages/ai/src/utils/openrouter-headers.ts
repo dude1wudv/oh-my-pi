@@ -1,4 +1,4 @@
-import { USER_AGENT } from "@oh-my-pi/pi-utils";
+import { USER_AGENT } from "@dude1wudv/pi-utils";
 
 export function getOpenRouterHeaders(): Record<string, string> {
 	return {

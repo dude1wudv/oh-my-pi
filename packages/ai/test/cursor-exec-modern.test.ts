@@ -7,10 +7,10 @@ import {
 	handleServerMessage,
 	processInteractionUpdate,
 	type ToolCallState,
-} from "@oh-my-pi/pi-ai/providers/cursor";
-import type { AssistantMessage, CursorExecHandlers, ToolResultMessage } from "@oh-my-pi/pi-ai/types";
-import { kCursorExecResolved, setStreamingPartialJson } from "@oh-my-pi/pi-ai/utils/block-symbols";
-import { AssistantMessageEventStream } from "@oh-my-pi/pi-ai/utils/event-stream";
+} from "@dude1wudv/pi-ai/providers/cursor";
+import type { AssistantMessage, CursorExecHandlers, ToolResultMessage } from "@dude1wudv/pi-ai/types";
+import { kCursorExecResolved, setStreamingPartialJson } from "@dude1wudv/pi-ai/utils/block-symbols";
+import { AssistantMessageEventStream } from "@dude1wudv/pi-ai/utils/event-stream";
 import {
 	type AgentClientMessage,
 	AgentClientMessageSchema,
@@ -64,7 +64,7 @@ import {
 	SubagentAwaitArgsSchema,
 	ToolCallSchema,
 	WebFetchAllowlistPrecheckArgsSchema,
-} from "@oh-my-pi/pi-catalog/discovery/cursor-gen/agent_pb";
+} from "@dude1wudv/pi-catalog/discovery/cursor-gen/agent_pb";
 
 /**
  * Drive one `ExecServerMessage` through the real dispatcher and decode every

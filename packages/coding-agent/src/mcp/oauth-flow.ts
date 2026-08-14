@@ -5,11 +5,11 @@
  * by providing authorization URL, token URL, and client credentials.
  */
 
-import type { OAuthCallbackFlowOptions } from "@oh-my-pi/pi-ai/oauth/callback-server";
-import { OAuthCallbackFlow } from "@oh-my-pi/pi-ai/oauth/callback-server";
-import type { OAuthController, OAuthCredentials } from "@oh-my-pi/pi-ai/oauth/types";
-import type { FetchImpl } from "@oh-my-pi/pi-ai/types";
-import { getActiveProfile } from "@oh-my-pi/pi-utils/dirs";
+import type { OAuthCallbackFlowOptions } from "@dude1wudv/pi-ai/oauth/callback-server";
+import { OAuthCallbackFlow } from "@dude1wudv/pi-ai/oauth/callback-server";
+import type { OAuthController, OAuthCredentials } from "@dude1wudv/pi-ai/oauth/types";
+import type { FetchImpl } from "@dude1wudv/pi-ai/types";
+import { getActiveProfile } from "@dude1wudv/pi-utils/dirs";
 import type { OAuthCredential } from "../session/auth-storage";
 
 /** Credential-id prefix for OMP-managed MCP OAuth credentials keyed by profile and server URL. */

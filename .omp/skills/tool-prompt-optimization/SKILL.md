@@ -9,7 +9,7 @@ Prompt/schema overlap: content reconstructible from `(name, JSON schema, blank o
 
 ## Run probe
 
-`scripts/probe.ts`: `@oh-my-pi/pi-ai` `completeSimple`; production-matching model/auth/provider behavior.
+`scripts/probe.ts`: `/pi-ai` `completeSimple`; production-matching model/auth/provider behavior.
 
 ```bash
 bun .omp/skills/tool-prompt-optimization/scripts/probe.ts \
@@ -39,7 +39,7 @@ bun .omp/skills/tool-prompt-optimization/scripts/probe-builtin.ts --tool <name> 
 **Schema:** wire schema the model sees, never hand-sketch. Arktype:
 
 ```ts
-import { arkToWireSchema } from "@oh-my-pi/pi-ai"; // or toolWireSchema(tool)
+import { arkToWireSchema } from "/pi-ai"; // or toolWireSchema(tool)
 JSON.stringify(arkToWireSchema(toolSchema), null, 2);
 ```
 

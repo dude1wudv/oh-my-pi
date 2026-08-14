@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "bun:test";
-import { streamOpenAICompletions } from "@oh-my-pi/pi-ai/providers/openai-completions";
-import { streamOpenAIResponses } from "@oh-my-pi/pi-ai/providers/openai-responses";
-import { streamSimple } from "@oh-my-pi/pi-ai/stream";
+import { streamOpenAICompletions } from "@dude1wudv/pi-ai/providers/openai-completions";
+import { streamOpenAIResponses } from "@dude1wudv/pi-ai/providers/openai-responses";
+import { streamSimple } from "@dude1wudv/pi-ai/stream";
 import type {
 	AssistantMessage,
 	Context,
@@ -10,9 +10,9 @@ import type {
 	ModelSpec,
 	OpenAICompat,
 	StreamOptions,
-} from "@oh-my-pi/pi-ai/types";
-import { buildModel } from "@oh-my-pi/pi-catalog/build";
-import { Effort } from "@oh-my-pi/pi-catalog/effort";
+} from "@dude1wudv/pi-ai/types";
+import { buildModel } from "@dude1wudv/pi-catalog/build";
+import { Effort } from "@dude1wudv/pi-catalog/effort";
 
 const context: Context = {
 	systemPrompt: ["Stay concise."],

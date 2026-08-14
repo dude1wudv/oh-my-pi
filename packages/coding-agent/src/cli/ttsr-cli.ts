@@ -12,9 +12,9 @@
  */
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { AstMatchStrictness, astMatch, FileType, type GlobMatch, glob } from "@oh-my-pi/pi-natives";
-import chalk from "@oh-my-pi/pi-utils/chalk";
-import { getProjectDir } from "@oh-my-pi/pi-utils/dirs";
+import { AstMatchStrictness, astMatch, FileType, type GlobMatch, glob } from "@dude1wudv/pi-natives";
+import chalk from "@dude1wudv/pi-utils/chalk";
+import { getProjectDir } from "@dude1wudv/pi-utils/dirs";
 import { BUILTIN_DEFAULTS_PROVIDER_ID, compileRuleCondition, type Rule, ruleCapability } from "../capability/rule";
 import { bucketRules } from "../capability/rule-buckets";
 import { Settings } from "../config/settings";

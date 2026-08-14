@@ -1,16 +1,16 @@
 import * as os from "node:os";
 import * as path from "node:path";
-import { type } from "@oh-my-pi/omptype";
-import { type ApiKey, type FetchImpl, getEnvApiKey, getOpenRouterHeaders, type Model, withAuth } from "@oh-my-pi/pi-ai";
-import { ProviderHttpError } from "@oh-my-pi/pi-ai/error";
+import { type } from "@dude1wudv/omptype";
+import { type ApiKey, type FetchImpl, getEnvApiKey, getOpenRouterHeaders, type Model, withAuth } from "@dude1wudv/pi-ai";
+import { ProviderHttpError } from "@dude1wudv/pi-ai/error";
 import {
 	CODEX_BASE_URL,
 	getCodexAccountId,
 	OPENAI_HEADER_VALUES,
 	OPENAI_HEADERS,
 	URL_PATHS,
-} from "@oh-my-pi/pi-catalog/wire/codex";
-import { getAntigravityUserAgent } from "@oh-my-pi/pi-catalog/wire/gemini-headers";
+} from "@dude1wudv/pi-catalog/wire/codex";
+import { getAntigravityUserAgent } from "@dude1wudv/pi-catalog/wire/gemini-headers";
 import {
 	$env,
 	isEnoent,
@@ -21,7 +21,7 @@ import {
 	Snowflake,
 	USER_AGENT,
 	untilAborted,
-} from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-utils";
 import { isAuthenticated, type ModelRegistry } from "../config/model-registry";
 import { settings } from "../config/settings";
 import type { CustomTool } from "../extensibility/custom-tools/types";

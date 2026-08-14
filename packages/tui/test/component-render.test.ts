@@ -8,7 +8,7 @@ import {
 	type NativeScrollbackLiveRegion,
 	type NativeScrollbackReplay,
 	TUI,
-} from "@oh-my-pi/pi-tui";
+} from "@dude1wudv/pi-tui";
 import { StressRenderScheduler } from "./render-stress-scheduler";
 import { defaultEditorTheme } from "./test-themes";
 import { VirtualTerminal } from "./virtual-terminal";

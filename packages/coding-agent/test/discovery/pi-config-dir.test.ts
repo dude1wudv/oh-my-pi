@@ -1,11 +1,11 @@
 import { afterEach, describe, expect, test } from "bun:test";
 import * as os from "node:os";
 import * as path from "node:path";
-import type { LoadContext } from "@oh-my-pi/pi-coding-agent/capability/types";
-import { getConfigDirs } from "@oh-my-pi/pi-coding-agent/config";
-import { resolveClaudePaths } from "@oh-my-pi/pi-coding-agent/config/claude-paths";
-import { getUserPath } from "@oh-my-pi/pi-coding-agent/discovery/helpers";
-import { getAgentDir } from "@oh-my-pi/pi-utils";
+import type { LoadContext } from "@dude1wudv/pi-coding-agent/capability/types";
+import { getConfigDirs } from "@dude1wudv/pi-coding-agent/config";
+import { resolveClaudePaths } from "@dude1wudv/pi-coding-agent/config/claude-paths";
+import { getUserPath } from "@dude1wudv/pi-coding-agent/discovery/helpers";
+import { getAgentDir } from "@dude1wudv/pi-utils";
 
 describe("PI_CONFIG_DIR", () => {
 	const original = process.env.PI_CONFIG_DIR;

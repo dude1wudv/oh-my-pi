@@ -1,6 +1,6 @@
-import { type BaseType, type } from "@oh-my-pi/omptype";
-import type { Usage } from "@oh-my-pi/pi-ai";
-import { $env } from "@oh-my-pi/pi-utils";
+import { type BaseType, type } from "@dude1wudv/omptype";
+import type { Usage } from "@dude1wudv/pi-ai";
+import { $env } from "@dude1wudv/pi-utils";
 import type { AgentSessionEvent } from "../session/agent-session";
 import type { ConfiguredThinkingLevel, TaskEffort } from "../thinking";
 import type { NestedRepoPatch } from "./worktree";
@@ -510,6 +510,8 @@ export interface SingleResult {
 	error?: string;
 	aborted?: boolean;
 	abortReason?: string;
+	/** True when the wall-clock runtime limit terminated this run. */
+	timedOut?: boolean;
 	/** Aggregated usage from the subprocess, accumulated incrementally from message_end events. */
 	usage?: Usage;
 	/** Output path for the task result */

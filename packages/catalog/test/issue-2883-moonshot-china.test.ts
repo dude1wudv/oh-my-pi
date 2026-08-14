@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, test, vi } from "bun:test";
-import { getCatalogProviderEntry } from "@oh-my-pi/pi-catalog/provider-models/descriptors";
-import { moonshotModelManagerOptions } from "@oh-my-pi/pi-catalog/provider-models/openai-compat";
-import type { FetchImpl } from "@oh-my-pi/pi-catalog/types";
-import { $pickenv } from "@oh-my-pi/pi-utils";
+import { getCatalogProviderEntry } from "@dude1wudv/pi-catalog/provider-models/descriptors";
+import { moonshotModelManagerOptions } from "@dude1wudv/pi-catalog/provider-models/openai-compat";
+import type { FetchImpl } from "@dude1wudv/pi-catalog/types";
+import { $pickenv } from "@dude1wudv/pi-utils";
 
 const MODELS_DEV_URL = "https://catalog.stencil.so/models.json.zstd";
 

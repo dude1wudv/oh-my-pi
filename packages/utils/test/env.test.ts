@@ -8,7 +8,7 @@ import {
 	getDbBusyTimeoutMs,
 	parseEnvFile,
 	setInteractiveHost,
-} from "@oh-my-pi/pi-utils/env";
+} from "@dude1wudv/pi-utils/env";
 
 const tempDirs: string[] = [];
 const runtimeProbePath = path.join(import.meta.dir, "fixtures", "test-runtime-probe.ts");

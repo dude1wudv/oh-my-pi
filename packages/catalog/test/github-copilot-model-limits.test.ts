@@ -2,11 +2,11 @@ import { describe, expect, it, vi } from "bun:test";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
-import { Effort } from "@oh-my-pi/pi-catalog/effort";
-import { createModelManager } from "@oh-my-pi/pi-catalog/model-manager";
-import { getBundledModel } from "@oh-my-pi/pi-catalog/models";
-import { githubCopilotModelManagerOptions } from "@oh-my-pi/pi-catalog/provider-models/openai-compat";
-import type { ModelSpec } from "@oh-my-pi/pi-catalog/types";
+import { Effort } from "@dude1wudv/pi-catalog/effort";
+import { createModelManager } from "@dude1wudv/pi-catalog/model-manager";
+import { getBundledModel } from "@dude1wudv/pi-catalog/models";
+import { githubCopilotModelManagerOptions } from "@dude1wudv/pi-catalog/provider-models/openai-compat";
+import type { ModelSpec } from "@dude1wudv/pi-catalog/types";
 
 function getHeaderValue(headers: unknown, key: string): string | undefined {
 	if (!headers) return undefined;

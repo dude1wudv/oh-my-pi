@@ -1,7 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { type } from "@oh-my-pi/omptype";
-import { adjustHsv, getCustomThemesDir, isEnoent } from "@oh-my-pi/pi-utils";
+import { type } from "@dude1wudv/omptype";
+import { adjustHsv, getCustomThemesDir, isEnoent } from "@dude1wudv/pi-utils";
 import { detectColorMode, resolveThemeColors } from "./color";
 import darkThemeJson from "./dark.json" with { type: "json" };
 import { defaultThemes } from "./defaults";

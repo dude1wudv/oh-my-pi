@@ -20,33 +20,33 @@
       },
     },
     "packages/agent": {
-      "name": "@oh-my-pi/pi-agent-core",
+      "name": "@dude1wudv/pi-agent-core",
       "version": "20.1.0",
       "dependencies": {
-        "@oh-my-pi/pi-ai": "catalog:",
-        "@oh-my-pi/pi-catalog": "catalog:",
-        "@oh-my-pi/pi-natives": "catalog:",
-        "@oh-my-pi/pi-utils": "catalog:",
-        "@oh-my-pi/pi-wire": "catalog:",
-        "@oh-my-pi/snapcompact": "catalog:",
+        "@dude1wudv/pi-ai": "catalog:",
+        "@dude1wudv/pi-catalog": "catalog:",
+        "@dude1wudv/pi-natives": "catalog:",
+        "@dude1wudv/pi-utils": "catalog:",
+        "@dude1wudv/pi-wire": "catalog:",
+        "@dude1wudv/snapcompact": "catalog:",
         "@opentelemetry/api": "catalog:",
       },
       "devDependencies": {
-        "@oh-my-pi/omptype": "catalog:",
+        "@dude1wudv/omptype": "catalog:",
         "@opentelemetry/context-async-hooks": "catalog:",
         "@opentelemetry/sdk-trace-base": "catalog:",
         "@types/bun": "catalog:",
       },
     },
     "packages/ai": {
-      "name": "@oh-my-pi/pi-ai",
+      "name": "@dude1wudv/pi-ai",
       "version": "20.1.0",
       "dependencies": {
         "@bufbuild/protobuf": "catalog:",
-        "@oh-my-pi/omptype": "catalog:",
-        "@oh-my-pi/pi-catalog": "catalog:",
-        "@oh-my-pi/pi-utils": "catalog:",
-        "@oh-my-pi/pi-wire": "catalog:",
+        "@dude1wudv/omptype": "catalog:",
+        "@dude1wudv/pi-catalog": "catalog:",
+        "@dude1wudv/pi-utils": "catalog:",
+        "@dude1wudv/pi-wire": "catalog:",
       },
       "devDependencies": {
         "@bufbuild/protoc-gen-es": "catalog:",
@@ -54,7 +54,7 @@
       },
     },
     "packages/browser-relay": {
-      "name": "@oh-my-pi/browser-relay",
+      "name": "@dude1wudv/browser-relay",
       "version": "0.1.0",
       "devDependencies": {
         "@types/bun": "catalog:",
@@ -62,38 +62,38 @@
       },
     },
     "packages/catalog": {
-      "name": "@oh-my-pi/pi-catalog",
+      "name": "@dude1wudv/pi-catalog",
       "version": "20.1.0",
       "dependencies": {
         "@bufbuild/protobuf": "catalog:",
-        "@oh-my-pi/omptype": "catalog:",
-        "@oh-my-pi/pi-utils": "catalog:",
+        "@dude1wudv/omptype": "catalog:",
+        "@dude1wudv/pi-utils": "catalog:",
       },
       "devDependencies": {
-        "@oh-my-pi/pi-ai": "catalog:",
+        "@dude1wudv/pi-ai": "catalog:",
         "@types/bun": "catalog:",
       },
     },
     "packages/coding-agent": {
-      "name": "@oh-my-pi/pi-coding-agent",
+      "name": "@dude1wudv/pi-coding-agent",
       "version": "20.1.0",
       "bin": {
         "omp": "src/cli.ts",
       },
       "dependencies": {
         "@babel/parser": "catalog:",
-        "@oh-my-pi/hashline": "catalog:",
-        "@oh-my-pi/omp-stats": "catalog:",
-        "@oh-my-pi/omptype": "catalog:",
-        "@oh-my-pi/pi-agent-core": "catalog:",
-        "@oh-my-pi/pi-ai": "catalog:",
-        "@oh-my-pi/pi-catalog": "catalog:",
-        "@oh-my-pi/pi-mnemopi": "catalog:",
-        "@oh-my-pi/pi-natives": "catalog:",
-        "@oh-my-pi/pi-tui": "catalog:",
-        "@oh-my-pi/pi-utils": "catalog:",
-        "@oh-my-pi/pi-wire": "catalog:",
-        "@oh-my-pi/snapcompact": "catalog:",
+        "@dude1wudv/hashline": "catalog:",
+        "@dude1wudv/omp-stats": "catalog:",
+        "@dude1wudv/omptype": "catalog:",
+        "@dude1wudv/pi-agent-core": "catalog:",
+        "@dude1wudv/pi-ai": "catalog:",
+        "@dude1wudv/pi-catalog": "catalog:",
+        "@dude1wudv/pi-mnemopi": "catalog:",
+        "@dude1wudv/pi-natives": "catalog:",
+        "@dude1wudv/pi-tui": "catalog:",
+        "@dude1wudv/pi-utils": "catalog:",
+        "@dude1wudv/pi-wire": "catalog:",
+        "@dude1wudv/snapcompact": "catalog:",
         "@opentelemetry/api": "catalog:",
         "@opentelemetry/api-logs": "catalog:",
         "@opentelemetry/context-async-hooks": "catalog:",
@@ -116,11 +116,11 @@
       },
     },
     "packages/collab-web": {
-      "name": "@oh-my-pi/collab-web",
+      "name": "@dude1wudv/collab-web",
       "version": "16.3.6",
       "dependencies": {
-        "@oh-my-pi/pi-utils": "catalog:",
-        "@oh-my-pi/pi-wire": "catalog:",
+        "@dude1wudv/pi-utils": "catalog:",
+        "@dude1wudv/pi-wire": "catalog:",
         "lucide-react": "catalog:",
         "react": "catalog:",
         "react-dom": "catalog:",
@@ -132,31 +132,31 @@
       },
     },
     "packages/hashline": {
-      "name": "@oh-my-pi/hashline",
+      "name": "@dude1wudv/hashline",
       "version": "20.1.0",
       "dependencies": {
-        "@oh-my-pi/pi-natives": "catalog:",
-        "@oh-my-pi/pi-utils": "catalog:",
+        "@dude1wudv/pi-natives": "catalog:",
+        "@dude1wudv/pi-utils": "catalog:",
       },
       "devDependencies": {
         "@types/bun": "catalog:",
       },
     },
     "packages/metaharness": {
-      "name": "@oh-my-pi/pi-metaharness",
+      "name": "@dude1wudv/pi-metaharness",
       "version": "0.0.1",
       "bin": {
         "metaharness": "src/server.ts",
       },
       "dependencies": {
-        "@oh-my-pi/hashline": "catalog:",
-        "@oh-my-pi/pi-agent-core": "catalog:",
-        "@oh-my-pi/pi-ai": "catalog:",
-        "@oh-my-pi/pi-catalog": "catalog:",
-        "@oh-my-pi/pi-coding-agent": "catalog:",
-        "@oh-my-pi/pi-natives": "catalog:",
-        "@oh-my-pi/pi-utils": "catalog:",
-        "@oh-my-pi/typescript-edit-benchmark": "workspace:*",
+        "@dude1wudv/hashline": "catalog:",
+        "@dude1wudv/pi-agent-core": "catalog:",
+        "@dude1wudv/pi-ai": "catalog:",
+        "@dude1wudv/pi-catalog": "catalog:",
+        "@dude1wudv/pi-coding-agent": "catalog:",
+        "@dude1wudv/pi-natives": "catalog:",
+        "@dude1wudv/pi-utils": "catalog:",
+        "@dude1wudv/typescript-edit-benchmark": "workspace:*",
         "clsx": "^2.1.1",
         "d3-scale": "^4.0.2",
         "d3-shape": "^3.2.0",
@@ -176,16 +176,16 @@
       },
     },
     "packages/mnemopi": {
-      "name": "@oh-my-pi/pi-mnemopi",
+      "name": "@dude1wudv/pi-mnemopi",
       "version": "20.1.0",
       "bin": {
         "mnemopi": "src/cli.ts",
       },
       "dependencies": {
-        "@oh-my-pi/pi-ai": "catalog:",
-        "@oh-my-pi/pi-catalog": "catalog:",
-        "@oh-my-pi/pi-natives": "catalog:",
-        "@oh-my-pi/pi-utils": "catalog:",
+        "@dude1wudv/pi-ai": "catalog:",
+        "@dude1wudv/pi-catalog": "catalog:",
+        "@dude1wudv/pi-natives": "catalog:",
+        "@dude1wudv/pi-utils": "catalog:",
       },
       "devDependencies": {
         "@types/bun": "catalog:",
@@ -202,7 +202,7 @@
       ],
     },
     "packages/natives": {
-      "name": "@oh-my-pi/pi-natives",
+      "name": "@dude1wudv/pi-natives",
       "version": "20.1.0",
       "devDependencies": {
         "@napi-rs/cli": "catalog:",
@@ -210,7 +210,7 @@
       },
     },
     "packages/omptype": {
-      "name": "@oh-my-pi/omptype",
+      "name": "@dude1wudv/omptype",
       "version": "20.1.0",
       "devDependencies": {
         "@ark/attest": "0.56.3",
@@ -223,29 +223,29 @@
       },
     },
     "packages/snapcompact": {
-      "name": "@oh-my-pi/snapcompact",
+      "name": "@dude1wudv/snapcompact",
       "version": "20.1.0",
       "dependencies": {
-        "@oh-my-pi/pi-ai": "catalog:",
-        "@oh-my-pi/pi-catalog": "catalog:",
-        "@oh-my-pi/pi-natives": "catalog:",
-        "@oh-my-pi/pi-utils": "catalog:",
-        "@oh-my-pi/pi-wire": "catalog:",
+        "@dude1wudv/pi-ai": "catalog:",
+        "@dude1wudv/pi-catalog": "catalog:",
+        "@dude1wudv/pi-natives": "catalog:",
+        "@dude1wudv/pi-utils": "catalog:",
+        "@dude1wudv/pi-wire": "catalog:",
       },
       "devDependencies": {
         "@types/bun": "catalog:",
       },
     },
     "packages/stats": {
-      "name": "@oh-my-pi/omp-stats",
+      "name": "@dude1wudv/omp-stats",
       "version": "20.1.0",
       "bin": {
         "omp-stats": "./src/index.ts",
       },
       "dependencies": {
-        "@oh-my-pi/pi-ai": "catalog:",
-        "@oh-my-pi/pi-catalog": "catalog:",
-        "@oh-my-pi/pi-utils": "catalog:",
+        "@dude1wudv/pi-ai": "catalog:",
+        "@dude1wudv/pi-catalog": "catalog:",
+        "@dude1wudv/pi-utils": "catalog:",
         "@tailwindcss/node": "catalog:",
         "chart.js": "catalog:",
         "lucide-react": "catalog:",
@@ -262,31 +262,31 @@
       },
     },
     "packages/tui": {
-      "name": "@oh-my-pi/pi-tui",
+      "name": "@dude1wudv/pi-tui",
       "version": "20.1.0",
       "dependencies": {
-        "@oh-my-pi/pi-natives": "catalog:",
-        "@oh-my-pi/pi-utils": "catalog:",
+        "@dude1wudv/pi-natives": "catalog:",
+        "@dude1wudv/pi-utils": "catalog:",
       },
       "devDependencies": {
         "ghostty-web": "catalog:",
       },
     },
     "packages/typescript-edit-benchmark": {
-      "name": "@oh-my-pi/typescript-edit-benchmark",
+      "name": "@dude1wudv/typescript-edit-benchmark",
       "version": "0.0.1",
       "dependencies": {
         "@babel/generator": "catalog:",
         "@babel/parser": "catalog:",
         "@babel/traverse": "catalog:",
         "@babel/types": "catalog:",
-        "@oh-my-pi/hashline": "catalog:",
-        "@oh-my-pi/pi-agent-core": "catalog:",
-        "@oh-my-pi/pi-ai": "catalog:",
-        "@oh-my-pi/pi-coding-agent": "catalog:",
-        "@oh-my-pi/pi-natives": "catalog:",
-        "@oh-my-pi/pi-tui": "catalog:",
-        "@oh-my-pi/pi-utils": "catalog:",
+        "@dude1wudv/hashline": "catalog:",
+        "@dude1wudv/pi-agent-core": "catalog:",
+        "@dude1wudv/pi-ai": "catalog:",
+        "@dude1wudv/pi-coding-agent": "catalog:",
+        "@dude1wudv/pi-natives": "catalog:",
+        "@dude1wudv/pi-tui": "catalog:",
+        "@dude1wudv/pi-utils": "catalog:",
         "diff": "catalog:",
         "prettier": "catalog:",
         "regexp-tree": "catalog:",
@@ -298,17 +298,17 @@
       },
     },
     "packages/utils": {
-      "name": "@oh-my-pi/pi-utils",
+      "name": "@dude1wudv/pi-utils",
       "version": "20.1.0",
       "dependencies": {
-        "@oh-my-pi/pi-natives": "catalog:",
+        "@dude1wudv/pi-natives": "catalog:",
       },
       "devDependencies": {
         "@types/bun": "catalog:",
       },
     },
     "packages/wire": {
-      "name": "@oh-my-pi/pi-wire",
+      "name": "@dude1wudv/pi-wire",
       "version": "20.1.0",
       "devDependencies": {
         "@types/bun": "catalog:",
@@ -345,21 +345,21 @@
     "@biomejs/biome": "^2.5.3",
     "@bufbuild/protobuf": "^2.12.1",
     "@bufbuild/protoc-gen-es": "^2.12.1",
+    "@dude1wudv/hashline": "20.1.0",
+    "@dude1wudv/omp-stats": "20.1.0",
+    "@dude1wudv/omptype": "20.1.0",
+    "@dude1wudv/pi-agent-core": "20.1.0",
+    "@dude1wudv/pi-ai": "20.1.0",
+    "@dude1wudv/pi-catalog": "20.1.0",
+    "@dude1wudv/pi-coding-agent": "20.1.0",
+    "@dude1wudv/pi-mnemopi": "20.1.0",
+    "@dude1wudv/pi-natives": "20.1.0",
+    "@dude1wudv/pi-tui": "20.1.0",
+    "@dude1wudv/pi-utils": "20.1.0",
+    "@dude1wudv/pi-wire": "20.1.0",
+    "@dude1wudv/snapcompact": "20.1.0",
     "@huggingface/transformers": "^4.2.0",
     "@napi-rs/cli": "3.7.2",
-    "@oh-my-pi/hashline": "20.1.0",
-    "@oh-my-pi/omp-stats": "20.1.0",
-    "@oh-my-pi/omptype": "20.1.0",
-    "@oh-my-pi/pi-agent-core": "20.1.0",
-    "@oh-my-pi/pi-ai": "20.1.0",
-    "@oh-my-pi/pi-catalog": "20.1.0",
-    "@oh-my-pi/pi-coding-agent": "20.1.0",
-    "@oh-my-pi/pi-mnemopi": "20.1.0",
-    "@oh-my-pi/pi-natives": "20.1.0",
-    "@oh-my-pi/pi-tui": "20.1.0",
-    "@oh-my-pi/pi-utils": "20.1.0",
-    "@oh-my-pi/pi-wire": "20.1.0",
-    "@oh-my-pi/snapcompact": "20.1.0",
     "@opentelemetry/api": "^1.9.1",
     "@opentelemetry/api-logs": "^0.220.0",
     "@opentelemetry/context-async-hooks": "^2.9.0",
@@ -476,6 +476,32 @@
     "@bufbuild/protoc-gen-es": ["@bufbuild/protoc-gen-es@2.13.0", "", { "dependencies": { "@bufbuild/protobuf": "2.13.0", "@bufbuild/protoplugin": "2.13.0" }, "bin": { "protoc-gen-es": "bin/protoc-gen-es" } }, "sha512-ylI1vrLksdnXrVZRs9xGxmrQxKGhUm6pPszv26kqBvNiO3qPTktk+hgfwbLISBY4M/reShkT2dFLGT9fbydBXg=="],
 
     "@bufbuild/protoplugin": ["@bufbuild/protoplugin@2.13.0", "", { "dependencies": { "@bufbuild/protobuf": "2.13.0", "@typescript/vfs": "^1.6.2", "typescript": "5.4.5" } }, "sha512-32eMChKaL/A8Hh5AfMmXSdnuyznN85uoEjoyWiWeRrvtQOtpqX/v1R9PDe0g9vMIgzznK9inMT3CUaal0kjLUQ=="],
+
+    "@dude1wudv/hashline": ["@dude1wudv/hashline@workspace:packages/hashline"],
+
+    "@dude1wudv/omp-stats": ["@dude1wudv/omp-stats@workspace:packages/stats"],
+
+    "@dude1wudv/omptype": ["@dude1wudv/omptype@workspace:packages/omptype"],
+
+    "@dude1wudv/pi-agent-core": ["@dude1wudv/pi-agent-core@workspace:packages/agent"],
+
+    "@dude1wudv/pi-ai": ["@dude1wudv/pi-ai@workspace:packages/ai"],
+
+    "@dude1wudv/pi-catalog": ["@dude1wudv/pi-catalog@workspace:packages/catalog"],
+
+    "@dude1wudv/pi-coding-agent": ["@dude1wudv/pi-coding-agent@workspace:packages/coding-agent"],
+
+    "@dude1wudv/pi-mnemopi": ["@dude1wudv/pi-mnemopi@workspace:packages/mnemopi"],
+
+    "@dude1wudv/pi-natives": ["@dude1wudv/pi-natives@workspace:packages/natives"],
+
+    "@dude1wudv/pi-tui": ["@dude1wudv/pi-tui@workspace:packages/tui"],
+
+    "@dude1wudv/pi-utils": ["@dude1wudv/pi-utils@workspace:packages/utils"],
+
+    "@dude1wudv/pi-wire": ["@dude1wudv/pi-wire@workspace:packages/wire"],
+
+    "@dude1wudv/snapcompact": ["@dude1wudv/snapcompact@workspace:packages/snapcompact"],
 
     "@emnapi/core": ["@emnapi/core@1.9.2", "", { "dependencies": { "@emnapi/wasi-threads": "1.2.1", "tslib": "^2.4.0" } }, "sha512-UC+ZhH3XtczQYfOlu3lNEkdW/p4dsJ1r/bP7H8+rhao3TTTMO1ATq/4DdIi23XuGoFY+Cz0JmCbdVl0hz9jZcA=="],
 
@@ -721,39 +747,13 @@
 
     "@octokit/types": ["@octokit/types@17.0.0", "", { "dependencies": { "@octokit/openapi-types": "^28.0.0" } }, "sha512-ByP1v7YL5SMveFPP7+sj0/ZuWCOOg/Chs4NafOMpq6WNIM/hdGY0S7C0TCGDBWu1aGmOxmUIhMx3cO+IdwYZ1Q=="],
 
-    "@oh-my-pi/browser-relay": ["@oh-my-pi/browser-relay@workspace:packages/browser-relay"],
+    "@dude1wudv/browser-relay": ["@dude1wudv/browser-relay@workspace:packages/browser-relay"],
 
-    "@oh-my-pi/collab-web": ["@oh-my-pi/collab-web@workspace:packages/collab-web"],
+    "@dude1wudv/collab-web": ["@dude1wudv/collab-web@workspace:packages/collab-web"],
 
-    "@oh-my-pi/hashline": ["@oh-my-pi/hashline@workspace:packages/hashline"],
+    "@dude1wudv/pi-metaharness": ["@dude1wudv/pi-metaharness@workspace:packages/metaharness"],
 
-    "@oh-my-pi/omp-stats": ["@oh-my-pi/omp-stats@workspace:packages/stats"],
-
-    "@oh-my-pi/omptype": ["@oh-my-pi/omptype@workspace:packages/omptype"],
-
-    "@oh-my-pi/pi-agent-core": ["@oh-my-pi/pi-agent-core@workspace:packages/agent"],
-
-    "@oh-my-pi/pi-ai": ["@oh-my-pi/pi-ai@workspace:packages/ai"],
-
-    "@oh-my-pi/pi-catalog": ["@oh-my-pi/pi-catalog@workspace:packages/catalog"],
-
-    "@oh-my-pi/pi-coding-agent": ["@oh-my-pi/pi-coding-agent@workspace:packages/coding-agent"],
-
-    "@oh-my-pi/pi-metaharness": ["@oh-my-pi/pi-metaharness@workspace:packages/metaharness"],
-
-    "@oh-my-pi/pi-mnemopi": ["@oh-my-pi/pi-mnemopi@workspace:packages/mnemopi"],
-
-    "@oh-my-pi/pi-natives": ["@oh-my-pi/pi-natives@workspace:packages/natives"],
-
-    "@oh-my-pi/pi-tui": ["@oh-my-pi/pi-tui@workspace:packages/tui"],
-
-    "@oh-my-pi/pi-utils": ["@oh-my-pi/pi-utils@workspace:packages/utils"],
-
-    "@oh-my-pi/pi-wire": ["@oh-my-pi/pi-wire@workspace:packages/wire"],
-
-    "@oh-my-pi/snapcompact": ["@oh-my-pi/snapcompact@workspace:packages/snapcompact"],
-
-    "@oh-my-pi/typescript-edit-benchmark": ["@oh-my-pi/typescript-edit-benchmark@workspace:packages/typescript-edit-benchmark"],
+    "@dude1wudv/typescript-edit-benchmark": ["@dude1wudv/typescript-edit-benchmark@workspace:packages/typescript-edit-benchmark"],
 
     "@opentelemetry/api": ["@opentelemetry/api@1.9.1", "", {}, "sha512-gLyJlPHPZYdAk1JENA9LeHejZe1Ti77/pTeFm/nMXmQH/HFZlcS/O2XJB+L8fkbrNSqhdtlvjBVjxwUYanNH5Q=="],
 
@@ -965,7 +965,7 @@
 
     "adm-zip": ["adm-zip@0.5.18", "", {}, "sha512-ufJnssQGbxzLNS1Ho9bCtX4rQKCCvoVuDLHoJyc3F9dOGDB4BkWs2Ci0kv53lqocAEQ/Cbi+I2XCsNYGqVYqng=="],
 
-    "ansi-regex": ["ansi-regex@6.2.2", "", {}, "sha512-Bq3SmSpyFHaWjPk8If9yc6svM8c56dB5BAtW4Qbw5jHTwwXXcTLoRMkpDJp6VL0XzlWaCHTXrkFURMYmD0sLqg=="],
+    "ansi-regex": ["ansi-regex@5.0.1", "", {}, "sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ=="],
 
     "ansi-styles": ["ansi-styles@4.3.0", "", { "dependencies": { "color-convert": "^2.0.1" } }, "sha512-zbB9rCJAT1rbjiVDb2hqKFHNYLxgtk8NURxZ3IZwD3F6NtxbXZQCnnSi1Lkx+IDohdPlFp222wVALIheZJQSEg=="],
 
@@ -1011,7 +1011,7 @@
 
     "clipanion": ["clipanion@4.0.0-rc.4", "", { "dependencies": { "typanion": "^3.8.0" } }, "sha512-CXkMQxU6s9GklO/1f714dkKBMu1lopS1WFF0B8o4AxPykR1hpozxSiUZ5ZUeBjfPgCWqbcNOtZVFhB8Lkfp1+Q=="],
 
-    "cliui": ["cliui@9.0.1", "", { "dependencies": { "string-width": "^7.2.0", "strip-ansi": "^7.1.0", "wrap-ansi": "^9.0.0" } }, "sha512-k7ndgKhwoQveBL+/1tqGJYNz097I7WOvwbmmU2AR5+magtbjPWQTS1C5vzGkBC8Ym8UWRzfKUzUUqFLypY4Q+w=="],
+    "cliui": ["cliui@7.0.4", "", { "dependencies": { "string-width": "^4.2.0", "strip-ansi": "^6.0.0", "wrap-ansi": "^7.0.0" } }, "sha512-OcRE68cOsVMXp1Yvonl/fzkQOyjLSu/8bhPDfQt0e0/Eb283TKP20Fs2MqoPsr9SwA595rRCA+QMzYc9nBP+JQ=="],
 
     "clsx": ["clsx@2.1.1", "", {}, "sha512-eYm0QWBtUrBWZWG0d386OGAw16Z995PiOVo2B7bjWSbHedGl5e0ZWaq65kOGgUSNesEIDkB9ISbTg/JK9dhCZA=="],
 
@@ -1323,11 +1323,11 @@
 
     "string-argv": ["string-argv@0.3.2", "", {}, "sha512-aqD2Q0144Z+/RqG52NeHEkZauTAUWJO8c6yTftGJKO3Tja5tUgIfmIl6kExvhtxSDP7fXB6DvzkfMpCd/F3G+Q=="],
 
-    "string-width": ["string-width@8.2.2", "", { "dependencies": { "get-east-asian-width": "^1.5.0", "strip-ansi": "^7.1.2" } }, "sha512-GaPUh5gfdrYzqeVNZvUfT23vYYxXzKYidUcnMtJg/3rxRV63EFZy3k6xfKlmfeJD0176lnUV/Usr3XcwSvFzpg=="],
+    "string-width": ["string-width@4.2.3", "", { "dependencies": { "emoji-regex": "^8.0.0", "is-fullwidth-code-point": "^3.0.0", "strip-ansi": "^6.0.1" } }, "sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g=="],
 
     "string_decoder": ["string_decoder@1.3.0", "", { "dependencies": { "safe-buffer": "~5.2.0" } }, "sha512-hkRX8U1WjJFd8LsDJ2yQ/wWWxaopEsABU1XfkM8A+j0+85JAGppt16cr1Whg6KIbb4okU6Mql6BOj+uup/wKeA=="],
 
-    "strip-ansi": ["strip-ansi@7.2.0", "", { "dependencies": { "ansi-regex": "^6.2.2" } }, "sha512-yDPMNjp4WyfYBkHnjIRLfca1i6KMyGCtsVgoKe/z1+6vukgaENdgGBZt+ZmKPc4gavvEZ5OgHfHdrazhgNyG7w=="],
+    "strip-ansi": ["strip-ansi@6.0.1", "", { "dependencies": { "ansi-regex": "^5.0.1" } }, "sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A=="],
 
     "supports-color": ["supports-color@7.2.0", "", { "dependencies": { "has-flag": "^4.0.0" } }, "sha512-qpCAvRl9stuOHveKsn7HncJRvv501qIacKzQlO/+Lwxc9+0q2wLyv4Dfvt80/DPn2pqOBsJdDiogXGR9+OvwRw=="],
 
@@ -1375,7 +1375,7 @@
 
     "webdriver-bidi-protocol": ["webdriver-bidi-protocol@0.4.2", "", {}, "sha512-VSV+fzfChirL3e7jay2yUC7B4HQCGtEWEg/MSSQbK+qWbqeGlRLlXTzPpYr3XGUvbpDHumWZBJxgesg4N7dbtA=="],
 
-    "wrap-ansi": ["wrap-ansi@9.0.2", "", { "dependencies": { "ansi-styles": "^6.2.1", "string-width": "^7.0.0", "strip-ansi": "^7.1.0" } }, "sha512-42AtmgqjV+X1VpdOfyTGOYRi0/zsoLqtXQckTmqTeybT+BDIbM/Guxo7x3pE2vtpr1ok6xRqM9OpBe+Jyoqyww=="],
+    "wrap-ansi": ["wrap-ansi@7.0.0", "", { "dependencies": { "ansi-styles": "^4.0.0", "string-width": "^4.1.0", "strip-ansi": "^6.0.0" } }, "sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q=="],
 
     "ws": ["ws@8.21.3", "", { "peerDependencies": { "bufferutil": "^4.0.1", "utf-8-validate": ">=5.0.2" }, "optionalPeers": ["bufferutil", "utf-8-validate"] }, "sha512-201TZ/kPWxoPr/OKWjquZR1SWKXcvxdH+e1xrx89b3YbmzLMFCLfnaG1HFIgWzJOEWZ7MvpK++odZufgYR50Rw=="],
 
@@ -1385,9 +1385,9 @@
 
     "yaml": ["yaml@2.9.0", "", { "bin": { "yaml": "bin.mjs" } }, "sha512-2AvhNX3mb8zd6Zy7INTtSpl1F15HW6Wnqj0srWlkKLcpYl/gMIMJiyuGq2KeI2YFxUPjdlB+3Lc10seMLtL4cA=="],
 
-    "yargs": ["yargs@18.1.0", "", { "dependencies": { "cliui": "^9.0.1", "escalade": "^3.1.1", "get-caller-file": "^2.0.5", "string-width": "^8.2.1", "y18n": "^5.0.5", "yargs-parser": "^22.0.0" } }, "sha512-2rAgRKu54VsHkqI0/tYkmluGXHD4KW7yZoycuqDQ15QOTnc2VVfy0nN/1eMhnQLO00A+dwtK20xuCnc1YGeUyg=="],
+    "yargs": ["yargs@16.2.2", "", { "dependencies": { "cliui": "^7.0.2", "escalade": "^3.1.1", "get-caller-file": "^2.0.5", "require-directory": "^2.1.1", "string-width": "^4.2.0", "y18n": "^5.0.5", "yargs-parser": "^20.2.2" } }, "sha512-Nt9ZJjXTv5R8MHbqby/wXQ6Gi0Bb3TcYZkR1bzuL4yB2OxWPkXknz513gEF0GoA6tn00UpbPvERW8rzCuWCA6w=="],
 
-    "yargs-parser": ["yargs-parser@22.0.0", "", {}, "sha512-rwu/ClNdSMpkSrUb+d6BRsSkLUq1fmfsY6TOpYzTwvwkg1/NRG85KBy3kq++A8LKQwX6lsu+aWad+2khvuXrqw=="],
+    "yargs-parser": ["yargs-parser@20.2.9", "", {}, "sha512-y11nGElTIV+CT3Zv9t7VKl+Q3hTQoT9a1Qzezhhl6Rp21gJ/IVTW7Z3y9EWXhuUBC2Shnf+DX0antecpAwSP8w=="],
 
     "yocto-queue": ["yocto-queue@0.1.0", "", {}, "sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q=="],
 
@@ -1453,6 +1453,8 @@
 
     "@opentelemetry/sdk-logs/@opentelemetry/resources": ["@opentelemetry/resources@2.9.0", "", { "dependencies": { "@opentelemetry/core": "2.9.0", "@opentelemetry/semantic-conventions": "^1.29.0" }, "peerDependencies": { "@opentelemetry/api": ">=1.3.0 <1.10.0" } }, "sha512-jyA5MBLQ+Dkl3+JsZkUoUvL7yHvU64kLsvpXKarWm6347Sl1t1bXFTFykUePNpT5WH5pm9a2Qtt03iIYQhZ1Fg=="],
 
+    "@puppeteer/browsers/yargs": ["yargs@18.1.0", "", { "dependencies": { "cliui": "^9.0.1", "escalade": "^3.1.1", "get-caller-file": "^2.0.5", "string-width": "^8.2.1", "y18n": "^5.0.5", "yargs-parser": "^22.0.0" } }, "sha512-2rAgRKu54VsHkqI0/tYkmluGXHD4KW7yZoycuqDQ15QOTnc2VVfy0nN/1eMhnQLO00A+dwtK20xuCnc1YGeUyg=="],
+
     "@tailwindcss/oxide-wasm32-wasi/@emnapi/core": ["@emnapi/core@1.11.3", "", { "dependencies": { "@emnapi/wasi-threads": "1.2.3", "tslib": "^2.4.0" }, "bundled": true }, "sha512-zLpS5asjEb7lq8jYLq37N6XKaE41DIexlY1rF/z4/tIl3wo13Sqm28fRyfIsKZD+NZ8mM5RoKkpW/rBcuoSZSg=="],
 
     "@tailwindcss/oxide-wasm32-wasi/@emnapi/runtime": ["@emnapi/runtime@1.11.3", "", { "dependencies": { "tslib": "^2.4.0" }, "bundled": true }, "sha512-Xz4Tpyki7XyrpbUK1jR1AhdAdaXyhhY4lZ3neLodmhpuWfy2PAQN5B46sAiU4liOXGLkHypn/qU+jvfWSCYYLA=="],
@@ -1465,13 +1467,7 @@
 
     "@tailwindcss/oxide-wasm32-wasi/tslib": ["tslib@2.8.1", "", { "bundled": true }, "sha512-oJFu94HQb+KVduSUQL7wnpmqnfmLsOA/nAh6b6EH0wCEoK0/mPeXU6c3wKDV83MkOuHPRHtSXKKU99IBazS/2w=="],
 
-    "@typescript/analyze-trace/yargs": ["yargs@16.2.2", "", { "dependencies": { "cliui": "^7.0.2", "escalade": "^3.1.1", "get-caller-file": "^2.0.5", "require-directory": "^2.1.1", "string-width": "^4.2.0", "y18n": "^5.0.5", "yargs-parser": "^20.2.2" } }, "sha512-Nt9ZJjXTv5R8MHbqby/wXQ6Gi0Bb3TcYZkR1bzuL4yB2OxWPkXknz513gEF0GoA6tn00UpbPvERW8rzCuWCA6w=="],
-
     "babel-plugin-jsx-dom-expressions/@babel/helper-module-imports": ["@babel/helper-module-imports@7.18.6", "", { "dependencies": { "@babel/types": "^7.18.6" } }, "sha512-0NFvs3VkuSYbFi1x2Vd6tKrywq+z/cLeYC/RJNFrIX/30Bf5aiGYbtvGXolEktzJH8o5E5KJ3tT+nkxuuZFVlA=="],
-
-    "cli-progress/string-width": ["string-width@4.2.3", "", { "dependencies": { "emoji-regex": "^8.0.0", "is-fullwidth-code-point": "^3.0.0", "strip-ansi": "^6.0.1" } }, "sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g=="],
-
-    "cliui/string-width": ["string-width@7.2.0", "", { "dependencies": { "emoji-regex": "^10.3.0", "get-east-asian-width": "^1.0.0", "strip-ansi": "^7.1.0" } }, "sha512-tsaTIkKW9b4N+AEj+SVA+WhJzV7/zMhcSu78mLKWSk7cXMOSHsBKFWUs0fWwq8QyK3MgJBQRX6Gbi4kYbdvGkQ=="],
 
     "fastembed/onnxruntime-node": ["onnxruntime-node@1.21.0", "", { "dependencies": { "global-agent": "^3.0.0", "onnxruntime-common": "1.21.0", "tar": "^7.0.1" }, "os": [ "linux", "win32", "darwin", ] }, "sha512-NeaCX6WW2L8cRCSqy3bInlo5ojjQqu2fD3D+9W5qb5irwxhEyWKXeH2vZ8W9r6VxaMPUan+4/7NDwZMtouZxEw=="],
 
@@ -1485,10 +1481,6 @@
 
     "vite/lightningcss": ["lightningcss@1.33.0", "", { "dependencies": { "detect-libc": "^2.0.3" }, "optionalDependencies": { "lightningcss-android-arm64": "1.33.0", "lightningcss-darwin-arm64": "1.33.0", "lightningcss-darwin-x64": "1.33.0", "lightningcss-freebsd-x64": "1.33.0", "lightningcss-linux-arm-gnueabihf": "1.33.0", "lightningcss-linux-arm64-gnu": "1.33.0", "lightningcss-linux-arm64-musl": "1.33.0", "lightningcss-linux-x64-gnu": "1.33.0", "lightningcss-linux-x64-musl": "1.33.0", "lightningcss-win32-arm64-msvc": "1.33.0", "lightningcss-win32-x64-msvc": "1.33.0" } }, "sha512-WkUDrojuJs0xkgGf2udWxa3yGBRxPtxUkB79i6aCZLRgc7PM8fZe9TosfPDcvEpQZbuFASnHYmRLBLUbmLOIIA=="],
 
-    "wrap-ansi/ansi-styles": ["ansi-styles@6.2.3", "", {}, "sha512-4Dj6M28JB+oAH8kFkTLUo+a2jwOFkuqb3yucU0CANcRRUbxS0cP0nZYCGjcc3BNXwRIsUVmDGgzawme7zvJHvg=="],
-
-    "wrap-ansi/string-width": ["string-width@7.2.0", "", { "dependencies": { "emoji-regex": "^10.3.0", "get-east-asian-width": "^1.0.0", "strip-ansi": "^7.1.0" } }, "sha512-tsaTIkKW9b4N+AEj+SVA+WhJzV7/zMhcSu78mLKWSk7cXMOSHsBKFWUs0fWwq8QyK3MgJBQRX6Gbi4kYbdvGkQ=="],
-
     "@huggingface/transformers/onnxruntime-node/global-agent": ["global-agent@3.0.0", "", { "dependencies": { "boolean": "^3.0.1", "es6-error": "^4.1.1", "matcher": "^3.0.0", "roarr": "^2.15.3", "semver": "^7.3.2", "serialize-error": "^7.0.1" } }, "sha512-PT6XReJ+D07JvGoxQMkT6qji/jVNfX/h364XHZOWeRzy64sSFr+xJ5OX7LI3b4MPQzdL4H8Y8M0xzPpsVMwA8Q=="],
 
     "@huggingface/transformers/onnxruntime-node/onnxruntime-common": ["onnxruntime-common@1.24.3", "", {}, "sha512-GeuPZO6U/LBJXvwdaqHbuUmoXiEdeCjWi/EG7Y1HNnDwJYuk6WUbNXpF6luSUY8yASul3cmUlLGrCCL1ZgVXqA=="],
@@ -1501,15 +1493,11 @@
 
     "@octokit/plugin-rest-endpoint-methods/@octokit/types/@octokit/openapi-types": ["@octokit/openapi-types@27.0.0", "", {}, "sha512-whrdktVs1h6gtR+09+QsNk2+FO+49j6ga1c55YZudfEG+oKJVvJLQi3zkOm5JjiUXAagWK2tI2kTGKJ2Ys7MGA=="],
 
-    "@typescript/analyze-trace/yargs/cliui": ["cliui@7.0.4", "", { "dependencies": { "string-width": "^4.2.0", "strip-ansi": "^6.0.0", "wrap-ansi": "^7.0.0" } }, "sha512-OcRE68cOsVMXp1Yvonl/fzkQOyjLSu/8bhPDfQt0e0/Eb283TKP20Fs2MqoPsr9SwA595rRCA+QMzYc9nBP+JQ=="],
+    "@puppeteer/browsers/yargs/cliui": ["cliui@9.0.1", "", { "dependencies": { "string-width": "^7.2.0", "strip-ansi": "^7.1.0", "wrap-ansi": "^9.0.0" } }, "sha512-k7ndgKhwoQveBL+/1tqGJYNz097I7WOvwbmmU2AR5+magtbjPWQTS1C5vzGkBC8Ym8UWRzfKUzUUqFLypY4Q+w=="],
 
-    "@typescript/analyze-trace/yargs/string-width": ["string-width@4.2.3", "", { "dependencies": { "emoji-regex": "^8.0.0", "is-fullwidth-code-point": "^3.0.0", "strip-ansi": "^6.0.1" } }, "sha512-wKyQRQpjJ0sIp62ErSZdGsjMJWsap5oRNihHhu6G7JVO/9jIB6UyevL+tXuOqrng8j/cxKTWyWUwvSTriiZz/g=="],
+    "@puppeteer/browsers/yargs/string-width": ["string-width@8.2.2", "", { "dependencies": { "get-east-asian-width": "^1.5.0", "strip-ansi": "^7.1.2" } }, "sha512-GaPUh5gfdrYzqeVNZvUfT23vYYxXzKYidUcnMtJg/3rxRV63EFZy3k6xfKlmfeJD0176lnUV/Usr3XcwSvFzpg=="],
 
-    "@typescript/analyze-trace/yargs/yargs-parser": ["yargs-parser@20.2.9", "", {}, "sha512-y11nGElTIV+CT3Zv9t7VKl+Q3hTQoT9a1Qzezhhl6Rp21gJ/IVTW7Z3y9EWXhuUBC2Shnf+DX0antecpAwSP8w=="],
-
-    "cli-progress/string-width/strip-ansi": ["strip-ansi@6.0.1", "", { "dependencies": { "ansi-regex": "^5.0.1" } }, "sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A=="],
-
-    "cliui/string-width/emoji-regex": ["emoji-regex@10.6.0", "", {}, "sha512-toUI84YS5YmxW219erniWD0CIVOo46xGKColeNQRgOzDorgBi1v4D71/OFzgD9GO2UGKIv1C3Sp8DAn0+j5w7A=="],
+    "@puppeteer/browsers/yargs/yargs-parser": ["yargs-parser@22.0.0", "", {}, "sha512-rwu/ClNdSMpkSrUb+d6BRsSkLUq1fmfsY6TOpYzTwvwkg1/NRG85KBy3kq++A8LKQwX6lsu+aWad+2khvuXrqw=="],
 
     "fastembed/onnxruntime-node/global-agent": ["global-agent@3.0.0", "", { "dependencies": { "boolean": "^3.0.1", "es6-error": "^4.1.1", "matcher": "^3.0.0", "roarr": "^2.15.3", "semver": "^7.3.2", "serialize-error": "^7.0.1" } }, "sha512-PT6XReJ+D07JvGoxQMkT6qji/jVNfX/h364XHZOWeRzy64sSFr+xJ5OX7LI3b4MPQzdL4H8Y8M0xzPpsVMwA8Q=="],
 
@@ -1539,19 +1527,17 @@
 
     "vite/lightningcss/lightningcss-win32-x64-msvc": ["lightningcss-win32-x64-msvc@1.33.0", "", { "os": "win32", "cpu": "x64" }, "sha512-OlEICDx/Xl0FqSp4bry8zFnCvGpig3Gl4gCquvYwHuqJKEC1+n9NgDniFvqHGmMv1ZkqDJrDqKKSykTDX+ehuA=="],
 
-    "wrap-ansi/string-width/emoji-regex": ["emoji-regex@10.6.0", "", {}, "sha512-toUI84YS5YmxW219erniWD0CIVOo46xGKColeNQRgOzDorgBi1v4D71/OFzgD9GO2UGKIv1C3Sp8DAn0+j5w7A=="],
-
     "@huggingface/transformers/onnxruntime-node/global-agent/matcher": ["matcher@3.0.0", "", { "dependencies": { "escape-string-regexp": "^4.0.0" } }, "sha512-OkeDaAZ/bQCxeFAozM55PKcKU0yJMPGifLwV4Qgjitu+5MoAfSQN4lsLJeXZ1b8w0x+/Emda6MZgXS1jvsapng=="],
 
     "@huggingface/transformers/onnxruntime-node/global-agent/serialize-error": ["serialize-error@7.0.1", "", { "dependencies": { "type-fest": "^0.13.1" } }, "sha512-8I8TjW5KMOKsZQTvoxjuSIa7foAwPWGOts+6o7sgjz41/qMD9VQHEDxi6PBvK2l0MXUmqZyNpUK+T2tQaaElvw=="],
 
-    "@typescript/analyze-trace/yargs/cliui/strip-ansi": ["strip-ansi@6.0.1", "", { "dependencies": { "ansi-regex": "^5.0.1" } }, "sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A=="],
+    "@puppeteer/browsers/yargs/cliui/string-width": ["string-width@7.2.0", "", { "dependencies": { "emoji-regex": "^10.3.0", "get-east-asian-width": "^1.0.0", "strip-ansi": "^7.1.0" } }, "sha512-tsaTIkKW9b4N+AEj+SVA+WhJzV7/zMhcSu78mLKWSk7cXMOSHsBKFWUs0fWwq8QyK3MgJBQRX6Gbi4kYbdvGkQ=="],
 
-    "@typescript/analyze-trace/yargs/cliui/wrap-ansi": ["wrap-ansi@7.0.0", "", { "dependencies": { "ansi-styles": "^4.0.0", "string-width": "^4.1.0", "strip-ansi": "^6.0.0" } }, "sha512-YVGIj2kamLSTxw6NsZjoBxfSwsn0ycdesmc4p+Q21c5zPuZ1pl+NfxVdxPtdHvmNVOQ6XSYG4AUtyt/Fi7D16Q=="],
+    "@puppeteer/browsers/yargs/cliui/strip-ansi": ["strip-ansi@7.2.0", "", { "dependencies": { "ansi-regex": "^6.2.2" } }, "sha512-yDPMNjp4WyfYBkHnjIRLfca1i6KMyGCtsVgoKe/z1+6vukgaENdgGBZt+ZmKPc4gavvEZ5OgHfHdrazhgNyG7w=="],
 
-    "@typescript/analyze-trace/yargs/string-width/strip-ansi": ["strip-ansi@6.0.1", "", { "dependencies": { "ansi-regex": "^5.0.1" } }, "sha512-Y38VPSHcqkFrCpFnQ9vuSXmquuv5oXOKpGeT6aGrr3o3Gc9AlVa6JBfUSOCnbxGGZF+/0ooI7KrPuUSztUdU5A=="],
+    "@puppeteer/browsers/yargs/cliui/wrap-ansi": ["wrap-ansi@9.0.2", "", { "dependencies": { "ansi-styles": "^6.2.1", "string-width": "^7.0.0", "strip-ansi": "^7.1.0" } }, "sha512-42AtmgqjV+X1VpdOfyTGOYRi0/zsoLqtXQckTmqTeybT+BDIbM/Guxo7x3pE2vtpr1ok6xRqM9OpBe+Jyoqyww=="],
 
-    "cli-progress/string-width/strip-ansi/ansi-regex": ["ansi-regex@5.0.1", "", {}, "sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ=="],
+    "@puppeteer/browsers/yargs/string-width/strip-ansi": ["strip-ansi@7.2.0", "", { "dependencies": { "ansi-regex": "^6.2.2" } }, "sha512-yDPMNjp4WyfYBkHnjIRLfca1i6KMyGCtsVgoKe/z1+6vukgaENdgGBZt+ZmKPc4gavvEZ5OgHfHdrazhgNyG7w=="],
 
     "fastembed/onnxruntime-node/global-agent/matcher": ["matcher@3.0.0", "", { "dependencies": { "escape-string-regexp": "^4.0.0" } }, "sha512-OkeDaAZ/bQCxeFAozM55PKcKU0yJMPGifLwV4Qgjitu+5MoAfSQN4lsLJeXZ1b8w0x+/Emda6MZgXS1jvsapng=="],
 
@@ -1567,9 +1553,13 @@
 
     "@huggingface/transformers/onnxruntime-node/global-agent/serialize-error/type-fest": ["type-fest@0.13.1", "", {}, "sha512-34R7HTnG0XIJcBSn5XhDd7nNFPRcXYRZrBB2O2jdKqYODldSzBAqzsWoZYYvduky73toYS/ESqxPvkDf/F0XMg=="],
 
-    "@typescript/analyze-trace/yargs/cliui/strip-ansi/ansi-regex": ["ansi-regex@5.0.1", "", {}, "sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ=="],
+    "@puppeteer/browsers/yargs/cliui/string-width/emoji-regex": ["emoji-regex@10.6.0", "", {}, "sha512-toUI84YS5YmxW219erniWD0CIVOo46xGKColeNQRgOzDorgBi1v4D71/OFzgD9GO2UGKIv1C3Sp8DAn0+j5w7A=="],
 
-    "@typescript/analyze-trace/yargs/string-width/strip-ansi/ansi-regex": ["ansi-regex@5.0.1", "", {}, "sha512-quJQXlTSUGL2LH9SUXo8VwsY4soanhgo6LNSm84E1LBcE8s3O0wpdiRzyR9z/ZZJMlMWv37qOOb9pdJlMUEKFQ=="],
+    "@puppeteer/browsers/yargs/cliui/strip-ansi/ansi-regex": ["ansi-regex@6.2.2", "", {}, "sha512-Bq3SmSpyFHaWjPk8If9yc6svM8c56dB5BAtW4Qbw5jHTwwXXcTLoRMkpDJp6VL0XzlWaCHTXrkFURMYmD0sLqg=="],
+
+    "@puppeteer/browsers/yargs/cliui/wrap-ansi/ansi-styles": ["ansi-styles@6.2.3", "", {}, "sha512-4Dj6M28JB+oAH8kFkTLUo+a2jwOFkuqb3yucU0CANcRRUbxS0cP0nZYCGjcc3BNXwRIsUVmDGgzawme7zvJHvg=="],
+
+    "@puppeteer/browsers/yargs/string-width/strip-ansi/ansi-regex": ["ansi-regex@6.2.2", "", {}, "sha512-Bq3SmSpyFHaWjPk8If9yc6svM8c56dB5BAtW4Qbw5jHTwwXXcTLoRMkpDJp6VL0XzlWaCHTXrkFURMYmD0sLqg=="],
 
     "fastembed/onnxruntime-node/global-agent/serialize-error/type-fest": ["type-fest@0.13.1", "", {}, "sha512-34R7HTnG0XIJcBSn5XhDd7nNFPRcXYRZrBB2O2jdKqYODldSzBAqzsWoZYYvduky73toYS/ESqxPvkDf/F0XMg=="],
   }

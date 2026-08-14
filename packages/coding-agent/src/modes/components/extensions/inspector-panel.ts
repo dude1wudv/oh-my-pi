@@ -4,8 +4,8 @@
  * Shows name, description, origin, status, and kind-specific preview.
  */
 import * as os from "node:os";
-import { arkToWireSchema, isArkSchema } from "@oh-my-pi/pi-ai/utils/schema";
-import { type Component, truncateToWidth, wrapTextWithAnsi } from "@oh-my-pi/pi-tui";
+import { arkToWireSchema, isArkSchema } from "@dude1wudv/pi-ai/utils/schema";
+import { type Component, truncateToWidth, wrapTextWithAnsi } from "@dude1wudv/pi-tui";
 import { theme } from "../../../modes/theme/theme";
 import { shortenPath } from "../../../tools/render-utils";
 import type { Extension, ExtensionState } from "./types";

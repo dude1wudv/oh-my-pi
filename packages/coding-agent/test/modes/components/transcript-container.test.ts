@@ -1,12 +1,12 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it } from "bun:test";
 import { stripVTControlCharacters } from "node:util";
-import type { AssistantMessage } from "@oh-my-pi/pi-ai";
-import { resetSettingsForTest, Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { AssistantMessageComponent } from "@oh-my-pi/pi-coding-agent/modes/components/assistant-message";
-import { TranscriptContainer } from "@oh-my-pi/pi-coding-agent/modes/components/transcript-container";
-import { initTheme } from "@oh-my-pi/pi-coding-agent/modes/theme/theme";
-import { USER_INTERRUPT_LABEL } from "@oh-my-pi/pi-coding-agent/session/messages";
-import { type Component, Container, Text } from "@oh-my-pi/pi-tui";
+import type { AssistantMessage } from "@dude1wudv/pi-ai";
+import { resetSettingsForTest, Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { AssistantMessageComponent } from "@dude1wudv/pi-coding-agent/modes/components/assistant-message";
+import { TranscriptContainer } from "@dude1wudv/pi-coding-agent/modes/components/transcript-container";
+import { initTheme } from "@dude1wudv/pi-coding-agent/modes/theme/theme";
+import { USER_INTERRUPT_LABEL } from "@dude1wudv/pi-coding-agent/session/messages";
+import { type Component, Container, Text } from "@dude1wudv/pi-tui";
 
 // Models a transcript block that re-lays-out (tool preview collapsing, assistant
 // message finalizing, late async result) after newer blocks were appended below

@@ -24,7 +24,7 @@ export type ProjectPlanUpdateEvent =
 	  }
 	| { type: "dispatch_failed"; taskId: string; error: string; owner?: string; scope?: string }
 	| { type: "artifact_accepted"; taskId: string; artifact: string }
-	| { type: "verification_recorded"; check: string; passed?: boolean; detail?: string }
+	| { type: "verification_recorded"; taskId?: string; check: string; passed?: boolean; detail?: string }
 	| { type: "status_changed"; status: ProjectPlanStatus; reason?: string };
 
 export interface ProjectPlanFileUpdateOptions {
@@ -108,28 +108,167 @@ function updateTask(content: string, taskId: string, status: string, checked: bo
 	return `${content.slice(0, found.start)}${base} — status: ${status}${content.slice(found.end)}`;
 }
 
-function updateDispatch(
+function updateTaskChecked(content: string, taskId: string, checked: boolean): string {
+	const found = taskLine(content, taskId);
+	if (!found) return content;
+	const line = found.line.replace(/^- \[[ xX~-]\]/, `- [${checked ? "x" : " "}]`);
+	return `${content.slice(0, found.start)}${line}${content.slice(found.end)}`;
+}
+
+type DispatchEvent = Extract<ProjectPlanUpdateEvent, { type: "task_started" | "task_settled" | "dispatch_failed" }>;
+
+function encodedDispatchScope(taskId: string, scope: string | undefined): string {
+	const normalized = scope?.trim();
+	return normalized ? `${taskId} — ${normalized}` : taskId;
+}
+
+function createdTaskMetadata(content: string, taskId: string): { owner?: string; scope?: string } {
+	const line = taskLine(content, taskId)?.line;
+	if (!line) return {};
+	const owner = /— owner: (.*?) — scope: /.exec(line)?.[1]?.trim();
+	const scope = /— scope: (.*?)$/
+		.exec(line)?.[1]
+		?.replace(/\s+— status:.*$/, "")
+		.trim();
+	return {
+		...(owner ? { owner } : {}),
+		...(scope && scope !== "(unspecified)" ? { scope } : {}),
+	};
+}
+
+function dispatchCells(line: string): string[] | undefined {
+	const trimmed = line.trim();
+	if (!trimmed.startsWith("|") || !trimmed.endsWith("|")) return undefined;
+	const values = trimmed.slice(1, -1).split("|");
+	if (values.length < 6) return undefined;
+	return [
+		values[0].trim(),
+		values[1].trim(),
+		values[2].trim(),
+		values[3].trim(),
+		values[4].trim(),
+		values.slice(5).join("|").trim(),
+	];
+}
+
+function dispatchScopeMatches(scope: string, taskId: string): boolean {
+	return (
+		scope === taskId ||
+		scope.startsWith(`${taskId} —`) ||
+		scope.startsWith(`${taskId} - `) ||
+		scope.endsWith(` [${taskId}]`)
+	);
+}
+
+function findDispatchRow(lines: string[], taskId: string): { index: number; cells: string[] } | undefined {
+	for (let index = 0; index < lines.length; index++) {
+		const cells = dispatchCells(lines[index]);
+		if (cells && dispatchScopeMatches(cells[2], taskId)) return { index, cells };
+	}
+	return undefined;
+}
+
+function renderDispatchRow(cells: string[]): string {
+	return `| ${cells.join(" | ")} |`;
+}
+
+function applyDispatchEvent(cells: string[], event: DispatchEvent): void {
+	if (event.type === "task_started") {
+		cells[3] = "running";
+	} else if (event.type === "task_settled") {
+		cells[3] = event.status;
+		if (event.artifact !== undefined) cells[4] = event.artifact || "—";
+		if (event.followUp !== undefined) cells[5] = event.followUp || "—";
+	} else {
+		cells[3] = "dispatch failure";
+		cells[5] = event.error || "—";
+	}
+}
+
+function updateDispatch(content: string, event: DispatchEvent): string {
+	const range = section(content, "Agent dispatch log");
+	const created = createdTaskMetadata(content, event.taskId);
+	const owner = ("owner" in event ? event.owner?.trim() : undefined) ?? created.owner;
+	const scope = ("scope" in event ? event.scope : undefined) ?? created.scope;
+	const initial = ["?", owner || "Main", encodedDispatchScope(event.taskId, scope), "—", "—", "—"];
+	if (!range) {
+		applyDispatchEvent(initial, event);
+		return appendSectionLine(content, "Agent dispatch log", renderDispatchRow(initial));
+	}
+
+	const lines = content.slice(range.start, range.end).split("\n");
+	const found = findDispatchRow(lines, event.taskId);
+	const cells = found ? [...found.cells] : initial;
+	if (found) {
+		if (owner) cells[1] = owner;
+		if (scope?.trim()) cells[2] = encodedDispatchScope(event.taskId, scope);
+	}
+	applyDispatchEvent(cells, event);
+	if (found) {
+		lines[found.index] = renderDispatchRow(cells);
+		return `${content.slice(0, range.start)}${lines.join("\n")}${content.slice(range.end)}`;
+	}
+	return appendSectionLine(content, "Agent dispatch log", renderDispatchRow(cells));
+}
+
+function appendAcceptanceMarker(followUp: string): string {
+	const marker = "artifact accepted";
+	const current = followUp.trim();
+	if (!current || current === "—") return marker;
+	if (current.includes(marker)) return current;
+	return `${current}; ${marker}`;
+}
+
+function updateAcceptedArtifact(
 	content: string,
-	event: Extract<ProjectPlanUpdateEvent, { type: "task_started" | "task_settled" | "dispatch_failed" }>,
+	event: Extract<ProjectPlanUpdateEvent, { type: "artifact_accepted" }>,
 ): string {
 	const range = section(content, "Agent dispatch log");
-	const status =
-		event.type === "task_started" ? "running" : event.type === "dispatch_failed" ? "dispatch failure" : event.status;
-	const row = `| ? | ${"owner" in event && event.owner ? event.owner : "Main"} | ${"scope" in event && event.scope ? event.scope : event.taskId} | ${status} | ${"artifact" in event && event.artifact ? event.artifact : "—"} | ${"followUp" in event && event.followUp ? event.followUp : "—"} |`;
-	if (!range) return appendSectionLine(content, "Agent dispatch log", row);
+	if (!range) return content;
 	const lines = content.slice(range.start, range.end).split("\n");
-	const index = lines.findIndex(line => line.startsWith("|") && line.includes(event.taskId));
-	if (index >= 0) lines[index] = row;
-	else lines.push(row);
+	const found = findDispatchRow(lines, event.taskId);
+	if (!found) return content;
+	const cells = [...found.cells];
+	cells[4] = event.artifact;
+	cells[5] = appendAcceptanceMarker(cells[5]);
+	lines[found.index] = renderDispatchRow(cells);
 	return `${content.slice(0, range.start)}${lines.join("\n")}${content.slice(range.end)}`;
+}
+
+function countTaskChecklistRows(content: string): number {
+	const range = section(content, "Task breakdown");
+	if (!range) return 0;
+	return (content.slice(range.start, range.end).match(/^- \[[ xX~-]\] [^\n]+$/gm) ?? []).length;
+}
+
+function isTerminalDispatchStatus(status: string): boolean {
+	return (
+		status === "success" ||
+		status === "failure" ||
+		status === "cancellation" ||
+		status === "timeout" ||
+		status === "dispatch failure"
+	);
+}
+
+function countSettledDispatchRows(content: string): number {
+	const range = section(content, "Agent dispatch log");
+	if (!range) return 0;
+	const lines = content.slice(range.start, range.end).split("\n");
+	let settled = 0;
+	for (const line of lines) {
+		const cells = dispatchCells(line);
+		if (cells && isTerminalDispatchStatus(cells[3])) settled++;
+	}
+	return settled;
 }
 
 function updateBarrier(content: string, decision: string): string {
 	const range = section(content, "Result barrier");
 	if (!range) return content;
 	const block = content.slice(range.start, range.end);
-	const expected = (content.match(/^- \[[ xX~-]\] [^\n]+$/gm) ?? []).length;
-	const settled = (content.match(/\| (?:success|failure|cancellation|timeout|dispatch failure) \|/g) ?? []).length;
+	const expected = countTaskChecklistRows(content);
+	const settled = countSettledDispatchRows(content);
 	let next = block.replace(/^- Expected terminal items: .*$/m, `- Expected terminal items: ${expected}`);
 	next = next.replace(/^- Settled: .*$/m, `- Settled: ${settled}`);
 	next = next.replace(/^- WAIT_ALL: .*$/m, `- WAIT_ALL: ${settled >= expected && expected > 0 ? "closed" : "active"}`);
@@ -137,8 +276,16 @@ function updateBarrier(content: string, decision: string): string {
 	return `${content.slice(0, range.start)}${next}${content.slice(range.end)}`;
 }
 
-/** Apply one narrow Main-owned event to the project-plan dynamic sections. */
+function taskHasAcceptedArtifact(content: string, taskId: string): boolean {
+	const range = section(content, "Agent dispatch log");
+	if (!range) return false;
+	const lines = content.slice(range.start, range.end).split("\n");
+	const found = findDispatchRow(lines, taskId);
+	return found?.cells[5].includes("artifact accepted") ?? false;
+}
+
 export function applyProjectPlanUpdate(content: string, event: ProjectPlanUpdateEvent, now = new Date()): string {
+	/** Apply one narrow Main-owned event to the project-plan dynamic sections. */
 	let next = content;
 	switch (event.type) {
 		case "task_created":
@@ -153,7 +300,7 @@ export function applyProjectPlanUpdate(content: string, event: ProjectPlanUpdate
 			next = updateDispatch(next, event);
 			break;
 		case "task_settled":
-			next = updateTask(next, event.taskId, event.status, event.status === "success");
+			next = updateTask(next, event.taskId, event.status, false);
 			next = updateDispatch(next, event);
 			break;
 		case "dispatch_failed":
@@ -161,11 +308,7 @@ export function applyProjectPlanUpdate(content: string, event: ProjectPlanUpdate
 			next = updateDispatch(next, event);
 			break;
 		case "artifact_accepted":
-			next = appendSectionLine(
-				next,
-				"Agent dispatch log",
-				`| ? | Main | ${event.taskId} | artifact accepted | ${event.artifact} | — |`,
-			);
+			next = updateAcceptedArtifact(next, event);
 			break;
 		case "verification_recorded":
 			next = appendSectionLine(
@@ -173,6 +316,9 @@ export function applyProjectPlanUpdate(content: string, event: ProjectPlanUpdate
 				"Verification",
 				`- [${event.passed === false ? " " : "x"}] ${event.check}${event.detail ? ` — ${event.detail}` : ""}`,
 			);
+			if (event.taskId && event.passed !== false && taskHasAcceptedArtifact(next, event.taskId)) {
+				next = updateTaskChecked(next, event.taskId, true);
+			}
 			break;
 		case "status_changed":
 			next = replaceMetadata(next, event.status, now);

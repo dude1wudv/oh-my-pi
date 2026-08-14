@@ -7,8 +7,8 @@
 import * as fsSync from "node:fs";
 import * as os from "node:os";
 import { createInterface } from "node:readline/promises";
-import { EventLoopKeepalive } from "@oh-my-pi/pi-agent-core";
-import type { ImageContent } from "@oh-my-pi/pi-ai";
+import { EventLoopKeepalive } from "@dude1wudv/pi-agent-core";
+import type { ImageContent } from "@dude1wudv/pi-ai";
 import {
 	$env,
 	directoryExists,
@@ -20,8 +20,8 @@ import {
 	setInteractiveHost,
 	setProjectDir,
 	VERSION,
-} from "@oh-my-pi/pi-utils";
-import chalk from "@oh-my-pi/pi-utils/chalk";
+} from "@dude1wudv/pi-utils";
+import chalk from "@dude1wudv/pi-utils/chalk";
 import { reset as resetCapabilities } from "./capability";
 import { type Args, reportUnrecognizedFlags, validateToolNames } from "./cli/args";
 import { applyExtensionFlags, type ExtensionFlagSink } from "./cli/extension-flags";

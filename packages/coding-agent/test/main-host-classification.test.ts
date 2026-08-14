@@ -1,7 +1,7 @@
 import { expect, it } from "bun:test";
-import { parseArgs } from "@oh-my-pi/pi-coding-agent/cli/args";
-import { runRootCommand } from "@oh-my-pi/pi-coding-agent/main";
-import { getDbBusyTimeoutMs, setInteractiveHost } from "@oh-my-pi/pi-utils";
+import { parseArgs } from "@dude1wudv/pi-coding-agent/cli/args";
+import { runRootCommand } from "@dude1wudv/pi-coding-agent/main";
+import { getDbBusyTimeoutMs, setInteractiveHost } from "@dude1wudv/pi-utils";
 
 it("classifies an interactive host before opening auth storage", async () => {
 	const previous = setInteractiveHost(false);

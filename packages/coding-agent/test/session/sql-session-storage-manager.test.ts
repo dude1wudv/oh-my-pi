@@ -7,9 +7,9 @@
  */
 
 import { describe, expect, it } from "bun:test";
-import type { Usage } from "@oh-my-pi/pi-ai";
-import { SessionManager } from "@oh-my-pi/pi-coding-agent/session/session-manager";
-import { SqlSessionStorage } from "@oh-my-pi/pi-coding-agent/session/sql-session-storage";
+import type { Usage } from "@dude1wudv/pi-ai";
+import { SessionManager } from "@dude1wudv/pi-coding-agent/session/session-manager";
+import { SqlSessionStorage } from "@dude1wudv/pi-coding-agent/session/sql-session-storage";
 import { SQL } from "bun";
 
 function fakeUsage(input: number, output: number): Usage {

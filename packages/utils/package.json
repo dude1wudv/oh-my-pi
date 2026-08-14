@@ -1,6 +1,6 @@
 {
 	"type": "module",
-	"name": "@oh-my-pi/pi-utils",
+	"name": "@dude1wudv/pi-utils",
 	"version": "20.1.0",
 	"description": "Shared utilities for pi packages",
 	"homepage": "https://omp.sh",
@@ -31,7 +31,7 @@
 		"fmt": "biome format --write ."
 	},
 	"dependencies": {
-		"@oh-my-pi/pi-natives": "catalog:"
+		"@dude1wudv/pi-natives": "catalog:"
 	},
 	"devDependencies": {
 		"@types/bun": "catalog:"

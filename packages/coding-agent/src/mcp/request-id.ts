@@ -1,4 +1,4 @@
-import { Snowflake } from "@oh-my-pi/pi-utils";
+import { Snowflake } from "@dude1wudv/pi-utils";
 import type { MCPRequestIdFormat } from "./types";
 
 /**

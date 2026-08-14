@@ -1,5 +1,5 @@
-import type { AgentToolResult } from "@oh-my-pi/pi-agent-core";
-import type { TextContent } from "@oh-my-pi/pi-ai";
+import type { AgentToolResult } from "@dude1wudv/pi-agent-core";
+import type { TextContent } from "@dude1wudv/pi-ai";
 import type { ToolSession } from "../sdk";
 import { truncateHead } from "../session/streaming-output";
 import { type ArchiveReader, formatArchiveEntryLines, openArchive, parseArchivePathCandidates } from "../utils/zip";

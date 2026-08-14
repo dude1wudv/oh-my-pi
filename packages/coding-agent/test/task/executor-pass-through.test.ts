@@ -4,22 +4,22 @@
  * paid for. Regression guard for issue #2190.
  */
 import { afterEach, describe, expect, it, vi } from "bun:test";
-import { ThinkingLevel } from "@oh-my-pi/pi-agent-core";
-import type { Model } from "@oh-my-pi/pi-ai";
-import { Effort } from "@oh-my-pi/pi-catalog/effort";
-import { getBundledModel } from "@oh-my-pi/pi-catalog/models";
-import type { Rule } from "@oh-my-pi/pi-coding-agent/capability/rule";
-import type { ModelRegistry } from "@oh-my-pi/pi-coding-agent/config/model-registry";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import type { ToolPathWithSource } from "@oh-my-pi/pi-coding-agent/extensibility/custom-tools";
-import type { LoadExtensionsResult } from "@oh-my-pi/pi-coding-agent/extensibility/extensions/types";
-import type { MCPManager } from "@oh-my-pi/pi-coding-agent/mcp/manager";
-import type { CreateAgentSessionResult } from "@oh-my-pi/pi-coding-agent/sdk";
-import * as sdkModule from "@oh-my-pi/pi-coding-agent/sdk";
-import type { AgentSession, AgentSessionEvent, PromptOptions } from "@oh-my-pi/pi-coding-agent/session/agent-session";
-import { runSubprocess } from "@oh-my-pi/pi-coding-agent/task/executor";
-import type { AgentDefinition } from "@oh-my-pi/pi-coding-agent/task/types";
-import { EventBus } from "@oh-my-pi/pi-coding-agent/utils/event-bus";
+import { ThinkingLevel } from "@dude1wudv/pi-agent-core";
+import type { Model } from "@dude1wudv/pi-ai";
+import { Effort } from "@dude1wudv/pi-catalog/effort";
+import { getBundledModel } from "@dude1wudv/pi-catalog/models";
+import type { Rule } from "@dude1wudv/pi-coding-agent/capability/rule";
+import type { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import type { ToolPathWithSource } from "@dude1wudv/pi-coding-agent/extensibility/custom-tools";
+import type { LoadExtensionsResult } from "@dude1wudv/pi-coding-agent/extensibility/extensions/types";
+import type { MCPManager } from "@dude1wudv/pi-coding-agent/mcp/manager";
+import type { CreateAgentSessionResult } from "@dude1wudv/pi-coding-agent/sdk";
+import * as sdkModule from "@dude1wudv/pi-coding-agent/sdk";
+import type { AgentSession, AgentSessionEvent, PromptOptions } from "@dude1wudv/pi-coding-agent/session/agent-session";
+import { runSubprocess } from "@dude1wudv/pi-coding-agent/task/executor";
+import type { AgentDefinition } from "@dude1wudv/pi-coding-agent/task/types";
+import { EventBus } from "@dude1wudv/pi-coding-agent/utils/event-bus";
 
 function createMockSession(onPrompt: (params: { emit: (event: AgentSessionEvent) => void }) => void): AgentSession {
 	const listeners: Array<(event: AgentSessionEvent) => void> = [];

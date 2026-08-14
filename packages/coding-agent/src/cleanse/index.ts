@@ -1,4 +1,4 @@
-import { getProjectDir, sanitizeText } from "@oh-my-pi/pi-utils";
+import { getProjectDir, sanitizeText } from "@dude1wudv/pi-utils";
 import { pickCleanseTarget, promptCleanseRequest } from "../cli/cleanse-picker";
 import { createProgressReporter } from "../cli/progress-reporter";
 import { shortenPath } from "../tools/render-utils";

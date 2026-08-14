@@ -5,12 +5,12 @@
  * LLM-facing `[name: state; cursor=N]` suffix, list caps collapsed rows).
  */
 import { describe, expect, it } from "bun:test";
-import type { DaemonSnapshot } from "@oh-my-pi/pi-coding-agent/launch/protocol";
-import { renderTerminalOutput } from "@oh-my-pi/pi-coding-agent/launch/terminal-output";
-import { getThemeByName } from "@oh-my-pi/pi-coding-agent/modes/theme/theme";
-import { hubToolRenderer, type LaunchToolDetails } from "@oh-my-pi/pi-coding-agent/tools/hub";
-import { toolRenderers } from "@oh-my-pi/pi-coding-agent/tools/renderers";
-import { sanitizeText } from "@oh-my-pi/pi-utils";
+import type { DaemonSnapshot } from "@dude1wudv/pi-coding-agent/launch/protocol";
+import { renderTerminalOutput } from "@dude1wudv/pi-coding-agent/launch/terminal-output";
+import { getThemeByName } from "@dude1wudv/pi-coding-agent/modes/theme/theme";
+import { hubToolRenderer, type LaunchToolDetails } from "@dude1wudv/pi-coding-agent/tools/hub";
+import { toolRenderers } from "@dude1wudv/pi-coding-agent/tools/renderers";
+import { sanitizeText } from "@dude1wudv/pi-utils";
 
 async function theme() {
 	const t = await getThemeByName("dark");

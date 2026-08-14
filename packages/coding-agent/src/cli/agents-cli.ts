@@ -5,8 +5,8 @@
  */
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { getAgentDir, getProjectDir, isEnoent } from "@oh-my-pi/pi-utils";
-import chalk from "@oh-my-pi/pi-utils/chalk";
+import { getAgentDir, getProjectDir, isEnoent } from "@dude1wudv/pi-utils";
+import chalk from "@dude1wudv/pi-utils/chalk";
 import { YAML } from "bun";
 import { theme } from "../modes/theme/theme";
 import { loadBundledAgents } from "../task/agents";

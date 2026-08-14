@@ -1,6 +1,6 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "bun:test";
 import * as path from "node:path";
-import { Agent } from "@oh-my-pi/pi-agent-core";
+import { Agent } from "@dude1wudv/pi-agent-core";
 import type {
 	Api,
 	AssistantMessage,
@@ -9,17 +9,17 @@ import type {
 	Model,
 	SimpleStreamOptions,
 	ThinkingContent,
-} from "@oh-my-pi/pi-ai";
-import { createMockModel } from "@oh-my-pi/pi-ai/providers/mock";
-import { AssistantMessageEventStream } from "@oh-my-pi/pi-ai/utils/event-stream";
-import { GEMINI_HEADER_RUNAWAY_THRESHOLD } from "@oh-my-pi/pi-ai/utils/thinking-loop";
-import { ModelRegistry } from "@oh-my-pi/pi-coding-agent/config/model-registry";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { AgentSession, type AgentSessionEvent } from "@oh-my-pi/pi-coding-agent/session/agent-session";
-import { AuthStorage } from "@oh-my-pi/pi-coding-agent/session/auth-storage";
-import { convertToLlm } from "@oh-my-pi/pi-coding-agent/session/messages";
-import { SessionManager } from "@oh-my-pi/pi-coding-agent/session/session-manager";
-import { TempDir } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-ai";
+import { createMockModel } from "@dude1wudv/pi-ai/providers/mock";
+import { AssistantMessageEventStream } from "@dude1wudv/pi-ai/utils/event-stream";
+import { GEMINI_HEADER_RUNAWAY_THRESHOLD } from "@dude1wudv/pi-ai/utils/thinking-loop";
+import { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { AgentSession, type AgentSessionEvent } from "@dude1wudv/pi-coding-agent/session/agent-session";
+import { AuthStorage } from "@dude1wudv/pi-coding-agent/session/auth-storage";
+import { convertToLlm } from "@dude1wudv/pi-coding-agent/session/messages";
+import { SessionManager } from "@dude1wudv/pi-coding-agent/session/session-manager";
+import { TempDir } from "@dude1wudv/pi-utils";
 
 function emptyUsage(): AssistantMessage["usage"] {
 	return {

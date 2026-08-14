@@ -8,10 +8,10 @@ import {
 	toolWireSchema,
 	validateSchemaCompatibility,
 	validateStrictSchemaEnforcement,
-} from "@oh-my-pi/pi-ai/utils/schema";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { createTools, HIDDEN_TOOLS, type ToolSession } from "@oh-my-pi/pi-coding-agent/tools";
-import { createVibeTools } from "@oh-my-pi/pi-coding-agent/tools/vibe";
+} from "@dude1wudv/pi-ai/utils/schema";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { createTools, HIDDEN_TOOLS, type ToolSession } from "@dude1wudv/pi-coding-agent/tools";
+import { createVibeTools } from "@dude1wudv/pi-coding-agent/tools/vibe";
 
 interface ToolSchemaEntry {
 	name: string;

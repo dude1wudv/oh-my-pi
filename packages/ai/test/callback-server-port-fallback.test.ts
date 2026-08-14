@@ -1,7 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "bun:test";
-import { ConfigurationError } from "@oh-my-pi/pi-ai/error";
-import { OAuthCallbackFlow } from "@oh-my-pi/pi-ai/registry/oauth/callback-server";
-import type { OAuthCredentials } from "@oh-my-pi/pi-ai/registry/oauth/types";
+import { ConfigurationError } from "@dude1wudv/pi-ai/error";
+import { OAuthCallbackFlow } from "@dude1wudv/pi-ai/registry/oauth/callback-server";
+import type { OAuthCredentials } from "@dude1wudv/pi-ai/registry/oauth/types";
 
 /**
  * Minimal callback flow we can drive without a real authorization server.

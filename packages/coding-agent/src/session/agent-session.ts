@@ -19,7 +19,7 @@ import * as path from "node:path";
 import { scheduler } from "node:timers/promises";
 import { isPromise } from "node:util/types";
 
-import type { Clipboard, InMemorySnapshotStore } from "@oh-my-pi/hashline";
+import type { Clipboard, InMemorySnapshotStore } from "@dude1wudv/hashline";
 import {
 	type AfterToolCallContext,
 	type AfterToolCallResult,
@@ -43,7 +43,7 @@ import {
 	TERMINAL_TOOL_RESULT_ABORT_REASON,
 	type ThinkingLevel,
 	type ToolChoiceDirective,
-} from "@oh-my-pi/pi-agent-core";
+} from "@dude1wudv/pi-agent-core";
 import {
 	type CompactionPreparation,
 	type CompactionResult,
@@ -52,7 +52,7 @@ import {
 	estimateTokens,
 	generateBranchSummary,
 	type ShakeConfig,
-} from "@oh-my-pi/pi-agent-core/compaction";
+} from "@dude1wudv/pi-agent-core/compaction";
 import type {
 	AssistantMessage,
 	CodexCompactionContext,
@@ -74,13 +74,13 @@ import type {
 	ToolResultMessage,
 	UsageReport,
 	UserMessage,
-} from "@oh-my-pi/pi-ai";
-import { type Effort, streamSimple } from "@oh-my-pi/pi-ai";
-import * as AIError from "@oh-my-pi/pi-ai/error";
-import { resetOpenAICodexHistoryAfterCompaction } from "@oh-my-pi/pi-ai/providers/openai-codex-responses";
-import { toolWireSchema } from "@oh-my-pi/pi-ai/utils/schema";
-import { modelsAreEqual } from "@oh-my-pi/pi-catalog/models";
-import { MacOSPowerAssertion } from "@oh-my-pi/pi-natives";
+} from "@dude1wudv/pi-ai";
+import { type Effort, streamSimple } from "@dude1wudv/pi-ai";
+import * as AIError from "@dude1wudv/pi-ai/error";
+import { resetOpenAICodexHistoryAfterCompaction } from "@dude1wudv/pi-ai/providers/openai-codex-responses";
+import { toolWireSchema } from "@dude1wudv/pi-ai/utils/schema";
+import { modelsAreEqual } from "@dude1wudv/pi-catalog/models";
+import { MacOSPowerAssertion } from "@dude1wudv/pi-natives";
 import {
 	$env,
 	APP_NAME,
@@ -97,7 +97,7 @@ import {
 	Snowflake,
 	stringProperty,
 	withTimeout,
-} from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-utils";
 import { type AdvisorConfig, type AdvisorRuntimeStatus, loadAdvisorTranscriptCosts } from "../advisor";
 import { ASYNC_JOB_MANAGER_SHUTDOWN_REASON, type AsyncJob, AsyncJobManager } from "../async";
 import { shouldEnableAppendOnlyContext } from "../config/append-only-context-mode";

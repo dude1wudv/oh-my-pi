@@ -1,15 +1,15 @@
 import { describe, expect, it } from "bun:test";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { AuthStorage } from "@oh-my-pi/pi-ai";
-import { getBundledModel } from "@oh-my-pi/pi-catalog/models";
-import { ModelRegistry } from "@oh-my-pi/pi-coding-agent/config/model-registry";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { initializeWithSettings } from "@oh-my-pi/pi-coding-agent/discovery";
-import { createAgentSession } from "@oh-my-pi/pi-coding-agent/sdk";
-import type { AgentSession } from "@oh-my-pi/pi-coding-agent/session/agent-session";
-import { SessionManager } from "@oh-my-pi/pi-coding-agent/session/session-manager";
-import { TempDir } from "@oh-my-pi/pi-utils";
+import { AuthStorage } from "@dude1wudv/pi-ai";
+import { getBundledModel } from "@dude1wudv/pi-catalog/models";
+import { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { initializeWithSettings } from "@dude1wudv/pi-coding-agent/discovery";
+import { createAgentSession } from "@dude1wudv/pi-coding-agent/sdk";
+import type { AgentSession } from "@dude1wudv/pi-coding-agent/session/agent-session";
+import { SessionManager } from "@dude1wudv/pi-coding-agent/session/session-manager";
+import { TempDir } from "@dude1wudv/pi-utils";
 
 const INITIAL_CONTEXT = "reload-context-initial-marker";
 const UPDATED_CONTEXT = "reload-context-updated-marker";

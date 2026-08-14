@@ -5,8 +5,8 @@
  * fallback strategies for finding text in files.
  */
 
-import { type } from "@oh-my-pi/omptype";
-import type { AgentToolResult } from "@oh-my-pi/pi-agent-core";
+import { type } from "@dude1wudv/omptype";
+import type { AgentToolResult } from "@dude1wudv/pi-agent-core";
 import type { FileDiagnosticsResult, WritethroughCallback, WritethroughDeferredHandle } from "../../lsp";
 import type { ToolSession } from "../../tools";
 import { routeWriteThroughBridge } from "../../tools/acp-bridge";

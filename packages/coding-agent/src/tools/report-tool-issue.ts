@@ -31,11 +31,11 @@
 import { Database } from "bun:sqlite";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import type { AgentToolResult } from "@oh-my-pi/pi-agent-core";
-import type { FetchImpl } from "@oh-my-pi/pi-ai";
-import type { Component } from "@oh-my-pi/pi-tui";
-import { Text } from "@oh-my-pi/pi-tui";
-import { $env, $flag, getAutoQaDbPath, getInstallId, logger, VERSION } from "@oh-my-pi/pi-utils";
+import type { AgentToolResult } from "@dude1wudv/pi-agent-core";
+import type { FetchImpl } from "@dude1wudv/pi-ai";
+import type { Component } from "@dude1wudv/pi-tui";
+import { Text } from "@dude1wudv/pi-tui";
+import { $env, $flag, getAutoQaDbPath, getInstallId, logger, VERSION } from "@dude1wudv/pi-utils";
 import type { Settings } from "..";
 import type { Theme } from "../modes/theme/theme";
 import { renderStatusLine, truncateToWidth } from "../tui";

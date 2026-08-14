@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import * as net from "node:net";
-import * as AIError from "@oh-my-pi/pi-ai/error";
-import type { FetchImpl } from "@oh-my-pi/pi-ai/types";
+import * as AIError from "@dude1wudv/pi-ai/error";
+import type { FetchImpl } from "@dude1wudv/pi-ai/types";
 import {
 	connectProxiedSocket,
 	getProxyForProvider,
@@ -9,7 +9,7 @@ import {
 	isLocalOrMetadataHost,
 	shouldBypassProxy,
 	wrapFetchForProxy,
-} from "@oh-my-pi/pi-ai/utils/proxy";
+} from "@dude1wudv/pi-ai/utils/proxy";
 
 const PROXY = "http://127.0.0.1:24560";
 

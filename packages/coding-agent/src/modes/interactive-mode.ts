@@ -10,10 +10,10 @@ import {
 	type AgentMessage,
 	EventLoopKeepalive,
 	ThinkingLevel,
-} from "@oh-my-pi/pi-agent-core";
-import type { CompactionOutcome } from "@oh-my-pi/pi-agent-core/compaction";
-import type { AssistantMessage, ImageContent, Message, Model, Usage, UsageReport } from "@oh-my-pi/pi-ai";
-import { modelsAreEqual } from "@oh-my-pi/pi-catalog/models";
+} from "@dude1wudv/pi-agent-core";
+import type { CompactionOutcome } from "@dude1wudv/pi-agent-core/compaction";
+import type { AssistantMessage, ImageContent, Message, Model, Usage, UsageReport } from "@dude1wudv/pi-ai";
+import { modelsAreEqual } from "@dude1wudv/pi-catalog/models";
 import type {
 	AutocompleteProvider,
 	Component,
@@ -22,7 +22,7 @@ import type {
 	NativeScrollbackLiveRegion,
 	OverlayHandle,
 	SlashCommand,
-} from "@oh-my-pi/pi-tui";
+} from "@dude1wudv/pi-tui";
 import {
 	Container,
 	clearRenderCache,
@@ -36,9 +36,9 @@ import {
 	Text,
 	TUI,
 	visibleWidth,
-} from "@oh-my-pi/pi-tui";
-import type { TerminalAppearanceRequestToken } from "@oh-my-pi/pi-tui/terminal";
-import { isInsideTerminalMultiplexer } from "@oh-my-pi/pi-tui/terminal-capabilities";
+} from "@dude1wudv/pi-tui";
+import type { TerminalAppearanceRequestToken } from "@dude1wudv/pi-tui/terminal";
+import { isInsideTerminalMultiplexer } from "@dude1wudv/pi-tui/terminal-capabilities";
 import {
 	$env,
 	APP_NAME,
@@ -51,8 +51,8 @@ import {
 	postmortem,
 	prompt,
 	setProjectDir,
-} from "@oh-my-pi/pi-utils";
-import chalk from "@oh-my-pi/pi-utils/chalk";
+} from "@dude1wudv/pi-utils";
+import chalk from "@dude1wudv/pi-utils/chalk";
 import { reset as resetCapabilities } from "../capability";
 import type { CollabGuestLink } from "../collab/guest";
 import type { CollabHost } from "../collab/host";
@@ -98,6 +98,7 @@ import {
 	resolvePlanTitle,
 } from "../plan-mode/approved-plan";
 import { resolvePlanModelTransition } from "../plan-mode/model-transition";
+import { PROJECT_PLAN_ENTRY_TYPE } from "../plan-mode/state";
 import guidedGoalInterviewPrompt from "../prompts/goals/guided-goal-interview.md" with { type: "text" };
 import planModeApprovedPrompt from "../prompts/system/plan-mode-approved.md" with { type: "text" };
 import planModeCompactInstructionsPrompt from "../prompts/system/plan-mode-compact-instructions.md" with {
@@ -3201,7 +3202,7 @@ export class InteractiveMode implements InteractiveModeContext {
 			planContent,
 			title: options.title,
 		});
-		this.sessionManager.appendCustomEntry("project-plan", {
+		this.sessionManager.appendCustomEntry(PROJECT_PLAN_ENTRY_TYPE, {
 			path: projectPlan.projectPlanPath,
 			planId: projectPlan.planId,
 		});
@@ -3277,6 +3278,7 @@ export class InteractiveMode implements InteractiveModeContext {
 		// prompts now require loading the durable local:// plan file before work.
 		const executionTools = previousTools.includes("read") ? previousTools : [...previousTools, "read"];
 		await this.session.setActiveToolsByName(executionTools);
+		await this.session.setActiveToolsByName([...new Set([...executionTools, "project_plan"])]);
 		this.session.setPlanReferencePath(options.planFilePath);
 
 		// Resolve the deferred plan-approval model transition. On the compact path

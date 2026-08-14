@@ -2,8 +2,8 @@ import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
-import { type } from "@oh-my-pi/omptype";
-import { isContextOverflow } from "@oh-my-pi/pi-ai/error";
+import { type } from "@dude1wudv/omptype";
+import { isContextOverflow } from "@dude1wudv/pi-ai/error";
 import {
 	buildGitLabDuoWorkflowApprovalStartRequest,
 	buildGitLabDuoWorkflowCreateBody,
@@ -27,8 +27,8 @@ import {
 	selectGitLabDuoWorkflowModelRef,
 	streamGitLabDuoWorkflow,
 	traceGitLabDuoWorkflow,
-} from "@oh-my-pi/pi-ai/providers/gitlab-duo-workflow";
-import { configureCredentialRedaction } from "@oh-my-pi/pi-ai/providers/transform-messages";
+} from "@dude1wudv/pi-ai/providers/gitlab-duo-workflow";
+import { configureCredentialRedaction } from "@dude1wudv/pi-ai/providers/transform-messages";
 import type {
 	AssistantMessage,
 	Context,
@@ -38,10 +38,10 @@ import type {
 	ProviderSessionState,
 	Tool,
 	ToolResultMessage,
-} from "@oh-my-pi/pi-ai/types";
-import { AssistantMessageEventStream } from "@oh-my-pi/pi-ai/utils/event-stream";
-import { buildModel } from "@oh-my-pi/pi-catalog/build";
-import { extractHttpStatusFromError } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-ai/types";
+import { AssistantMessageEventStream } from "@dude1wudv/pi-ai/utils/event-stream";
+import { buildModel } from "@dude1wudv/pi-catalog/build";
+import { extractHttpStatusFromError } from "@dude1wudv/pi-utils";
 
 beforeAll(() => configureCredentialRedaction(true));
 afterAll(() => configureCredentialRedaction(false));

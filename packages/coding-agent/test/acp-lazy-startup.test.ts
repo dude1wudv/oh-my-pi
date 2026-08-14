@@ -1,13 +1,13 @@
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import * as path from "node:path";
-import type { Model } from "@oh-my-pi/pi-ai";
-import { buildModel } from "@oh-my-pi/pi-catalog/build";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
-import { createAcpConnection } from "@oh-my-pi/pi-coding-agent/modes/acp/acp-mode";
-import type { AgentSession } from "@oh-my-pi/pi-coding-agent/session/agent-session";
-import type { AuthStorage } from "@oh-my-pi/pi-coding-agent/session/auth-storage";
-import { SessionManager } from "@oh-my-pi/pi-coding-agent/session/session-manager";
-import { TempDir } from "@oh-my-pi/pi-utils";
+import type { Model } from "@dude1wudv/pi-ai";
+import { buildModel } from "@dude1wudv/pi-catalog/build";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import { createAcpConnection } from "@dude1wudv/pi-coding-agent/modes/acp/acp-mode";
+import type { AgentSession } from "@dude1wudv/pi-coding-agent/session/agent-session";
+import type { AuthStorage } from "@dude1wudv/pi-coding-agent/session/auth-storage";
+import { SessionManager } from "@dude1wudv/pi-coding-agent/session/session-manager";
+import { TempDir } from "@dude1wudv/pi-utils";
 import {
 	type Client,
 	ClientSideConnection,
@@ -17,7 +17,7 @@ import {
 	type RequestPermissionRequest,
 	type RequestPermissionResponse,
 	type SessionNotification,
-} from "@oh-my-pi/pi-utils/acp";
+} from "@dude1wudv/pi-utils/acp";
 import { createInMemoryAuthStorage } from "./helpers/agent-session-setup";
 
 const TEST_MODEL: Model = buildModel({
@@ -170,7 +170,7 @@ async function closeTransport(writable: WritableStream<unknown>): Promise<void> 
 
 describe("ACP lazy startup", () => {
 	it("applies schema defaults for ACP background jobs", async () => {
-		const { runRootCommand } = await import("@oh-my-pi/pi-coding-agent/main");
+		const { runRootCommand } = await import("@dude1wudv/pi-coding-agent/main");
 
 		type ObservedBackgroundSettings = {
 			asyncEnabled: boolean;
@@ -239,7 +239,7 @@ describe("ACP lazy startup", () => {
 		// configured value (caller, project, --config overlay, or global) with the
 		// schema default. The fix (re-)added an `isConfigured` guard so explicit
 		// configuration survives, and the schema default only fills holes.
-		const { runRootCommand } = await import("@oh-my-pi/pi-coding-agent/main");
+		const { runRootCommand } = await import("@dude1wudv/pi-coding-agent/main");
 
 		const explicit = {
 			"task.isolation.mode": "rcopy",
@@ -403,8 +403,8 @@ describe("ACP lazy startup", () => {
 		const authStorage = createInMemoryAuthStorage();
 		try {
 			const settings = Settings.isolated({ "marketplace.autoUpdate": "off" });
-			const { runRootCommand } = await import("@oh-my-pi/pi-coding-agent/main");
-			const { createAgentSession } = await import("@oh-my-pi/pi-coding-agent/sdk");
+			const { runRootCommand } = await import("@dude1wudv/pi-coding-agent/main");
+			const { createAgentSession } = await import("@dude1wudv/pi-coding-agent/sdk");
 			let session: AgentSession | undefined;
 			let sessionHasUI: boolean | undefined;
 			let deferredUsageReserveConfirmation: boolean | undefined;

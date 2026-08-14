@@ -2,17 +2,17 @@ import { afterEach, describe, expect, it, vi } from "bun:test";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
-import { AgentRegistry } from "@oh-my-pi/pi-coding-agent/registry/agent-registry";
-import * as executorModule from "@oh-my-pi/pi-coding-agent/task/executor";
+import { AgentRegistry } from "@dude1wudv/pi-coding-agent/registry/agent-registry";
+import * as executorModule from "@dude1wudv/pi-coding-agent/task/executor";
 import {
 	applyEligibleNestedPatches,
 	mergeIsolatedChanges,
 	runIsolatedSubprocess,
-} from "@oh-my-pi/pi-coding-agent/task/isolation-runner";
-import type { SingleResult } from "@oh-my-pi/pi-coding-agent/task/types";
-import * as worktreeModule from "@oh-my-pi/pi-coding-agent/task/worktree";
-import * as gitModule from "@oh-my-pi/pi-coding-agent/utils/git";
-import * as natives from "@oh-my-pi/pi-natives";
+} from "@dude1wudv/pi-coding-agent/task/isolation-runner";
+import type { SingleResult } from "@dude1wudv/pi-coding-agent/task/types";
+import * as worktreeModule from "@dude1wudv/pi-coding-agent/task/worktree";
+import * as gitModule from "@dude1wudv/pi-coding-agent/utils/git";
+import * as natives from "@dude1wudv/pi-natives";
 import { $ } from "bun";
 
 function result(overrides: Partial<SingleResult> = {}): SingleResult {

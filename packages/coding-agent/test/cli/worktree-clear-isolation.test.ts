@@ -2,9 +2,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
-import { clearWorktrees } from "@oh-my-pi/pi-coding-agent/cli/worktree-cli";
-import { ISOLATION_OWNER_FILE, writeIsolationOwner } from "@oh-my-pi/pi-coding-agent/task/isolation-ownership";
-import { setWorktreesDir } from "@oh-my-pi/pi-utils";
+import { clearWorktrees } from "@dude1wudv/pi-coding-agent/cli/worktree-cli";
+import { ISOLATION_OWNER_FILE, writeIsolationOwner } from "@dude1wudv/pi-coding-agent/task/isolation-ownership";
+import { setWorktreesDir } from "@dude1wudv/pi-utils";
 
 /**
  * Regression for #6761: `omp worktree clear` (no `--all`) must delete only

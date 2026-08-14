@@ -15,9 +15,9 @@
  * {@link WatchdogConfigDoc} and only touches disk + the live advisors via the host
  * `save` callback.
  */
-import type { ThinkingLevel } from "@oh-my-pi/pi-agent-core";
-import type { Model, UsageReport } from "@oh-my-pi/pi-ai";
-import { getSupportedEfforts } from "@oh-my-pi/pi-catalog/model-thinking";
+import type { ThinkingLevel } from "@dude1wudv/pi-agent-core";
+import type { Model, UsageReport } from "@dude1wudv/pi-ai";
+import { getSupportedEfforts } from "@dude1wudv/pi-catalog/model-thinking";
 import {
 	type Component,
 	Input,
@@ -28,7 +28,7 @@ import {
 	type SgrMouseEvent,
 	type TUI,
 	truncateToWidth,
-} from "@oh-my-pi/pi-tui";
+} from "@dude1wudv/pi-tui";
 import {
 	ADVISOR_DEFAULT_TOOL_NAMES,
 	type AdvisorConfig,

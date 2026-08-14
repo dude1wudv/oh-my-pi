@@ -6,11 +6,11 @@ import {
 	applyResolvedSystemPromptInputs,
 	readPipedInput,
 	submitInteractiveInput,
-} from "@oh-my-pi/pi-coding-agent/main";
-import type { SubmittedUserInput } from "@oh-my-pi/pi-coding-agent/modes/types";
-import type { CreateAgentSessionOptions } from "@oh-my-pi/pi-coding-agent/sdk";
-import { discoverTitleSystemPromptFile } from "@oh-my-pi/pi-coding-agent/system-prompt";
-import { removeWithRetries } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-coding-agent/main";
+import type { SubmittedUserInput } from "@dude1wudv/pi-coding-agent/modes/types";
+import type { CreateAgentSessionOptions } from "@dude1wudv/pi-coding-agent/sdk";
+import { discoverTitleSystemPromptFile } from "@dude1wudv/pi-coding-agent/system-prompt";
+import { removeWithRetries } from "@dude1wudv/pi-utils";
 
 const cleanupDirs: string[] = [];
 

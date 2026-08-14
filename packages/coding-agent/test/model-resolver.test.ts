@@ -1,7 +1,7 @@
 import { describe, expect, test } from "bun:test";
-import { type Api, Effort, type Model } from "@oh-my-pi/pi-ai";
-import { buildModel } from "@oh-my-pi/pi-catalog/build";
-import { DEFAULT_MODEL_PER_PROVIDER } from "@oh-my-pi/pi-catalog/provider-models";
+import { type Api, Effort, type Model } from "@dude1wudv/pi-ai";
+import { buildModel } from "@dude1wudv/pi-catalog/build";
+import { DEFAULT_MODEL_PER_PROVIDER } from "@dude1wudv/pi-catalog/provider-models";
 import {
 	expandRoleAlias,
 	extractExplicitThinkingSelector,
@@ -20,9 +20,9 @@ import {
 	resolveModelOverride,
 	resolveModelRoleValue,
 	resolveModelScope,
-} from "@oh-my-pi/pi-coding-agent/config/model-resolver";
-import { DEFAULT_MODEL_ROLE_ALIAS, LEGACY_MODEL_ROLE_ALIAS_PREFIX } from "@oh-my-pi/pi-coding-agent/config/model-roles";
-import { Settings } from "@oh-my-pi/pi-coding-agent/config/settings";
+} from "@dude1wudv/pi-coding-agent/config/model-resolver";
+import { DEFAULT_MODEL_ROLE_ALIAS, LEGACY_MODEL_ROLE_ALIAS_PREFIX } from "@dude1wudv/pi-coding-agent/config/model-roles";
+import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
 
 // Mock models for testing
 const mockModels: Model<"anthropic-messages">[] = [

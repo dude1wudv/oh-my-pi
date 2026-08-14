@@ -9,7 +9,7 @@
  * normalization remains available.
  */
 
-import { enclosingBlockBoundaries } from "@oh-my-pi/pi-natives";
+import { enclosingBlockBoundaries } from "@dude1wudv/pi-natives";
 
 /** Parse-result cache keyed by content hash + path; FIFO-bounded. */
 const parseCache = new Map<string, boolean>();

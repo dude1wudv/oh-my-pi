@@ -1,5 +1,5 @@
 import * as path from "node:path";
-import { untilAborted } from "@oh-my-pi/pi-utils";
+import { untilAborted } from "@dude1wudv/pi-utils";
 import type { ConversionResult, Markit, StreamInfo } from "../markit";
 import { ToolAbortError } from "../tools/tool-errors";
 import {

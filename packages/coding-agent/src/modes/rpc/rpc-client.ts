@@ -5,10 +5,10 @@
  */
 
 import { isPromise } from "node:util/types";
-import type { AgentEvent, AgentMessage, AgentToolResult, ThinkingLevel } from "@oh-my-pi/pi-agent-core";
-import type { CompactionResult } from "@oh-my-pi/pi-agent-core/compaction";
-import type { ImageContent, Model } from "@oh-my-pi/pi-ai";
-import { isRecord, ptree, readJsonl } from "@oh-my-pi/pi-utils";
+import type { AgentEvent, AgentMessage, AgentToolResult, ThinkingLevel } from "@dude1wudv/pi-agent-core";
+import type { CompactionResult } from "@dude1wudv/pi-agent-core/compaction";
+import type { ImageContent, Model } from "@dude1wudv/pi-ai";
+import { isRecord, ptree, readJsonl } from "@dude1wudv/pi-utils";
 import type { FileSink } from "bun";
 import type { BashResult } from "../../exec/bash-executor";
 import type { AgentSessionEvent, SessionStats } from "../../session/agent-session";

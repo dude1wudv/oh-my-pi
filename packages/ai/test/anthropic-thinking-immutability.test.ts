@@ -1,7 +1,7 @@
 import { describe, expect, it } from "bun:test";
-import { convertAnthropicMessages } from "@oh-my-pi/pi-ai/providers/anthropic";
-import type { AssistantMessage, Model, UserMessage } from "@oh-my-pi/pi-ai/types";
-import { buildModel } from "@oh-my-pi/pi-catalog/build";
+import { convertAnthropicMessages } from "@dude1wudv/pi-ai/providers/anthropic";
+import type { AssistantMessage, Model, UserMessage } from "@dude1wudv/pi-ai/types";
+import { buildModel } from "@dude1wudv/pi-catalog/build";
 
 const model: Model<"anthropic-messages"> = buildModel({
 	api: "anthropic-messages",

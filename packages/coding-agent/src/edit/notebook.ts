@@ -1,5 +1,5 @@
 import * as path from "node:path";
-import { isEnoent } from "@oh-my-pi/pi-utils";
+import { isEnoent } from "@dude1wudv/pi-utils";
 
 export type NotebookCellType = "code" | "markdown" | "raw";
 

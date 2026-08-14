@@ -21,16 +21,16 @@ import {
 	type Tool,
 	type Usage,
 	withAuth,
-} from "@oh-my-pi/pi-ai";
-import * as AIError from "@oh-my-pi/pi-ai/error";
-import { createOpenAICodexCompactionRequestContext } from "@oh-my-pi/pi-ai/providers/openai-codex-responses";
-import { convertTools } from "@oh-my-pi/pi-ai/providers/openai-responses";
-import { buildResponsesInput, resolveOpenAICompatPolicy } from "@oh-my-pi/pi-ai/providers/openai-shared";
-import { stripOpenAIResponsesOutputOnlyStatusesForReplay } from "@oh-my-pi/pi-ai/utils";
-import { preferredDialect } from "@oh-my-pi/pi-catalog/identity";
-import { clampThinkingLevelForModel } from "@oh-my-pi/pi-catalog/model-thinking";
-import { isRecord, logger, prompt, stringifyJson } from "@oh-my-pi/pi-utils";
-import * as snapcompact from "@oh-my-pi/snapcompact";
+} from "@dude1wudv/pi-ai";
+import * as AIError from "@dude1wudv/pi-ai/error";
+import { createOpenAICodexCompactionRequestContext } from "@dude1wudv/pi-ai/providers/openai-codex-responses";
+import { convertTools } from "@dude1wudv/pi-ai/providers/openai-responses";
+import { buildResponsesInput, resolveOpenAICompatPolicy } from "@dude1wudv/pi-ai/providers/openai-shared";
+import { stripOpenAIResponsesOutputOnlyStatusesForReplay } from "@dude1wudv/pi-ai/utils";
+import { preferredDialect } from "@dude1wudv/pi-catalog/identity";
+import { clampThinkingLevelForModel } from "@dude1wudv/pi-catalog/model-thinking";
+import { isRecord, logger, prompt, stringifyJson } from "@dude1wudv/pi-utils";
+import * as snapcompact from "@dude1wudv/snapcompact";
 import { type AgentTelemetry, instrumentedCompleteSimple } from "../telemetry";
 import { ThinkingLevel } from "../thinking";
 import { countTokens } from "../tokenizer";

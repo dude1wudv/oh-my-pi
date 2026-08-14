@@ -1,6 +1,6 @@
 import { describe, expect, it } from "bun:test";
 import * as fs from "node:fs";
-import { postmortem } from "@oh-my-pi/pi-utils";
+import { postmortem } from "@dude1wudv/pi-utils";
 
 const childFlag = "--stdio-epipe-child";
 const raceChildFlag = "--stdio-epipe-race-child";

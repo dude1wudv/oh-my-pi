@@ -1,7 +1,7 @@
 import * as path from "node:path";
-import type { ThinkingLevel } from "@oh-my-pi/pi-agent-core";
-import type { Api, ApiKey, Model } from "@oh-my-pi/pi-ai";
-import { getProjectDir, logger, prompt } from "@oh-my-pi/pi-utils";
+import type { ThinkingLevel } from "@dude1wudv/pi-agent-core";
+import type { Api, ApiKey, Model } from "@dude1wudv/pi-ai";
+import { getProjectDir, logger, prompt } from "@dude1wudv/pi-utils";
 import { ModelRegistry } from "../config/model-registry";
 import { Settings } from "../config/settings";
 import { discoverAuthStorage, loadCliExtensionProviders } from "../sdk";

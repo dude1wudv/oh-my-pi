@@ -7,10 +7,10 @@ import {
 	resetEmbeddingProviderForTests,
 	setEmbeddingProviderForTests,
 	setLocalModelInitializerForTests,
-} from "@oh-my-pi/pi-mnemopi/core/embeddings";
-import { Mnemopi } from "@oh-my-pi/pi-mnemopi/core/memory";
-import { withMnemopiRuntimeOptions } from "@oh-my-pi/pi-mnemopi/core/runtime-options";
-import { getFastembedCacheDir } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-mnemopi/core/embeddings";
+import { Mnemopi } from "@dude1wudv/pi-mnemopi/core/memory";
+import { withMnemopiRuntimeOptions } from "@dude1wudv/pi-mnemopi/core/runtime-options";
+import { getFastembedCacheDir } from "@dude1wudv/pi-utils";
 import packageJson from "../package.json" with { type: "json" };
 
 const ENV_KEYS = [

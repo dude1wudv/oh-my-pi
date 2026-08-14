@@ -5,9 +5,9 @@
  * They can provide custom rendering for tool calls and results in the TUI.
  */
 
-import type { type as ArkType } from "@oh-my-pi/omptype";
-import type * as TypeBox from "@oh-my-pi/omptype/typebox";
-import type * as zod from "@oh-my-pi/omptype/zod";
+import type { type as ArkType } from "@dude1wudv/omptype";
+import type * as TypeBox from "@dude1wudv/omptype/typebox";
+import type * as zod from "@dude1wudv/omptype/zod";
 import type {
 	AgentToolResult,
 	AgentToolUpdateCallback,
@@ -15,11 +15,11 @@ import type {
 	ToolApprovalDecision,
 	ToolLoadMode,
 	ToolTier,
-} from "@oh-my-pi/pi-agent-core";
-import type { CompactionResult } from "@oh-my-pi/pi-agent-core/compaction";
-import type { FetchImpl, Model, Static, TSchema } from "@oh-my-pi/pi-ai";
-import type { Component } from "@oh-my-pi/pi-tui";
-import type { logger as PiLogger } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-agent-core";
+import type { CompactionResult } from "@dude1wudv/pi-agent-core/compaction";
+import type { FetchImpl, Model, Static, TSchema } from "@dude1wudv/pi-ai";
+import type { Component } from "@dude1wudv/pi-tui";
+import type { logger as PiLogger } from "@dude1wudv/pi-utils";
 import type { Rule } from "../../capability/rule";
 import type { ModelRegistry } from "../../config/model-registry";
 import type { Settings } from "../../config/settings";

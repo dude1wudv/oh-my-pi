@@ -1,5 +1,5 @@
 import { expect, it } from "bun:test";
-import { type } from "@oh-my-pi/omptype/ark";
+import { type } from "@dude1wudv/omptype/ark";
 
 it("trim", () => {
 	const trim = type("string.trim");

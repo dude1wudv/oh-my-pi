@@ -2,7 +2,7 @@
  * Resolve auth-broker connection configuration for the local omp client.
  *
  * This is a thin coding-agent wrapper around the shared resolver in
- * `@oh-my-pi/pi-ai/auth-broker/discover` that preserves the process-lifetime
+ * `/pi-ai/auth-broker/discover` that preserves the process-lifetime
  * memoization expected by the CLI and injects the full `resolveConfigValue`
  * (including `!command` config indirection) from coding-agent's config layer.
  *
@@ -21,16 +21,16 @@
  * boot without forcing a startup reorder.
  */
 
-import { AuthBrokerError } from "@oh-my-pi/pi-ai/auth-broker";
+import { AuthBrokerError } from "@dude1wudv/pi-ai/auth-broker";
 import {
 	type AuthBrokerClientConfig,
 	type DiscoverAuthStorageOptions,
 	discoverAuthStorage as discoverAuthStorageShared,
 	getAuthBrokerTokenFilePath,
 	resolveAuthBrokerConfig as resolveAuthBrokerConfigShared,
-} from "@oh-my-pi/pi-ai/auth-broker/discover";
-import { MissingApiKeyError } from "@oh-my-pi/pi-ai/error";
-import { getAgentDir } from "@oh-my-pi/pi-utils";
+} from "@dude1wudv/pi-ai/auth-broker/discover";
+import { MissingApiKeyError } from "@dude1wudv/pi-ai/error";
+import { getAgentDir } from "@dude1wudv/pi-utils";
 import { resolveConfigValue } from "../config/resolve-config-value";
 import type { AuthStorage } from "./auth-storage";
 

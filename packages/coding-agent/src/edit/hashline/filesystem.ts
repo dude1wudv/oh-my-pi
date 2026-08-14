@@ -18,8 +18,8 @@
  */
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { Filesystem, NotFoundError, type PreflightWriteOptions, type WriteResult } from "@oh-my-pi/hashline";
-import { isEnoent } from "@oh-my-pi/pi-utils";
+import { Filesystem, NotFoundError, type PreflightWriteOptions, type WriteResult } from "@dude1wudv/hashline";
+import { isEnoent } from "@dude1wudv/pi-utils";
 import type { FileDiagnosticsResult, WritethroughCallback, WritethroughDeferredHandle } from "../../lsp";
 import { FileChangeType, notifyWorkspaceWatchedFiles } from "../../lsp/client";
 import type { ToolSession } from "../../tools";

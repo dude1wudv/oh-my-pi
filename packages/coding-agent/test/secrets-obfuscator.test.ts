@@ -7,32 +7,32 @@ import * as crypto from "node:crypto";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
-import { type } from "@oh-my-pi/omptype";
-import type { AgentMessage } from "@oh-my-pi/pi-agent-core";
-import type { AssistantMessage, Context, Message, TextContent } from "@oh-my-pi/pi-ai";
+import { type } from "@dude1wudv/omptype";
+import type { AgentMessage } from "@dude1wudv/pi-agent-core";
+import type { AssistantMessage, Context, Message, TextContent } from "@dude1wudv/pi-ai";
 import {
 	builtinCredentialSecretEntries,
 	getExistingSecretPlaceholderKey,
 	getSecretPlaceholderKey,
 	getSecretPlaceholderKeySync,
 	loadSecrets,
-} from "@oh-my-pi/pi-coding-agent/secrets";
+} from "@dude1wudv/pi-coding-agent/secrets";
 import {
 	deobfuscateAgentMessages,
 	deobfuscateToolArguments,
 	obfuscateMessages,
 	obfuscateProviderContext,
 	obfuscateToolArguments,
-} from "@oh-my-pi/pi-coding-agent/secrets/message-transform";
-import { type SecretEntry, SecretObfuscator } from "@oh-my-pi/pi-coding-agent/secrets/obfuscator";
+} from "@dude1wudv/pi-coding-agent/secrets/message-transform";
+import { type SecretEntry, SecretObfuscator } from "@dude1wudv/pi-coding-agent/secrets/obfuscator";
 import {
 	sanitizeSecretFriendlyName,
 	secretEntriesNeedPlaceholderKey,
 	secretEntryNeedsPlaceholderKey,
 	stripPendingSecretPlaceholderSuffix,
-} from "@oh-my-pi/pi-coding-agent/secrets/placeholder";
-import { compileSecretRegex } from "@oh-my-pi/pi-coding-agent/secrets/regex";
-import { getActiveProfile, getAgentDir, setProfile } from "@oh-my-pi/pi-utils/dirs";
+} from "@dude1wudv/pi-coding-agent/secrets/placeholder";
+import { compileSecretRegex } from "@dude1wudv/pi-coding-agent/secrets/regex";
+import { getActiveProfile, getAgentDir, setProfile } from "@dude1wudv/pi-utils/dirs";
 
 describe("compileSecretRegex", () => {
 	it("adds global flag when not provided", () => {
