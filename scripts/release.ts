@@ -42,9 +42,11 @@ async function replaceInFiles(paths: readonly string[], pattern: RegExp, replace
 	for (const path of paths) {
 		const file = Bun.file(path);
 		const content = await file.text();
+		pattern.lastIndex = 0;
+		if (!pattern.test(content)) throw new Error(`Pattern did not match ${path}`);
+		pattern.lastIndex = 0;
 		const updated = content.replace(pattern, replacement);
-		if (updated === content) throw new Error(`Pattern did not match ${path}`);
-		await Bun.write(path, updated);
+		if (updated !== content) await Bun.write(path, updated);
 	}
 }
 
