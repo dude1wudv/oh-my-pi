@@ -1,123 +1,117 @@
 import { describe, expect, it } from "bun:test";
+import * as fs from "node:fs/promises";
+import * as os from "node:os";
+import * as path from "node:path";
 import {
 	humanizePlanTitle,
+	migrateLegacyPlan,
 	normalizePlanTitle,
 	planFileUrlForSlug,
+	projectPlanPathForTitle,
 	resolveApprovedPlan,
 	resolvePlanTitle,
 } from "@dude1wudv/pi-coding-agent/plan-mode/approved-plan";
-import { normalizeLocalScheme } from "@dude1wudv/pi-coding-agent/tools/path-utils";
 
-describe("planFileUrlForSlug", () => {
-	it("maps a slug to its local plan URL", () => {
+describe("plan path construction", () => {
+	it("builds a stable date-prefixed project path", () => {
+		expect(projectPlanPathForTitle("/repo", "Auth Refactor Plan", "2026-08-15")).toBe(
+			".omp/plans/2026-08-15-auth-refactor.md",
+		);
+	});
+
+	it("retains the legacy URL formatter only for old session recovery", () => {
 		expect(planFileUrlForSlug("auth-refactor")).toBe("local://auth-refactor-plan.md");
 	});
 });
 
 describe("resolveApprovedPlan", () => {
-	/** A `readPlan` backed by an in-memory map of `local://` URL → content. */
-	function reader(files: Record<string, string>) {
-		return async (url: string) => (url in files ? files[url] : null);
-	}
+	const cwd = "/repo";
+	const reader = (files: Record<string, string>) => async (planPath: string) => files[planPath] ?? null;
 
-	it("locates the plan from the supplied title's slug — no rename", async () => {
+	it("resolves the supplied title to the fixed project creation date", async () => {
+		const projectPath = ".omp/plans/2026-08-15-auth-refactor.md";
 		const result = await resolveApprovedPlan({
 			suppliedTitle: "auth-refactor",
-			statePlanFilePath: "local://PLAN.md",
-			readPlan: reader({ "local://auth-refactor-plan.md": "# Auth refactor\n\nbody" }),
+			statePlanFilePath: ".omp/plans/2026-08-15-plan.md",
+			createdDate: "2026-08-15",
+			cwd,
+			readPlan: reader({ [projectPath]: "# Auth refactor\n\nbody" }),
 		});
-		expect(result.planFilePath).toBe("local://auth-refactor-plan.md");
-		expect(result.planContent).toContain("body");
+		expect(result.planFilePath).toBe(projectPath);
 		expect(result.title).toBe("auth-refactor");
 	});
 
-	it("strips a trailing -plan from the supplied title before reconstructing the file", async () => {
+	it("falls back to the fixed state path before scanned plans", async () => {
+		const statePath = ".omp/plans/2026-08-15-current.md";
 		const result = await resolveApprovedPlan({
-			suppliedTitle: "auth-plan",
-			statePlanFilePath: "local://PLAN.md",
-			readPlan: reader({ "local://auth-plan.md": "# Auth\n\nbody" }),
-		});
-		expect(result.planFilePath).toBe("local://auth-plan.md");
-	});
-
-	it("falls back to the plan-mode state path when the slug file is absent", async () => {
-		const result = await resolveApprovedPlan({
-			suppliedTitle: "mismatch",
-			statePlanFilePath: "local://existing-plan.md",
-			readPlan: reader({ "local://existing-plan.md": "# Existing\n\nbody" }),
-		});
-		expect(result.planFilePath).toBe("local://existing-plan.md");
-	});
-
-	it("prefers the newest listed plan over a completed state plan", async () => {
-		const result = await resolveApprovedPlan({
-			suppliedTitle: "Different title",
-			statePlanFilePath: "local://completed-plan.md",
+			statePlanFilePath: statePath,
+			cwd,
 			readPlan: reader({
-				"local://completed-plan.md": "# Completed\n\nOld plan",
-				"local://new-draft-plan.md": "# New\n\nNew plan",
+				[statePath]: "# Current\n\nCurrent plan",
+				".omp/plans/2026-08-15-newer.md": "# Newer\n\nNewer plan",
 			}),
-			listPlanFiles: async () => ["local://new-draft-plan.md", "local://completed-plan.md"],
+			listPlanFiles: async () => [".omp/plans/2026-08-15-newer.md"],
 		});
-		expect(result.planFilePath).toBe("local://new-draft-plan.md");
-		expect(result.planContent).toContain("New plan");
+		expect(result.planFilePath).toBe(statePath);
 	});
 
-	it("treats a single-slash state URL as in-scan and prefers the newer draft", async () => {
-		// Mirror the real reader: canonicalize the local scheme before lookup, so a
-		// `local:/…` state path resolves the same file as the scanner's `local://…`.
-		const canonical = (files: Record<string, string>) => {
-			const map: Record<string, string> = {};
-			for (const url in files) map[normalizeLocalScheme(url)] = files[url];
-			return async (url: string) => map[normalizeLocalScheme(url)] ?? null;
-		};
+	it("scans project plans when the placeholder is absent", async () => {
+		const discovered = ".omp/plans/2026-08-15-discovered.md";
 		const result = await resolveApprovedPlan({
-			suppliedTitle: undefined,
-			// Resumed sessions can persist the accepted single-slash spelling.
-			statePlanFilePath: "local:/completed-plan.md",
-			readPlan: canonical({
-				"local://completed-plan.md": "# Completed\n\nOld plan",
-				"local://new-draft-plan.md": "# New\n\nNew plan",
-			}),
-			listPlanFiles: async () => ["local://new-draft-plan.md", "local://completed-plan.md"],
+			statePlanFilePath: ".omp/plans/2026-08-15-plan.md",
+			cwd,
+			readPlan: reader({ [discovered]: "# Discovered\n\nbody" }),
+			listPlanFiles: async () => [discovered],
 		});
-		expect(result.planFilePath).toBe("local://new-draft-plan.md");
-		expect(result.planContent).toContain("New plan");
+		expect(result.planFilePath).toBe(discovered);
 	});
 
-	it("keeps a state plan the scan can't see ahead of older scanned artifacts", async () => {
+	it("still reads a legacy local state path for migration", async () => {
 		const result = await resolveApprovedPlan({
-			suppliedTitle: undefined,
-			// A cwd-relative / non-`plan.md` state path never appears in listPlanFiles().
-			statePlanFilePath: "docs/CURRENT.md",
-			readPlan: reader({
-				"docs/CURRENT.md": "# Current\n\nCurrent plan",
-				"local://old-artifact-plan.md": "# Old\n\nOld plan",
-			}),
-			listPlanFiles: async () => ["local://old-artifact-plan.md"],
+			statePlanFilePath: "local://legacy-plan.md",
+			cwd,
+			readPlan: reader({ "local://legacy-plan.md": "# Legacy\n\nbody" }),
 		});
-		expect(result.planFilePath).toBe("docs/CURRENT.md");
-		expect(result.planContent).toContain("Current plan");
+		expect(result.planFilePath).toBe("local://legacy-plan.md");
 	});
 
-	it("scans listed plan files when the title was dropped and state path is empty", async () => {
-		const result = await resolveApprovedPlan({
-			suppliedTitle: undefined,
-			statePlanFilePath: "local://PLAN.md",
-			readPlan: reader({ "local://discovered-plan.md": "# Discovered\n\nbody" }),
-			listPlanFiles: async () => ["local://discovered-plan.md"],
-		});
-		expect(result.planFilePath).toBe("local://discovered-plan.md");
-	});
-
-	it("throws an actionable error when no plan file exists", async () => {
+	it("throws an actionable project-path error when no plan exists", async () => {
 		await expect(
 			resolveApprovedPlan({
 				suppliedTitle: "ghost",
-				statePlanFilePath: "local://PLAN.md",
+				statePlanFilePath: ".omp/plans/2026-08-15-plan.md",
+				createdDate: "2026-08-15",
+				cwd,
 				readPlan: reader({}),
 			}),
-		).rejects.toThrow("Plan file not found at local://ghost-plan.md");
+		).rejects.toThrow("Plan file not found at .omp/plans/2026-08-15-ghost.md");
+	});
+});
+
+describe("migrateLegacyPlan", () => {
+	it("copies legacy content exclusively and suffixes conflicts", async () => {
+		const cwd = await fs.mkdtemp(path.join(os.tmpdir(), "omp-plan-migrate-"));
+		try {
+			const first = await migrateLegacyPlan({
+				cwd,
+				legacyPath: "local://legacy-plan.md",
+				content: "# Legacy\n\nBody",
+				title: "legacy-plan",
+				createdDate: "2026-08-15",
+			});
+			const second = await migrateLegacyPlan({
+				cwd,
+				legacyPath: "local://legacy-plan.md",
+				content: "# Legacy\n\nBody",
+				title: "legacy-plan",
+				createdDate: "2026-08-15",
+			});
+			expect(first.projectPlanPath).toBe(".omp/plans/2026-08-15-legacy.md");
+			expect(second.projectPlanPath).toBe(".omp/plans/2026-08-15-legacy-2.md");
+			expect(await fs.readFile(first.absolutePath, "utf8")).toContain("> Status: planned");
+		} finally {
+			await fs.rm(cwd, { recursive: true, force: true });
+		}
 	});
 });
 

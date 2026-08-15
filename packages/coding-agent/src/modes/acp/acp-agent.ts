@@ -61,12 +61,13 @@ import type { MCPServerConfig } from "../../mcp/types";
 import { loadAllExtensions } from "../../modes/components/extensions/state-manager";
 import { theme } from "../../modes/theme/theme";
 import {
-	exportApprovedProjectPlan,
+	migrateLegacyPlan,
 	normalizePlanTitle,
+	projectPlanPathForTitle,
 	type PlanApprovalDetails,
 	resolveApprovedPlan,
 } from "../../plan-mode/approved-plan";
-import { PROJECT_PLAN_ENTRY_TYPE } from "../../plan-mode/state";
+import { PROJECT_PLAN_ENTRY_TYPE, resolveProjectPlanPath, updateProjectPlanFile } from "../../plan-mode/state";
 import type { AgentSession, AgentSessionEvent } from "../../session/agent-session";
 import { BlobStore, resolveImageDataSync } from "../../session/blob-store";
 import { isSilentAbort, SKILL_PROMPT_MESSAGE_TYPE, USER_INTERRUPT_LABEL } from "../../session/messages";
@@ -97,7 +98,6 @@ import { ACP_TERMINAL_AUTH_FLAG } from "./terminal-auth";
 
 const ACP_DEFAULT_MODE_ID = "default";
 const ACP_PLAN_MODE_ID = "plan";
-const DEFAULT_PLAN_FILE_URL = "local://PLAN.md";
 const APPROVE_OPTION = "Approve and execute";
 const REFINE_OPTION = "Refine plan";
 const MODE_CONFIG_ID = "mode";
@@ -1664,7 +1664,8 @@ export class AcpAgent implements Agent {
 			const previous = session.getPlanModeState();
 			session.setPlanModeState({
 				enabled: true,
-				planFilePath: previous?.planFilePath ?? DEFAULT_PLAN_FILE_URL,
+				planFilePath: previous?.planFilePath ?? projectPlanPathForTitle(session.sessionManager.getCwd(), "plan"),
+				createdDate: previous?.createdDate,
 				workflow: previous?.workflow ?? "parallel",
 				reentry: previous !== undefined,
 			});
@@ -1704,6 +1705,8 @@ export class AcpAgent implements Agent {
 		} = await resolveApprovedPlan({
 			suppliedTitle: title,
 			statePlanFilePath: state.planFilePath,
+			cwd: session.sessionManager.getCwd(),
+			createdDate: state.createdDate,
 			readPlan: url => this.#readAcpPlanFile(session, url),
 			listPlanFiles: () => this.#listAcpLocalPlanFiles(session),
 		});
@@ -1731,20 +1734,19 @@ export class AcpAgent implements Agent {
 				details,
 			};
 		}
-		// Export before changing mode state; a filesystem failure must keep plan mode active.
-		const projectPlan = await exportApprovedProjectPlan({
-			cwd: session.sessionManager.getCwd(),
-			planContent,
-			title: resolvedTitle,
-		});
-		session.sessionManager.appendCustomEntry(PROJECT_PLAN_ENTRY_TYPE, {
-			path: projectPlan.projectPlanPath,
-			planId: projectPlan.planId,
-		});
-		session.setPlanReferencePath(planFilePath);
+		const cwd = session.sessionManager.getCwd();
+		const projectPlanPath = planFilePath.startsWith("local:")
+			? (await migrateLegacyPlan({ cwd, legacyPath: planFilePath, content: planContent, title: resolvedTitle, createdDate: state.createdDate })).projectPlanPath
+			: planFilePath;
+		details.planFilePath = projectPlanPath;
+		details.projectPlanPath = projectPlanPath;
+		resolveProjectPlanPath(cwd, projectPlanPath);
+		await updateProjectPlanFile({ cwd, projectPlanPath, event: { type: "status_changed", status: "executing" } });
+		session.sessionManager.appendCustomEntry(PROJECT_PLAN_ENTRY_TYPE, { path: projectPlanPath, planId: resolvedTitle });
+		session.setPlanReferencePath(projectPlanPath);
+		session.setProjectPlanPath(projectPlanPath);
 		session.setPlanProposalHandler?.(null);
 		session.setPlanModeState(undefined);
-		session.setProjectPlanPath(projectPlan.projectPlanPath);
 		await session.setActiveToolsByName([...new Set([...session.getEnabledToolNames(), "project_plan"])]);
 		try {
 			await this.#connection.sessionUpdate({
@@ -1762,7 +1764,7 @@ export class AcpAgent implements Agent {
 			content: [
 				{
 					type: "text" as const,
-					text: `Plan approved at ${planFilePath}; persisted project plan at ${projectPlan.projectPlanPath}. Plan mode exited; proceed with the implementation.`,
+					text: `Plan approved at ${projectPlanPath}. Plan mode exited; proceed with the implementation.`,
 				},
 			],
 			details,
@@ -1777,7 +1779,7 @@ export class AcpAgent implements Agent {
 				getSessionId: () => session.sessionManager.getSessionId(),
 			});
 		}
-		return path.resolve(session.sessionManager.getCwd(), planFilePath);
+		return resolveProjectPlanPath(session.sessionManager.getCwd(), planFilePath);
 	}
 
 	async #readAcpPlanFile(session: AgentSession, planFilePath: string): Promise<string | null> {
@@ -1792,21 +1794,20 @@ export class AcpAgent implements Agent {
 		}
 	}
 
-	/** `local://` URLs of plan files in the session-local root, newest first —
-	 *  the `resolveApprovedPlan` fallback for a dropped `extra.title`. */
+	/** Project canonical plan paths, newest first. */
 	async #listAcpLocalPlanFiles(session: AgentSession): Promise<string[]> {
-		const localRoot = this.#resolveAcpPlanFilePath(session, "local://");
+		const plansRoot = path.resolve(session.sessionManager.getCwd(), ".omp", "plans");
 		try {
-			const entries = await fs.readdir(localRoot, { withFileTypes: true });
+			const entries = await fs.readdir(plansRoot, { withFileTypes: true });
 			const plans = await Promise.all(
 				entries
-					.filter(entry => entry.isFile() && /plan\.md$/i.test(entry.name))
+					.filter(entry => entry.isFile() && /^\d{4}-\d{2}-\d{2}-.+\.md$/i.test(entry.name))
 					.map(async entry => {
-						const stat = await fs.stat(path.join(localRoot, entry.name)).catch(() => null);
-						return { url: `local://${entry.name}`, mtime: stat?.mtimeMs ?? 0 };
+						const stat = await fs.stat(path.join(plansRoot, entry.name)).catch(() => null);
+						return { path: `.omp/plans/${entry.name}`, mtime: stat?.mtimeMs ?? 0 };
 					}),
 			);
-			return plans.sort((a, b) => b.mtime - a.mtime).map(plan => plan.url);
+			return plans.sort((a, b) => b.mtime - a.mtime).map(plan => plan.path);
 		} catch {
 			return [];
 		}

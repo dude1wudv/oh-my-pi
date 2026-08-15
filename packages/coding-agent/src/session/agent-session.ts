@@ -158,7 +158,7 @@ import { containsWorkflow, renderWorkflowNotice } from "../modes/workflow";
 import { type PlanApprovalDetails, resolveApprovedPlan } from "../plan-mode/approved-plan";
 import { listPlanFiles, readPlanFile } from "../plan-mode/plan-files";
 import type { PlanModeState, ProjectPlanUpdateEvent } from "../plan-mode/state";
-import { updateProjectPlanFile } from "../plan-mode/state";
+import { resolveProjectPlanPath, updateProjectPlanFile } from "../plan-mode/state";
 import goalModeContextPrompt from "../prompts/goals/goal-mode-context.md" with { type: "text" };
 import goalTodoContextPrompt from "../prompts/goals/goal-todo-context.md" with { type: "text" };
 import autoContinuePrompt from "../prompts/system/auto-continue.md" with { type: "text" };
@@ -506,7 +506,7 @@ export class AgentSession {
 	readonly #advisors: SessionAdvisors;
 	#goalTurnCounter = 0;
 	#planReferenceSent = false;
-	#planReferencePath = "local://PLAN.md";
+	#planReferencePath = "";
 	#projectPlanPath: string | undefined;
 	#clientBridge: ClientBridge | undefined;
 	#allowAcpAgentInitiatedTurns = false;
@@ -932,6 +932,8 @@ export class AgentSession {
 		const { planFilePath, title: resolvedTitle } = await resolveApprovedPlan({
 			suppliedTitle: title,
 			statePlanFilePath: state.planFilePath,
+			cwd: this.sessionManager.getCwd(),
+			createdDate: state.createdDate,
 			readPlan: url => this.#readPlanFile(url),
 			listPlanFiles: () => this.#listPlanFiles(),
 		});
@@ -948,10 +950,9 @@ export class AgentSession {
 		});
 	}
 
-	/** `local://` URLs of plan files in the session-local root, newest first —
-	 *  a fallback for `resolveApprovedPlan` when the agent dropped `extra.title`. */
+	/** Project-relative canonical plans, newest first. */
 	async #listPlanFiles(): Promise<string[]> {
-		return listPlanFiles({ localProtocolOptions: this.#localProtocolOptions() });
+		return listPlanFiles({ cwd: this.sessionManager.getCwd() });
 	}
 
 	constructor(config: AgentSessionConfig) {
@@ -1010,6 +1011,8 @@ export class AgentSession {
 			getPlanModeState: () => this.getPlanModeState(),
 			setPlanModeState: state => this.setPlanModeState(state),
 			getPlanReferencePath: () => this.getPlanReferencePath(),
+			setPlanReferencePath: planPath => this.setPlanReferencePath(planPath),
+			setProjectPlanPath: planPath => this.setProjectPlanPath(planPath),
 			setPlanProposalHandler: handler => this.setPlanProposalHandler(handler),
 			waitForSessionMessagePersistence: message => this.#waitForSessionMessagePersistence(message),
 			localProtocolOptions: () => this.#localProtocolOptions(),
@@ -5012,15 +5015,9 @@ export class AgentSession {
 		if (this.#planReferenceSent) return null;
 
 		const planFilePath = this.#planReferencePath;
-		const resolvedPlanPath = resolveLocalUrlToPath(planFilePath, this.#localProtocolOptions());
-		try {
-			await fs.promises.access(resolvedPlanPath, fs.constants.R_OK);
-		} catch (error) {
-			if (isEnoent(error)) {
-				return null;
-			}
-			throw error;
-		}
+		if (!planFilePath) return null;
+		const planContent = await this.#readPlanFile(planFilePath);
+		if (planContent === null || !planContent.trim()) return null;
 
 		const content = prompt.render(planModeReferencePrompt, {
 			planFilePath,
@@ -5044,16 +5041,10 @@ export class AgentSession {
 	async #buildPlanModeMessage(): Promise<CustomMessage | null> {
 		const state = this.#planModeState;
 		if (!state?.enabled) return null;
-		const sessionPlanUrl = "local://PLAN.md";
+		const displayPlanPath = state.planFilePath;
 		const resolvedPlanPath = state.planFilePath.startsWith("local:")
 			? resolveLocalUrlToPath(normalizeLocalScheme(state.planFilePath), this.#localProtocolOptions())
-			: resolveToCwd(state.planFilePath, this.sessionManager.getCwd());
-		const resolvedSessionPlan = resolveLocalUrlToPath(sessionPlanUrl, this.#localProtocolOptions());
-		const displayPlanPath =
-			state.planFilePath.startsWith("local:") || resolvedPlanPath !== resolvedSessionPlan
-				? state.planFilePath
-				: sessionPlanUrl;
-
+			: resolveProjectPlanPath(this.sessionManager.getCwd(), state.planFilePath);
 		const planExists = fs.existsSync(resolvedPlanPath);
 		const activeToolNames = this.getActiveToolNames();
 		const content = prompt.render(planModeActivePrompt, {
@@ -6645,8 +6636,7 @@ export class AgentSession {
 			this.sessionManager.appendServiceTierChange(this.#models.serviceTierEntry());
 
 			this.#todo.resetCycle();
-			this.#planReferenceSent = false;
-			this.#planReferencePath = "local://PLAN.md";
+			this.#planReferencePath = "";
 			this.#advisors.resetSessionState();
 			advisorRecordersDetached = false;
 			this.#reconnectToAgent();

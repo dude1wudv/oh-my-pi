@@ -3,9 +3,9 @@ import { invalidateMessageCache } from "@dude1wudv/pi-agent-core/compaction";
 import type { Model, ToolResultMessage } from "@dude1wudv/pi-ai";
 import { prompt } from "@dude1wudv/pi-utils";
 import type { LocalProtocolOptions } from "../internal-urls";
-import { resolveApprovedPlan } from "../plan-mode/approved-plan";
+import { migrateLegacyPlan, projectPlanPathForTitle, resolveApprovedPlan } from "../plan-mode/approved-plan";
 import { listPlanFiles, readPlanFile } from "../plan-mode/plan-files";
-import type { PlanModeState } from "../plan-mode/state";
+import { PROJECT_PLAN_ENTRY_TYPE, type PlanModeState, updateProjectPlanFile } from "../plan-mode/state";
 import planYoloHandoffPrompt from "../prompts/system/plan-yolo-handoff.md" with { type: "text" };
 import prewalkChecklistPrompt from "../prompts/system/prewalk-checklist.md" with { type: "text" };
 import prewalkContinuePrompt from "../prompts/system/prewalk-continue.md" with { type: "text" };
@@ -71,6 +71,8 @@ export interface PrewalkCoordinatorHost {
 	getPlanModeState(): PlanModeState | undefined;
 	setPlanModeState(state: PlanModeState | undefined): void;
 	getPlanReferencePath(): string;
+	setPlanReferencePath(path: string): void;
+	setProjectPlanPath(path: string | undefined): void;
 	setPlanProposalHandler(handler: PlanProposalHandler | null): void;
 	waitForSessionMessagePersistence(message: AgentMessage): Promise<void>;
 	localProtocolOptions(): LocalProtocolOptions;
@@ -251,9 +253,10 @@ export class PrewalkCoordinator {
 		const augmentations = this.#host.hasBuiltInTool("write") ? ["write"] : [];
 		await this.#host.setActiveToolsByName([...new Set([...previousTools, ...augmentations])]);
 		this.#planYoloPreviousTools = previousTools;
+		const planFilePath = this.#host.getPlanReferencePath();
 		this.#host.setPlanModeState({
 			enabled: true,
-			planFilePath: this.#host.getPlanReferencePath() || "local://PLAN.md",
+			planFilePath: planFilePath && !planFilePath.startsWith("local:") ? planFilePath : projectPlanPathForTitle(this.#host.sessionManager.getCwd(), "plan"),
 			workflow: "parallel",
 		});
 		this.#host.setPlanProposalHandler(title => this.#finalizePlanYoloProposal(title));
@@ -276,16 +279,22 @@ export class PrewalkCoordinator {
 		const planYolo = this.#planYolo;
 		const state = this.#host.getPlanModeState();
 		if (!planYolo || !state?.enabled) throw new ToolError("Plan mode is not active.");
-		const { planFilePath, title: resolvedTitle } = await resolveApprovedPlan({
+		const { planFilePath, planContent, title: resolvedTitle } = await resolveApprovedPlan({
 			suppliedTitle: title,
 			statePlanFilePath: state.planFilePath,
-			readPlan: url =>
-				readPlanFile(url, {
-					localProtocolOptions: this.#host.localProtocolOptions(),
-					cwd: this.#host.sessionManager.getCwd(),
-				}),
-			listPlanFiles: () => listPlanFiles({ localProtocolOptions: this.#host.localProtocolOptions() }),
+			cwd: this.#host.sessionManager.getCwd(),
+			createdDate: state.createdDate,
+			readPlan: url => readPlanFile(url, { localProtocolOptions: this.#host.localProtocolOptions(), cwd: this.#host.sessionManager.getCwd() }),
+			listPlanFiles: () => listPlanFiles({ cwd: this.#host.sessionManager.getCwd() }),
 		});
+		const cwd = this.#host.sessionManager.getCwd();
+		const projectPlanPath = planFilePath.startsWith("local:")
+			? (await migrateLegacyPlan({ cwd, legacyPath: planFilePath, content: planContent, title: resolvedTitle, createdDate: state.createdDate })).projectPlanPath
+			: planFilePath;
+		await updateProjectPlanFile({ cwd, projectPlanPath, event: { type: "status_changed", status: "executing" } });
+		this.#host.sessionManager.appendCustomEntry(PROJECT_PLAN_ENTRY_TYPE, { path: projectPlanPath, planId: resolvedTitle });
+		this.#host.setPlanReferencePath(projectPlanPath);
+		this.#host.setProjectPlanPath(projectPlanPath);
 		this.#host.setPlanModeState(undefined);
 		const previousTools = this.#planYoloPreviousTools;
 		try {
@@ -306,14 +315,14 @@ export class PrewalkCoordinator {
 		this.#host.agent.steer({
 			role: "custom",
 			customType: PLAN_YOLO_HANDOFF_MESSAGE_TYPE,
-			content: prompt.render(planYoloHandoffPrompt, { planFilePath, title: resolvedTitle }),
+			content: prompt.render(planYoloHandoffPrompt, { planFilePath: projectPlanPath, title: resolvedTitle }),
 			attribution: "agent",
 			display: false,
 			timestamp: Date.now(),
 		});
 		return {
 			content: [{ type: "text", text: `Plan approved. Implementing now with ${planYolo.target.id}.` }],
-			details: { planFilePath, title: resolvedTitle, planExists: true },
+			details: { planFilePath: projectPlanPath, projectPlanPath, title: resolvedTitle, planExists: true },
 		};
 	}
 }

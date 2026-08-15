@@ -459,7 +459,11 @@ async function loadPlanReference(
 		getArtifactsDir: request.session.getArtifactsDir ?? (() => null),
 		getSessionId: request.session.getSessionId ?? (() => null),
 	};
-	return loadOverallPlanReference(request.session.getPlanReferencePath?.() ?? "local://PLAN.md", localProtocolOptions);
+	return loadOverallPlanReference(
+		request.session.getPlanReferencePath?.() ?? ".omp/plans/PLAN.md",
+		localProtocolOptions,
+		request.session.cwd,
+	);
 }
 
 function buildFailureResult(

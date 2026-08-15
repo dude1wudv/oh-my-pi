@@ -1,7 +1,7 @@
 import { getReadToolPath, type ProtectedToolContext } from "@dude1wudv/pi-agent-core/compaction/tool-protection";
 import { normalizeLocalScheme } from "../tools/path-utils";
 
-/** Canonical plan alias every session's `local://` root resolves. */
+/** Legacy alias retained so restored pre-migration reads stay protected. */
 const LOCAL_PLAN_ALIAS = "local://PLAN.md";
 
 /** True when `readPath` targets `planTarget`, ignoring `local:/` vs `local://`
@@ -14,10 +14,8 @@ function readTargetsPlan(readPath: string, planTarget: string): boolean {
 
 /**
  * Build a compaction protection matcher that keeps `read` results for the active
- * plan file intact through prune/shake — the plan analog of skill-read
- * protection. Matches both the canonical `local://PLAN.md` alias and the
- * session's current plan reference path (the agent-chosen `local://<slug>-plan.md`),
- * so the plan survives compaction whether the agent reads it by alias or by name.
+ * plan file intact through prune/shake. Matches the active project-relative
+ * canonical path and the legacy local alias used by restored sessions.
  *
  * `getPlanReferencePath` is evaluated at match time so the plan path set on
  * approval is honored immediately.

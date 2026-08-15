@@ -86,6 +86,7 @@ export interface ResolveApprovedPlanInput {
 	suppliedTitle?: unknown;
 	statePlanFilePath: string;
 	cwd: string;
+	createdDate?: string;
 	readPlan: (planPath: string) => Promise<string | null>;
 	listPlanFiles?: () => Promise<string[]>;
 }
@@ -110,7 +111,7 @@ export async function resolveApprovedPlan(input: ResolveApprovedPlanInput): Prom
 		typeof input.suppliedTitle === "string" && input.suppliedTitle.trim()
 			? normalizePlanTitle(input.suppliedTitle).title
 			: undefined;
-	if (title) consider(projectPlanPathForTitle(input.cwd, title));
+	if (title) consider(projectPlanPathForTitle(input.cwd, title, input.createdDate));
 	consider(input.statePlanFilePath);
 	for (const candidate of input.listPlanFiles ? await input.listPlanFiles() : []) consider(candidate);
 	for (const candidate of ordered) {

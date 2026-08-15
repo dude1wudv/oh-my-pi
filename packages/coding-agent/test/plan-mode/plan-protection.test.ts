@@ -42,6 +42,14 @@ describe("createPlanReadMatcher", () => {
 		expect(matcher(context({ path: "local://PLAN.md" }))).toBe(true);
 	});
 
+	it("protects project canonical reads and selectors", () => {
+		const projectPath = ".omp/plans/2026-08-15-wp-migration.md";
+		const matcher = createPlanReadMatcher(() => projectPath);
+		expect(matcher(context({ path: projectPath }))).toBe(true);
+		expect(matcher(context({ path: `${projectPath}:raw` }))).toBe(true);
+		expect(matcher(context({ path: ".omp/plans/2026-08-15-other.md" }))).toBe(false);
+	});
+
 	it("tolerates read selectors and single-slash scheme spelling", () => {
 		const matcher = createPlanReadMatcher(() => "local://wp-migration.md");
 		expect(matcher(context({ path: "local://PLAN.md:1-50" }))).toBe(true);

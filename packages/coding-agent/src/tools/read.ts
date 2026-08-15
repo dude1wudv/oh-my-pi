@@ -24,6 +24,7 @@ import { InternalUrlRouter, resolveLocalUrlToFile, resolveLocalUrlToPath } from 
 import { type ResolvedArtifactFile, resolveArtifactFile } from "../internal-urls/artifact-protocol";
 import { parseInternalUrl } from "../internal-urls/parse";
 import type { InternalUrl } from "../internal-urls/types";
+import { resolveProjectPlanPath } from "../plan-mode/state";
 import readDescription from "../prompts/tools/read.md" with { type: "text" };
 import type { ToolSession } from "../sdk";
 import {
@@ -64,6 +65,7 @@ import {
 	expandPath,
 	formatPathRelativeToCwd,
 	type LineRange,
+	normalizeLocalScheme,
 	pathTargetsSsh,
 	probeLiteralPathExists,
 	resolveReadPath,
@@ -476,27 +478,22 @@ export class ReadTool implements AgentTool<typeof readSchema, ReadToolDetails> {
 		}
 		return active;
 	}
-
-	/**
-	 * Recover the active approved plan when a model rewrites its `local://` URL
-	 * as a same-basename path in the working-directory root.
-	 *
-	 * Only missing cwd-root paths qualify, so a real working-tree file always
-	 * wins and unrelated paths cannot escape into the session artifact sandbox.
-	 */
+	/** Recover only the active approved plan when its `.omp/plans` prefix is dropped. */
 	#approvedPlanAlias(missingAbsolutePath: string): string | undefined {
 		const planReferencePath = this.session.getPlanReferencePath?.();
-		if (!planReferencePath?.startsWith("local:")) return undefined;
-
+		if (!planReferencePath) return undefined;
 		const requestedPath = path.resolve(missingAbsolutePath);
 		if (path.dirname(requestedPath) !== path.resolve(this.session.cwd)) return undefined;
-
-		const localProtocolOptions = this.session.localProtocolOptions ?? {
-			getArtifactsDir: () => this.session.getArtifactsDir?.() ?? null,
-			getSessionId: () => this.session.getSessionId?.() ?? null,
-		};
 		try {
-			const approvedPlanPath = resolveLocalUrlToPath(planReferencePath, localProtocolOptions);
+			const approvedPlanPath = planReferencePath.startsWith("local:")
+				? resolveLocalUrlToPath(
+					normalizeLocalScheme(planReferencePath),
+					this.session.localProtocolOptions ?? {
+						getArtifactsDir: () => this.session.getArtifactsDir?.() ?? null,
+						getSessionId: () => this.session.getSessionId?.() ?? null,
+					},
+				)
+				: resolveProjectPlanPath(this.session.cwd, planReferencePath);
 			return path.basename(requestedPath) === path.basename(approvedPlanPath) ? approvedPlanPath : undefined;
 		} catch {
 			return undefined;

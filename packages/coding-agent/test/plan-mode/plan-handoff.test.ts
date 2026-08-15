@@ -29,13 +29,13 @@ describe("loadOverallPlanReference", () => {
 		const body = "# WP migration\n\n1. Migrate the store\n2. Update callers";
 		await Bun.write(path.join(artifactsDir, "local", "wp-migration.md"), body);
 
-		const ref = await loadOverallPlanReference("local://wp-migration.md", localProtocolOptions);
+		const ref = await loadOverallPlanReference("local://wp-migration.md", localProtocolOptions, tmpDir);
 
 		expect(ref).toEqual({ path: "local://wp-migration.md", content: body });
 	});
 
 	it("returns undefined when no plan file exists at the reference path", async () => {
-		const ref = await loadOverallPlanReference("local://PLAN.md", localProtocolOptions);
+		const ref = await loadOverallPlanReference("local://PLAN.md", localProtocolOptions, tmpDir);
 
 		expect(ref).toBeUndefined();
 	});
@@ -43,8 +43,17 @@ describe("loadOverallPlanReference", () => {
 	it("returns undefined when the plan file is empty or whitespace-only", async () => {
 		await Bun.write(path.join(artifactsDir, "local", "PLAN.md"), "   \n\t\n");
 
-		const ref = await loadOverallPlanReference("local://PLAN.md", localProtocolOptions);
+		const ref = await loadOverallPlanReference("local://PLAN.md", localProtocolOptions, tmpDir);
 
 		expect(ref).toBeUndefined();
+	});
+
+	it("loads the approved project-relative canonical plan", async () => {
+		const projectPath = ".omp/plans/2026-08-15-wp-migration.md";
+		const absolute = path.join(tmpDir, projectPath);
+		await fs.mkdir(path.dirname(absolute), { recursive: true });
+		await Bun.write(absolute, "# Project plan\n\nBody");
+		const ref = await loadOverallPlanReference(projectPath, localProtocolOptions, tmpDir);
+		expect(ref).toEqual({ path: projectPath, content: "# Project plan\n\nBody" });
 	});
 });

@@ -1,4 +1,5 @@
 import * as fs from "node:fs/promises";
+import * as fsSync from "node:fs";
 import * as path from "node:path";
 
 export type ProjectPlanStatus = "planned" | "executing" | "blocked" | "completed";
@@ -8,6 +9,7 @@ export interface PlanModeState {
 	enabled: boolean;
 	planFilePath: string;
 	projectPlanPath?: string;
+	createdDate?: string;
 	workflow?: "parallel" | "iterative";
 	reentry?: boolean;
 }
@@ -50,6 +52,25 @@ export function resolveProjectPlanPath(cwd: string, projectPlanPath: string): st
 		throw new Error(`Project plan path must stay under ${path.join(".omp", "plans")}: ${projectPlanPath}`);
 	}
 	if (!relative.toLowerCase().endsWith(".md")) throw new Error("Project plan path must point to a markdown file.");
+	const realRoot = fsSync.realpathSync.native(root);
+	const plansParent = path.dirname(plansRoot);
+	const realPlansParent = fsSync.existsSync(plansParent)
+		? fsSync.realpathSync.native(plansParent)
+		: path.join(realRoot, path.basename(plansParent));
+	const realPlansRoot = fsSync.existsSync(plansRoot)
+		? fsSync.realpathSync.native(plansRoot)
+		: path.join(realPlansParent, path.basename(plansRoot));
+	const parent = path.dirname(resolved);
+	const realParent = fsSync.existsSync(parent) ? fsSync.realpathSync.native(parent) : realPlansRoot;
+	const realTarget = path.join(realParent, path.basename(resolved));
+	const realRelative = path.relative(realPlansRoot, realTarget);
+	if (!realRelative || realRelative.startsWith(`..${path.sep}`) || path.isAbsolute(realRelative)) {
+		throw new Error("Project plan path resolves outside .omp/plans.");
+	}
+	const rootRelative = path.relative(realRoot, realPlansRoot);
+	if (rootRelative.startsWith(`..${path.sep}`) || path.isAbsolute(rootRelative)) {
+		throw new Error("Project plan directory escaped the current project root.");
+	}
 	return resolved;
 }
 
