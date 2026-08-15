@@ -297,7 +297,7 @@ async function cmdRelease(versionOrBump: string): Promise<void> {
 	// Update @dude1wudv/* catalog entries in root package.json
 	console.log("Updating root catalog versions...");
 	let rootPkgRaw = await Bun.file("package.json").text();
-	rootPkgRaw = rootPkgRaw.replace(/("@dude1wudv\/[^\"]+":\s*)"[^\"]+"/g, `$1"${version}"`);
+	rootPkgRaw = rootPkgRaw.replace(/(\x22@dude1wudv\/[^\x22]+\x22:\s*)\x22[^\x22]+\x22/g, `$1\x22${version}\x22`);
 	await Bun.write("package.json", rootPkgRaw);
 	console.log("  Updated root catalog @dude1wudv/* entries");
 

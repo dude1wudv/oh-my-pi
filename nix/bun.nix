@@ -169,6 +169,23 @@
     url = "https://registry.npmjs.org/@bufbuild/protoplugin/-/protoplugin-2.13.0.tgz";
     hash = "sha512-32eMChKaL/A8Hh5AfMmXSdnuyznN85uoEjoyWiWeRrvtQOtpqX/v1R9PDe0g9vMIgzznK9inMT3CUaal0kjLUQ==";
   };
+  "@dude1wudv/browser-relay" = copyPathToStore ../packages/browser-relay;
+  "@dude1wudv/collab-web" = copyPathToStore ../packages/collab-web;
+  "@dude1wudv/hashline" = copyPathToStore ../packages/hashline;
+  "@dude1wudv/omp-stats" = copyPathToStore ../packages/stats;
+  "@dude1wudv/omptype" = copyPathToStore ../packages/omptype;
+  "@dude1wudv/pi-agent-core" = copyPathToStore ../packages/agent;
+  "@dude1wudv/pi-ai" = copyPathToStore ../packages/ai;
+  "@dude1wudv/pi-catalog" = copyPathToStore ../packages/catalog;
+  "@dude1wudv/pi-coding-agent" = copyPathToStore ../packages/coding-agent;
+  "@dude1wudv/pi-metaharness" = copyPathToStore ../packages/metaharness;
+  "@dude1wudv/pi-mnemopi" = copyPathToStore ../packages/mnemopi;
+  "@dude1wudv/pi-natives" = copyPathToStore ../packages/natives;
+  "@dude1wudv/pi-tui" = copyPathToStore ../packages/tui;
+  "@dude1wudv/pi-utils" = copyPathToStore ../packages/utils;
+  "@dude1wudv/pi-wire" = copyPathToStore ../packages/wire;
+  "@dude1wudv/snapcompact" = copyPathToStore ../packages/snapcompact;
+  "@dude1wudv/typescript-edit-benchmark" = copyPathToStore ../packages/typescript-edit-benchmark;
   "@emnapi/core@1.11.2" = fetchurl {
     url = "https://registry.npmjs.org/@emnapi/core/-/core-1.11.2.tgz";
     hash = "sha512-TC8MkTuZUtcTSiFeuC0ksCh9QIJ5+F21MvZ4Wn4ORfYaFJ/0dsiudv5tVkejgwZlwQ39jL9WWDe2lz8x0WglOA==";
@@ -689,23 +706,6 @@
     url = "https://registry.npmjs.org/@octokit/types/-/types-17.0.0.tgz";
     hash = "sha512-ByP1v7YL5SMveFPP7+sj0/ZuWCOOg/Chs4NafOMpq6WNIM/hdGY0S7C0TCGDBWu1aGmOxmUIhMx3cO+IdwYZ1Q==";
   };
-  "@dude1wudv/browser-relay" = copyPathToStore ../packages/browser-relay;
-  "@dude1wudv/collab-web" = copyPathToStore ../packages/collab-web;
-  "@dude1wudv/hashline" = copyPathToStore ../packages/hashline;
-  "@dude1wudv/omp-stats" = copyPathToStore ../packages/stats;
-  "@dude1wudv/omptype" = copyPathToStore ../packages/omptype;
-  "@dude1wudv/pi-agent-core" = copyPathToStore ../packages/agent;
-  "@dude1wudv/pi-ai" = copyPathToStore ../packages/ai;
-  "@dude1wudv/pi-catalog" = copyPathToStore ../packages/catalog;
-  "@dude1wudv/pi-coding-agent" = copyPathToStore ../packages/coding-agent;
-  "@dude1wudv/pi-metaharness" = copyPathToStore ../packages/metaharness;
-  "@dude1wudv/pi-mnemopi" = copyPathToStore ../packages/mnemopi;
-  "@dude1wudv/pi-natives" = copyPathToStore ../packages/natives;
-  "@dude1wudv/pi-tui" = copyPathToStore ../packages/tui;
-  "@dude1wudv/pi-utils" = copyPathToStore ../packages/utils;
-  "@dude1wudv/pi-wire" = copyPathToStore ../packages/wire;
-  "@dude1wudv/snapcompact" = copyPathToStore ../packages/snapcompact;
-  "@dude1wudv/typescript-edit-benchmark" = copyPathToStore ../packages/typescript-edit-benchmark;
   "@opentelemetry/api-logs@0.220.0" = fetchurl {
     url = "https://registry.npmjs.org/@opentelemetry/api-logs/-/api-logs-0.220.0.tgz";
     hash = "sha512-CmVa4ImJ+ynfrPMNaAXHET6Bhb44SwzmfyVJFq9ni2jgXJR/l7C6gfVFddNmHP+ZOkP9cf4f9DBe68qVLTHc9w==";

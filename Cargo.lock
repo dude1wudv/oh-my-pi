@@ -3261,9 +3261,9 @@ dependencies = [
 
 [[package]]
 name = "inotify"
-version = "0.11.4"
+version = "0.11.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "153be1941a183ec9ccd095ddbe17a8b8d435ef6c76e9e02451b933c3999af2c8"
+checksum = "4cc00ea907cab49550b7da656f80ebb97be1b997d931fbcd28d39734e17ce592"
 dependencies = [
  "bitflags 2.13.1",
  "inotify-sys",
@@ -4880,7 +4880,7 @@ dependencies = [
 
 [[package]]
 name = "pi-ast"
-version = "20.1.0"
+version = "20.1.1"
 dependencies = [
  "anyhow",
  "ast-grep-core",
@@ -4949,7 +4949,7 @@ dependencies = [
 
 [[package]]
 name = "pi-builtins"
-version = "20.1.0"
+version = "20.1.1"
 dependencies = [
  "ansi-width",
  "anyhow",
@@ -5034,7 +5034,7 @@ dependencies = [
 
 [[package]]
 name = "pi-iso"
-version = "20.1.0"
+version = "20.1.1"
 dependencies = [
  "async-trait",
  "libc",
@@ -5046,7 +5046,7 @@ dependencies = [
 
 [[package]]
 name = "pi-natives"
-version = "20.1.0"
+version = "20.1.1"
 dependencies = [
  "anyhow",
  "arboard",
@@ -5118,7 +5118,7 @@ dependencies = [
 
 [[package]]
 name = "pi-shell"
-version = "20.1.0"
+version = "20.1.1"
 dependencies = [
  "anyhow",
  "brush-core",
@@ -5146,7 +5146,7 @@ dependencies = [
 
 [[package]]
 name = "pi-voice"
-version = "20.1.0"
+version = "20.1.1"
 dependencies = [
  "audiopus_sys",
  "bytes",
@@ -5161,7 +5161,7 @@ dependencies = [
 
 [[package]]
 name = "pi-walker"
-version = "20.1.0"
+version = "20.1.1"
 dependencies = [
  "dashmap",
  "globset",
@@ -5937,9 +5937,9 @@ checksum = "cf54715a573b99ac80df0bc206da022bcd442c974952c7b9720069370852e21f"
 
 [[package]]
 name = "safe_arch"
-version = "1.1.0"
+version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a52ec151f024d703f9fd65abb7cbe81e7cdb39f18917a3a37e3014470dc7c59"
+checksum = "42c6efa15875e6ecb39ca61fb0b0c1a40b84fac5a5ffe71eef7d1000c8eb3f5f"
 dependencies = [
  "bytemuck",
 ]
@@ -7673,9 +7673,9 @@ dependencies = [
 
 [[package]]
 name = "uuid"
-version = "1.24.0"
+version = "1.24.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bf3923a6f5c4c6382e0b653c4117f48d631ea17f38ed86e2a828e6f7412f5239"
+checksum = "2cefc03fd367c0c6d4305de1b312cf00248c4114f4a0418ce6a6af769e3b0bd9"
 dependencies = [
  "getrandom 0.4.3",
  "js-sys",
@@ -7819,9 +7819,9 @@ dependencies = [
 
 [[package]]
 name = "wayland-backend"
-version = "0.3.16"
+version = "0.3.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "016ccf01d1c58b6f8999612813e17c9b2390f7d70671428869913310f83f54b8"
+checksum = "38a91b4eaddff87b1cd1074985e3713da4af2c49742d1b356b2c01670a67a078"
 dependencies = [
  "cc",
  "downcast-rs",
