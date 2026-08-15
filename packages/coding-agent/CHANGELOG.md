@@ -2,6 +2,29 @@
 
 ## [Unreleased]
 
+## [20.1.2] - 2026-08-15
+
+### Added
+
+- Made `.omp/plans/YYYY-MM-DD-<slug>.md` the canonical plan from the first Plan-mode draft through approval and execution, including collision-safe legacy migration and project-relative handoffs.
+- Added Plan-mode write containment for canonical Markdown plans with traversal, symlink escape, deletion, and rename rejection.
+
+### Changed
+
+- Pinned Plan-mode exploration to the read-only `scout` agent using `@smol` with high thinking; generic `@task` workers remain available only after approval.
+- Unified interactive, ACP, plan-yolo, compaction, subagent handoff, and basename recovery around the fixed project plan path.
+
+### Fixed
+
+- Prevented fresh-session approval from creating a second session-local canonical plan and kept approval failures in Plan mode with the original project file intact.
+
+## [20.1.1] - 2026-08-15
+
+### Fixed
+
+- Gated asynchronous task batch wakeups so grouped deliveries remain barrier-driven instead of waking Main on partial results.
+- Added the project-plan runtime plumbing used by interactive, ACP, plan-yolo, handoff, and recovery paths.
+
 ## [20.1.0] - 2026-08-14
 
 ### Added

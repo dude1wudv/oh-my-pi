@@ -248,6 +248,12 @@ export async function resolveEffectiveSubagentPolicy(
 	const spawnPolicy = resolveSpawnPolicy(request.session.getSessionSpawns());
 	const agentName = request.agent?.trim() || spawnPolicy.defaultAgent;
 	const planMode = request.session.getPlanModeState?.()?.enabled === true;
+	if (planMode && agentName === "task") {
+		throw new StructuredSubagentError(
+			"preflight",
+			"Plan mode exploration requires the read-only scout agent; generic task workers are available after plan approval.",
+		);
+	}
 	assertPlanControlsAllowed(request, planMode);
 	assertDepthAndSpawnAllowed(request, agentName);
 

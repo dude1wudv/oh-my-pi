@@ -10,6 +10,7 @@ import {
 import type { ToolSession } from ".";
 import { normalizeLocalScheme, resolveToCwd } from "./path-utils";
 import { ToolError } from "./tool-errors";
+import { resolveProjectPlanPath } from "../plan-mode/state";
 
 const VAULT_SCHEME_PREFIX = "vault:";
 const LOCAL_SCHEME_PREFIX = "local:";
@@ -104,6 +105,18 @@ export function targetsLocalSandbox(session: ToolSession, targetPath: string): b
 	}
 }
 
+function targetsProjectPlan(session: ToolSession, targetPath: string): boolean {
+	const unwrapped = unwrapHashlineHeaderPath(targetPath);
+	if (unwrapped.includes("://") || path.isAbsolute(unwrapped)) return false;
+	try {
+		const absolute = resolveProjectPlanPath(session.cwd, unwrapped);
+		fs.mkdirSync(path.dirname(absolute), { recursive: true });
+		return true;
+	} catch {
+		return false;
+	}
+}
+
 /**
  * Resolve a write/edit target to its absolute filesystem path, honoring the
  * `local://` and `vault://` schemes. Plain paths resolve against the session cwd.
@@ -125,12 +138,7 @@ export function resolvePlanPath(session: ToolSession, targetPath: string): strin
 	return resolveToCwd(normalized, session.cwd);
 }
 
-/**
- * Plan mode keeps the working tree read-only while letting the agent draft its
- * plan. Writes and edits to the `local://` artifact sandbox are allowed (that is
- * where the plan and any scratch notes live); anything that would touch the
- * working tree — or rename/delete a file — is rejected.
- */
+/** Plan mode permits only local scratch and canonical project plan writes. */
 export function enforcePlanModeWrite(
 	session: ToolSession,
 	targetPath: string,
@@ -138,18 +146,10 @@ export function enforcePlanModeWrite(
 ): void {
 	const state = session.getPlanModeState?.();
 	if (!state?.enabled) return;
-
-	if (options?.move) {
-		throw new ToolError("Plan mode: renaming files is not allowed.");
-	}
-
-	if (options?.op === "delete") {
-		throw new ToolError("Plan mode: deleting files is not allowed.");
-	}
-
-	if (targetsLocalSandbox(session, targetPath)) return;
-
+	if (options?.move) throw new ToolError("Plan mode: renaming files is not allowed.");
+	if (options?.op === "delete") throw new ToolError("Plan mode: deleting files is not allowed.");
+	if (targetsLocalSandbox(session, targetPath) || targetsProjectPlan(session, targetPath)) return;
 	throw new ToolError(
-		"Plan mode: the working tree is read-only. Write your plan to a local://<slug>-plan.md file instead.",
+		"Plan mode: the working tree is read-only. Write your plan to .omp/plans/YYYY-MM-DD-<slug>.md instead.",
 	);
 }

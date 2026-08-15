@@ -28,6 +28,12 @@ describe("bundled agent parsing", () => {
 		expect(task?.thinkingLevel).toBe(AUTO_THINKING);
 	});
 
+	it("pins Plan exploration to smol with high thinking", () => {
+		const scout = getBundledAgent("scout");
+		expect(scout?.model).toEqual(["@smol"]);
+		expect(scout?.thinkingLevel).toBe(Effort.High);
+	});
+
 	it("carries validation ownership boundaries in bundled prompts", () => {
 		const task = getBundledAgent("task");
 		const reviewer = getBundledAgent("reviewer");

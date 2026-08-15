@@ -148,6 +148,16 @@ describe("structured subagent primitive", () => {
 		}
 	});
 
+	it("rejects the generic task agent before Plan-mode discovery", async () => {
+		const discover = vi.spyOn(discoveryModule, "discoverAgents");
+		await expect(
+			resolveEffectiveSubagentPolicy(request({ session: session({ planMode: true }), agent: "task" })),
+		).rejects.toThrow(
+			"Plan mode exploration requires the read-only scout agent; generic task workers are available after plan approval.",
+		);
+		expect(discover).not.toHaveBeenCalled();
+	});
+
 	it("attenuates plan-mode agents and rejects mutable isolation controls before discovery", async () => {
 		mockDiscovery();
 		const policy = await resolveEffectiveSubagentPolicy(

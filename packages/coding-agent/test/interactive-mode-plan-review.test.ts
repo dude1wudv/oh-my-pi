@@ -180,16 +180,12 @@ describe("InteractiveMode plan review rendering", () => {
 	});
 
 	it("keeps confirmation when a slug plan file exists", async () => {
-		const defaultPlanFilePath = "local://PLAN.md";
-		const slugPlanFilePath = "local://auth-token-refresh-plan.md";
-		const defaultPlanPath = resolveLocalUrlToPath(defaultPlanFilePath, {
-			getArtifactsDir: () => session.sessionManager.getArtifactsDir(),
-			getSessionId: () => session.sessionManager.getSessionId(),
-		});
-		const slugPlanPath = resolveLocalUrlToPath(slugPlanFilePath, {
-			getArtifactsDir: () => session.sessionManager.getArtifactsDir(),
-			getSessionId: () => session.sessionManager.getSessionId(),
-		});
+		const defaultPlanFilePath = ".omp/plans/2026-08-15-plan.md";
+		const slugPlanFilePath = ".omp/plans/2026-08-15-auth-token-refresh.md";
+		const cwd = session.sessionManager.getCwd();
+		const defaultPlanPath = path.resolve(cwd, defaultPlanFilePath);
+		const slugPlanPath = path.resolve(cwd, slugPlanFilePath);
+		await fs.mkdir(path.dirname(defaultPlanPath), { recursive: true });
 		await Bun.write(defaultPlanPath, "\n");
 		await Bun.write(slugPlanPath, "# Auth token refresh plan\n\nDo the thing.\n");
 
@@ -418,69 +414,72 @@ describe("InteractiveMode plan review rendering", () => {
 		expect(session.getPlanModeState()?.planFilePath).toBe(newPlanPath);
 	});
 
-	it("opens the annotation external editor from the real plan review overlay", async () => {
-		const editorPath = path.join(tempDir.path(), "annotation-editor.sh");
-		await Bun.write(
-			editorPath,
-			"#!/bin/sh\nprintf '%s\\n%s\\n' '- add rollback command' '- include smoke test' > \"$1\"\n",
-		);
-		await fs.chmod(editorPath, 0o755);
-		const previousEditor = Bun.env.EDITOR;
-		const previousVisual = Bun.env.VISUAL;
-		const keybindings = KeybindingsManager.inMemory({
-			"app.editor.external": "ctrl+e",
-			"tui.select.cancel": "ctrl+g",
-		});
-		mode.keybindings = keybindings;
-		setKeybindings(keybindings);
-		let capturedOverlay: PlanReviewOverlay | undefined;
-		vi.spyOn(mode.ui, "showOverlay").mockImplementation(component => {
-			capturedOverlay = component as PlanReviewOverlay;
-			return { hide: vi.fn() } as never;
-		});
-		let feedback = "";
-		// Resolve the instant the real $EDITOR subprocess commits its output back
-		// through onFeedbackChange — a deterministic signal, not a polled timer.
-		const { promise: editorApplied, resolve: markEditorApplied } = Promise.withResolvers<void>();
-
-		try {
-			Bun.env.EDITOR = editorPath;
-			delete Bun.env.VISUAL;
-			const choice = mode.showPlanReview(
-				"# Plan\n\nIntro\n\n## Rollout\n\nSteps\n\n## Verify\n\nChecks\n",
-				"Plan mode - next step",
-				["Approve and execute", "Refine plan"],
-				{
-					onFeedbackChange: value => {
-						feedback = value;
-						if (value.includes("- include smoke test")) markEditorApplied();
-					},
-				},
+	it.skipIf(process.platform === "win32")(
+		"opens the annotation external editor from the real plan review overlay",
+		async () => {
+			const editorPath = path.join(tempDir.path(), "annotation-editor.sh");
+			await Bun.write(
+				editorPath,
+				"#!/bin/sh\nprintf '%s\\n%s\\n' '- add rollback command' '- include smoke test' > \"$1\"\n",
 			);
+			await fs.chmod(editorPath, 0o755);
+			const previousEditor = Bun.env.EDITOR;
+			const previousVisual = Bun.env.VISUAL;
+			const keybindings = KeybindingsManager.inMemory({
+				"app.editor.external": "ctrl+e",
+				"tui.select.cancel": "ctrl+g",
+			});
+			mode.keybindings = keybindings;
+			setKeybindings(keybindings);
+			let capturedOverlay: PlanReviewOverlay | undefined;
+			vi.spyOn(mode.ui, "showOverlay").mockImplementation(component => {
+				capturedOverlay = component as PlanReviewOverlay;
+				return { hide: vi.fn() } as never;
+			});
+			let feedback = "";
+			// Resolve the instant the real $EDITOR subprocess commits its output back
+			// through onFeedbackChange — a deterministic signal, not a polled timer.
+			const { promise: editorApplied, resolve: markEditorApplied } = Promise.withResolvers<void>();
 
-			expect(capturedOverlay).toBeDefined();
-			const overlay = capturedOverlay!;
-			overlay.render(80);
-			overlay.handleInput("\t"); // -> toc (Rollout)
-			overlay.handleInput("a");
-			for (const ch of "draft") overlay.handleInput(ch);
-			overlay.handleInput("\x05"); // ctrl+e
-			// The subprocess is real; block on its commit signal instead of polling.
-			await editorApplied;
-			expect(feedback).toContain("## Rollout\n```md\n- add rollback command\n- include smoke test\n```");
+			try {
+				Bun.env.EDITOR = editorPath;
+				delete Bun.env.VISUAL;
+				const choice = mode.showPlanReview(
+					"# Plan\n\nIntro\n\n## Rollout\n\nSteps\n\n## Verify\n\nChecks\n",
+					"Plan mode - next step",
+					["Approve and execute", "Refine plan"],
+					{
+						onFeedbackChange: value => {
+							feedback = value;
+							if (value.includes("- include smoke test")) markEditorApplied();
+						},
+					},
+				);
 
-			overlay.handleInput("\x1b[B"); // Rollout -> Verify
-			overlay.handleInput("\x1b[B"); // toc -> actions
-			overlay.handleInput("\x1b[B"); // select Refine plan
-			overlay.handleInput("\r");
-			expect(await choice).toBe("Refine plan");
-		} finally {
-			if (previousEditor === undefined) delete Bun.env.EDITOR;
-			else Bun.env.EDITOR = previousEditor;
-			if (previousVisual === undefined) delete Bun.env.VISUAL;
-			else Bun.env.VISUAL = previousVisual;
-		}
-	});
+				expect(capturedOverlay).toBeDefined();
+				const overlay = capturedOverlay!;
+				overlay.render(80);
+				overlay.handleInput("\t"); // -> toc (Rollout)
+				overlay.handleInput("a");
+				for (const ch of "draft") overlay.handleInput(ch);
+				overlay.handleInput("\x05"); // ctrl+e
+				// The subprocess is real; block on its commit signal instead of polling.
+				await editorApplied;
+				expect(feedback).toContain("## Rollout\n```md\n- add rollback command\n- include smoke test\n```");
+
+				overlay.handleInput("\x1b[B"); // Rollout -> Verify
+				overlay.handleInput("\x1b[B"); // toc -> actions
+				overlay.handleInput("\x1b[B"); // select Refine plan
+				overlay.handleInput("\r");
+				expect(await choice).toBe("Refine plan");
+			} finally {
+				if (previousEditor === undefined) delete Bun.env.EDITOR;
+				else Bun.env.EDITOR = previousEditor;
+				if (previousVisual === undefined) delete Bun.env.VISUAL;
+				else Bun.env.VISUAL = previousVisual;
+			}
+		},
+	);
 
 	it("leaves terminal mouse tracking disabled while Plan Review is open", async () => {
 		let capturedOverlay: PlanReviewOverlay | undefined;
@@ -762,11 +761,9 @@ describe("InteractiveMode plan review rendering", () => {
 		await mode.handlePlanModeCommand();
 		expect(session.model?.id).toBe(planModel.id);
 
-		const planFilePath = mode.planModePlanFilePath ?? "local://PLAN.md";
-		const resolvedPlanPath = resolveLocalUrlToPath(planFilePath, {
-			getArtifactsDir: () => session.sessionManager.getArtifactsDir(),
-			getSessionId: () => session.sessionManager.getSessionId(),
-		});
+		const planFilePath = mode.planModePlanFilePath!;
+		const resolvedPlanPath = path.resolve(session.sessionManager.getCwd(), planFilePath);
+		await fs.mkdir(path.dirname(resolvedPlanPath), { recursive: true });
 		await Bun.write(resolvedPlanPath, "# Plan\n\nUse execution context.");
 
 		const tokens = 180000;
@@ -1624,13 +1621,14 @@ describe("InteractiveMode plan review rendering", () => {
 			title: "APPROVED",
 		});
 
+		const approvedPath = session.getProjectPlanPath()!;
 		expect(mode.planModeEnabled).toBe(false);
-		expect(session.getPlanReferencePath()).toBe(planFilePath);
+		expect(session.getPlanReferencePath()).toBe(approvedPath);
 
 		await mode.handlePlanModeCommand();
 		expect(session.getPlanModeState()).toMatchObject({
 			enabled: true,
-			planFilePath,
+			planFilePath: approvedPath,
 			reentry: true,
 		});
 	});
@@ -1666,7 +1664,7 @@ describe("InteractiveMode plan review rendering", () => {
 		expect(mode_).toBeUndefined();
 		expect(typeof beforeFlush).toBe("function");
 		expect(typeof internalGuidance).toBe("string");
-		expect(internalGuidance as string).toContain(planFilePath);
+		expect(internalGuidance as string).toContain(session.getProjectPlanPath()!);
 
 		// Plan-approved synthetic prompt was dispatched.
 		const planApprovedIdx = promptSpy.mock.calls.findIndex(isPlanApprovedCall);
@@ -1711,7 +1709,7 @@ describe("InteractiveMode plan review rendering", () => {
 		);
 		// Plan reference path was recorded so the session knows about the approved
 		// plan at its final destination …
-		expect(setPlanRefSpy).toHaveBeenCalledWith(planFilePath);
+		expect(setPlanRefSpy).toHaveBeenCalledWith(session.getProjectPlanPath()!);
 		// … but markPlanReferenceSent was NOT called, so the next operator turn
 		// will inject the reference fresh via #buildPlanReferenceMessage. This is
 		// the load-bearing assertion that the cancel path leaves the executor
@@ -1811,7 +1809,7 @@ describe("InteractiveMode plan review rendering", () => {
 		const setPlanRefSpy = vi.spyOn(session, "setPlanReferencePath");
 		let planRefSetWhenCompactionRan = false;
 		vi.spyOn(mode, "handleCompactCommand").mockImplementation(async () => {
-			planRefSetWhenCompactionRan = setPlanRefSpy.mock.calls.some(call => call[0] === planFilePath);
+			planRefSetWhenCompactionRan = setPlanRefSpy.mock.calls.some(call => call[0].startsWith(".omp/plans/"));
 			return "ok";
 		});
 
@@ -1928,7 +1926,7 @@ describe("InteractiveMode plan review rendering", () => {
 		await Bun.write(resolvedPlanPath, "# Plan\n\nKeep editing this artifact.");
 
 		await mode.handlePlanModeCommand();
-		expect(session.getPlanModeState()?.planFilePath).toBe(planFilePath);
+		expect(session.getPlanModeState()?.planFilePath).toMatch(/^\.omp\/plans\//);
 
 		vi.spyOn(session, "getContextUsage").mockReturnValue(undefined);
 		const selector = vi.spyOn(mode, "showPlanReview").mockResolvedValue("Approve and keep context");
@@ -1940,14 +1938,15 @@ describe("InteractiveMode plan review rendering", () => {
 			planExists: true,
 			title: "APPROVED",
 		});
+		const approvedPath = session.getProjectPlanPath()!;
 
 		expect(mode.planModeEnabled).toBe(false);
-		expect(session.getPlanReferencePath()).toBe(planFilePath);
+		expect(session.getPlanReferencePath()).toBe(approvedPath);
 
 		await mode.handlePlanModeCommand();
 		expect(session.getPlanModeState()).toMatchObject({
 			enabled: true,
-			planFilePath,
+			planFilePath: approvedPath,
 			reentry: true,
 		});
 
@@ -1968,25 +1967,25 @@ describe("InteractiveMode plan review rendering", () => {
 				getSessionId: () => session.sessionManager.getSessionId(),
 			});
 
-		it("forwards the newest local plan file and its heading title to the approval flow", async () => {
-			await Bun.write(localPath("local://old-plan.md"), "# Old plan\n\nstale body");
-			await Bun.write(localPath("local://auth-refactor-plan.md"), "# Auth refactor\n\nfresh body");
-			// #listLocalPlanFiles sorts by mtime, newest first — pin mtimes so the
-			// "latest plan" selection is deterministic regardless of write timing.
-			await fs.utimes(localPath("local://old-plan.md"), new Date(1_000), new Date(1_000));
-			await fs.utimes(localPath("local://auth-refactor-plan.md"), new Date(2_000), new Date(2_000));
+		it("forwards the newest project plan and its heading title to the approval flow", async () => {
+			const plansRoot = path.join(session.sessionManager.getCwd(), ".omp", "plans");
+			await fs.mkdir(plansRoot, { recursive: true });
+			const oldPath = path.join(plansRoot, "2026-08-14-old.md");
+			const freshPath = path.join(plansRoot, "2026-08-15-auth-refactor.md");
+			await Bun.write(oldPath, "# Old plan\n\nstale body");
+			await Bun.write(freshPath, "# Auth refactor\n\nfresh body");
+			await fs.utimes(oldPath, new Date(1_000), new Date(1_000));
+			await fs.utimes(freshPath, new Date(2_000), new Date(2_000));
 
 			mode.planModeEnabled = true;
-			// The default points at a file that never exists; the scan must still find
-			// the real plan, and getPlanReferencePath() is empty before any approval.
-			mode.planModePlanFilePath = "local://PLAN.md";
+			mode.planModePlanFilePath = ".omp/plans/2026-08-15-plan.md";
 			const approval = vi.spyOn(mode, "handlePlanApproval").mockResolvedValue();
 
 			await mode.openPlanReview();
 
 			expect(approval).toHaveBeenCalledTimes(1);
 			expect(approval).toHaveBeenCalledWith({
-				planFilePath: "local://auth-refactor-plan.md",
+				planFilePath: ".omp/plans/2026-08-15-auth-refactor.md",
 				title: "Auth-refactor",
 				planExists: true,
 			});

@@ -60,7 +60,7 @@ export function resolutionDeviceUsage(device: ResolutionDeviceName): string {
 		case REJECT_DEVICE_NAME:
 			return `Write a one-sentence reason as plain text to ${REJECT_DEVICE_PATH} to DISCARD the pending staged action (e.g. a tool preview).`;
 		case PROPOSE_DEVICE_NAME:
-			return `Write your plan's <slug> (matching local://<slug>-plan.md) as plain text to ${PROPOSE_DEVICE_PATH} to submit the plan for approval. Valid only while plan mode is active.`;
+			return `Write your plan's <slug> (matching .omp/plans/YYYY-MM-DD-<slug>.md) as plain text to ${PROPOSE_DEVICE_PATH} to submit the canonical project plan for approval. Valid only while plan mode is active.`;
 	}
 }
 

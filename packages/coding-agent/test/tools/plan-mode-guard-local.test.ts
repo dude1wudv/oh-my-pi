@@ -115,6 +115,56 @@ describe("enforcePlanModeWrite (working tree read-only, local:// sandbox writabl
 	});
 });
 
+describe("enforcePlanModeWrite project canonical paths", () => {
+	const planMode: PlanModeState = { enabled: true, planFilePath: ".omp/plans/2026-08-15-demo.md" };
+
+	it("allows contained Markdown plans and creates the parent directory", async () => {
+		const cwd = await fs.mkdtemp(path.join(os.tmpdir(), "plan-project-guard-"));
+		try {
+			const session = makeSession({ cwd, artifactsDir: ARTIFACTS_DIR, planMode });
+			expect(() => enforcePlanModeWrite(session, ".omp/plans/2026-08-15-demo.md", { op: "create" })).not.toThrow();
+			expect(await fs.stat(path.join(cwd, ".omp", "plans"))).toBeDefined();
+		} finally {
+			await removeWithRetries(cwd);
+		}
+	});
+
+	it("rejects traversal, absolute paths, schemes, delete, and rename", async () => {
+		const cwd = await fs.mkdtemp(path.join(os.tmpdir(), "plan-project-guard-"));
+		try {
+			const session = makeSession({ cwd, artifactsDir: ARTIFACTS_DIR, planMode });
+			for (const target of [
+				".omp/plans/../../src/file.ts",
+				path.join(cwd, ".omp", "plans", "demo.md"),
+				"vault://demo.md",
+			]) {
+				expect(() => enforcePlanModeWrite(session, target, { op: "create" })).toThrow(/working tree is read-only/);
+			}
+			expect(() => enforcePlanModeWrite(session, planMode.planFilePath, { op: "delete" })).toThrow(/deleting/);
+			expect(() => enforcePlanModeWrite(session, planMode.planFilePath, { move: ".omp/plans/renamed.md" })).toThrow(
+				/renaming/,
+			);
+		} finally {
+			await removeWithRetries(cwd);
+		}
+	});
+
+	it("rejects a plans root reached through a symlink escape", async () => {
+		const cwd = await fs.mkdtemp(path.join(os.tmpdir(), "plan-project-guard-"));
+		const outside = await fs.mkdtemp(path.join(os.tmpdir(), "plan-project-outside-"));
+		try {
+			await fs.symlink(outside, path.join(cwd, ".omp"), process.platform === "win32" ? "junction" : "dir");
+			const session = makeSession({ cwd, artifactsDir: ARTIFACTS_DIR, planMode });
+			expect(() => enforcePlanModeWrite(session, planMode.planFilePath, { op: "create" })).toThrow(
+				/working tree is read-only/,
+			);
+		} finally {
+			await removeWithRetries(cwd);
+			await removeWithRetries(outside);
+		}
+	});
+});
+
 describe("enforcePlanModeWrite accepts absolute local-sandbox paths", () => {
 	const planMode: PlanModeState = { enabled: true, planFilePath: "local://some-plan.md" };
 

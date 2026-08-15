@@ -610,7 +610,11 @@ describe("ACP agent", () => {
 
 		const session = harness.findSession(created.sessionId)!;
 		expect(session.planModeState).toEqual(
-			expect.objectContaining({ enabled: true, planFilePath: "local://PLAN.md", workflow: "parallel" }),
+			expect.objectContaining({
+				enabled: true,
+				planFilePath: expect.stringMatching(/^\.omp\/plans\/\d{4}-\d{2}-\d{2}-plan\.md$/),
+				workflow: "parallel",
+			}),
 		);
 		const modeNotifications = harness.updates.filter(
 			notification =>
@@ -679,15 +683,13 @@ describe("ACP agent", () => {
 		const session = harness.findSession(created.sessionId)!;
 		await harness.agent.setSessionMode({ sessionId: created.sessionId, modeId: "plan" });
 
-		const localOptions = {
-			getArtifactsDir: () => session.sessionManager.getArtifactsDir(),
-			getSessionId: () => session.sessionManager.getSessionId(),
-		};
-		cleanupRoots.push(resolveLocalUrlToPath("local://", localOptions));
-		// On Windows, long artifact roots are shortened by the local:// resolver to
-		// avoid MAX_PATH. Write through the same resolver the ACP handler reads from.
-		const planPath = resolveLocalUrlToPath("local://words-counter-plan.md", localOptions);
-		await Bun.write(planPath, "# Words Counter\n\nFile contents.");
+		const planFilePath = session.planModeState!.planFilePath.replace(/plan\.md$/, "words-counter.md");
+		const planPath = path.resolve(harness.cwdA, planFilePath);
+		await fs.promises.mkdir(path.dirname(planPath), { recursive: true });
+		await Bun.write(
+			planPath,
+			`# Words Counter\n\n> Status: planned\n> Created: 2026-08-15\n> Updated: 2026-08-15 00:00 UTC+00:00\n> Plan ID: words-counter\n> Project plan: ${planFilePath}\n\nFile contents.`,
+		);
 
 		const updatesBefore = harness.updates.length;
 		const handler = session.planProposalHandler!;
@@ -698,15 +700,14 @@ describe("ACP agent", () => {
 
 		// Plan-approval payload is shaped for `event-controller` / ACP renderers.
 		expect(result.details.title).toBe("words-counter");
-		expect(result.details.planFilePath).toBe("local://words-counter-plan.md");
+		expect(result.details.planFilePath).toBe(planFilePath);
 		expect(result.details.planExists).toBe(true);
 		expect(result.content[0]?.text).toMatch(/Plan approved/);
-		// Plan file keeps its agent-chosen name — no rename.
-		expect(await Bun.file(planPath).exists()).toBe(true);
+		expect(await Bun.file(planPath).text()).toContain("> Status: executing");
 		// Mode + handler are cleared; the agent regains write tools next turn.
 		expect(session.planModeState).toBeUndefined();
 		expect(session.planProposalHandler).toBeUndefined();
-		expect(session.planReferencePath).toBe("local://words-counter-plan.md");
+		expect(session.planReferencePath).toBe(planFilePath);
 		const approvalUpdates = harness.updates.slice(updatesBefore);
 		// Mode-change notifications reached the client so Zed's UI and config
 		// selector both reflect the approval-driven exit.
@@ -748,13 +749,10 @@ describe("ACP agent", () => {
 		const session = harness.findSession(created.sessionId)!;
 		await harness.agent.setSessionMode({ sessionId: created.sessionId, modeId: "plan" });
 
-		const localOptions = {
-			getArtifactsDir: () => session.sessionManager.getArtifactsDir(),
-			getSessionId: () => session.sessionManager.getSessionId(),
-		};
-		cleanupRoots.push(resolveLocalUrlToPath("local://", localOptions));
-		const planPath = resolveLocalUrlToPath("local://PLAN.md", localOptions);
-		await Bun.write(planPath, "# Words Counter\n\nFile contents.");
+		const planFilePath = session.planModeState!.planFilePath.replace(/plan\.md$/, "words-counter.md");
+		const planPath = path.resolve(harness.cwdA, planFilePath);
+		await fs.promises.mkdir(path.dirname(planPath), { recursive: true });
+		await Bun.write(planPath, "# Words Counter\n\n> Status: planned\n\nFile contents.");
 
 		const updatesBefore = harness.updates.length;
 		const handler = session.planProposalHandler!;
@@ -763,7 +761,7 @@ describe("ACP agent", () => {
 		expect(result.content[0]?.text).toMatch(/refinement requested/i);
 		// Plan file stays put; no rename, no write-access grant.
 		expect(await Bun.file(planPath).exists()).toBe(true);
-		expect(await Bun.file(resolveLocalUrlToPath("local://words-counter.md", localOptions)).exists()).toBe(false);
+		expect(await Bun.file(planPath).text()).toContain("> Status: planned");
 		// Plan mode + proposal handler stay active so the agent can iterate.
 		expect(session.planModeState?.enabled).toBe(true);
 		expect(typeof session.planProposalHandler).toBe("function");

@@ -1736,18 +1736,30 @@ export class AcpAgent implements Agent {
 		}
 		const cwd = session.sessionManager.getCwd();
 		const projectPlanPath = planFilePath.startsWith("local:")
-			? (await migrateLegacyPlan({ cwd, legacyPath: planFilePath, content: planContent, title: resolvedTitle, createdDate: state.createdDate })).projectPlanPath
+			? (
+					await migrateLegacyPlan({
+						cwd,
+						legacyPath: planFilePath,
+						content: planContent,
+						title: resolvedTitle,
+						createdDate: state.createdDate,
+					})
+				).projectPlanPath
 			: planFilePath;
 		details.planFilePath = projectPlanPath;
 		details.projectPlanPath = projectPlanPath;
 		resolveProjectPlanPath(cwd, projectPlanPath);
 		await updateProjectPlanFile({ cwd, projectPlanPath, event: { type: "status_changed", status: "executing" } });
-		session.sessionManager.appendCustomEntry(PROJECT_PLAN_ENTRY_TYPE, { path: projectPlanPath, planId: resolvedTitle });
+		session.sessionManager.appendCustomEntry(PROJECT_PLAN_ENTRY_TYPE, {
+			path: projectPlanPath,
+			planId: resolvedTitle,
+		});
 		session.setPlanReferencePath(projectPlanPath);
-		session.setProjectPlanPath(projectPlanPath);
+		session.setProjectPlanPath?.(projectPlanPath);
 		session.setPlanProposalHandler?.(null);
 		session.setPlanModeState(undefined);
-		await session.setActiveToolsByName([...new Set([...session.getEnabledToolNames(), "project_plan"])]);
+		const enabledTools = session.getEnabledToolNames?.() ?? [];
+		await session.setActiveToolsByName?.([...new Set([...enabledTools, "project_plan"])]);
 		try {
 			await this.#connection.sessionUpdate({
 				sessionId: session.sessionId,
