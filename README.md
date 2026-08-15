@@ -48,13 +48,13 @@ curl -fsSL https://omp.sh/install | sh
 brew install can1357/tap/omp
 ```
 
-**npm (recommended)**
+**[npm](https://www.npmjs.com/package/@dude1wudv/pi-coding-agent) (recommended)**
 
 ```sh
 npm install -g @dude1wudv/pi-coding-agent
 ```
 
-`@dude1wudv/pi-coding-agent` is the only package needed to install OMP. After installation, run `omp update` to update the active npm-managed executable; standalone binary installs remain binary-managed.
+[`@dude1wudv/pi-coding-agent`](https://www.npmjs.com/package/@dude1wudv/pi-coding-agent) is the only package needed to install OMP. After installation, run `omp update` to update the active npm-managed executable; standalone binary installs remain binary-managed.
 
 **Nix**
 
