@@ -4237,28 +4237,22 @@ export const SETTINGS_SCHEMA = {
 	"async.batchWakeInterval": {
 		type: "enum",
 		values: ["off", "5m", "10m", "20m", "30m"] as const,
-		default: "20m",
+		default: "off",
 		ui: {
 			tab: "tools",
 			group: "Execution",
 			label: "Async Batch Wake Interval",
 			description:
-				"How often an active async task batch wakes its owner with an aggregate of settled results. Off waits until every job settles.",
+				"How often an active async task batch wakes its owner with an aggregate of settled results. Off wakes only when every job settles or the first job fails.",
 			options: [
-				{ value: "off", label: "Off", description: "Wake only when every job settles" },
+				{ value: "off", label: "Off", description: "Wake only on first failure or when every job settles" },
 				{ value: "5m", label: "5 minutes" },
 				{ value: "10m", label: "10 minutes" },
-				{ value: "20m", label: "20 minutes", description: "Default" },
+				{ value: "20m", label: "20 minutes" },
 				{ value: "30m", label: "30 minutes" },
 			],
 		},
 	},
-
-	"async.maxJobs": {
-		type: "number",
-		default: 100,
-	},
-
 	"async.pollWaitDuration": {
 		type: "enum",
 		values: ["5s", "10s", "30s", "1m", "5m", "smart"] as const,

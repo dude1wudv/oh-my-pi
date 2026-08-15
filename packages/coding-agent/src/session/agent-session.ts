@@ -99,7 +99,7 @@ import {
 	withTimeout,
 } from "@dude1wudv/pi-utils";
 import { type AdvisorConfig, type AdvisorRuntimeStatus, loadAdvisorTranscriptCosts } from "../advisor";
-import { ASYNC_JOB_MANAGER_SHUTDOWN_REASON, type AsyncJob, AsyncJobManager } from "../async";
+import { ASYNC_JOB_MANAGER_SHUTDOWN_REASON, type AsyncBatchSnapshot, type AsyncJob, AsyncJobManager } from "../async";
 import { shouldEnableAppendOnlyContext } from "../config/append-only-context-mode";
 import type { ModelRegistry } from "../config/model-registry";
 import type { ResolvedModelRoleValue } from "../config/model-resolver";
@@ -552,6 +552,7 @@ export class AgentSession {
 	readonly #asyncJobManager: AsyncJobManager | undefined;
 	/** Clears this session's owner delivery sink registration; set when a manager + agent id exist. */
 	#unregisterAsyncDeliverySink: (() => void) | undefined;
+	#unregisterAsyncBatchDeliverySink: (() => void) | undefined;
 	/**
 	 * Async-delivery generation, bumped on every session transition that evicts
 	 * this owner's jobs (see {@link AgentSession.#cancelOwnAsyncJobs}). Stamped
@@ -1358,14 +1359,14 @@ export class AgentSession {
 		this.#inheritedProviderPromptCacheKey =
 			config.providerPromptCacheKeySource === "fork" ? this.agent.promptCacheKey : undefined;
 		// Owner-routed async delivery: completions for jobs this agent owns are
-		// injected into THIS session's run as async-result follow-ups. Without a
-		// registered sink the manager dead-letters owned deliveries, so this
-		// registration is what makes background jobs usable — for the main
-		// session and for subagents inheriting the process manager alike.
+		// injected into THIS session's run as async-result follow-ups.
 		if (this.#asyncJobManager && this.#agentId) {
 			const manager = this.#asyncJobManager;
 			this.#unregisterAsyncDeliverySink = manager.registerDeliverySink(this.#agentId, (jobId, text, job) =>
 				this.#deliverAsyncJobResult(manager, jobId, text, job),
+			);
+			this.#unregisterAsyncBatchDeliverySink = manager.registerBatchDeliverySink(this.#agentId, snapshot =>
+				this.#deliverAsyncBatchResult(manager, snapshot),
 			);
 			this.yieldQueue.register<AsyncResultEntry>("async-result", {
 				isStale: entry => entry.epoch !== this.#asyncDeliveryEpoch || manager.isDeliverySuppressed(entry.jobId),
@@ -1941,6 +1942,17 @@ export class AgentSession {
 			});
 		}
 		return preview;
+	}
+
+	async #deliverAsyncBatchResult(manager: AsyncJobManager, snapshot: AsyncBatchSnapshot): Promise<void> {
+		if (this.#isDisposed) return;
+		const resultLines = snapshot.jobs.map(job => {
+			const detail = job.status === "failed" ? job.errorText : job.resultText;
+			return `- ${job.id}: ${job.status}${detail ? `\n${detail}` : ""}`;
+		});
+		const reason = snapshot.reason ?? "all-settled";
+		const text = `Async task batch ${snapshot.gateId} woke on ${reason}.\n${resultLines.join("\n")}`;
+		await this.#deliverAsyncJobResult(manager, snapshot.gateId, text);
 	}
 
 	// =========================================================================
@@ -3808,8 +3820,6 @@ export class AgentSession {
 
 	/**
 	 * Remove all listeners, flush pending writes, and disconnect from agent.
-	 * Call this when completely done with the session.
-	 *
 	 * Idempotent: concurrent or repeated calls share one settled promise. The
 	 * keypress `InteractiveMode.shutdown()` path and the postmortem
 	 * `SIGTERM`/`SIGHUP`/`uncaughtException` callback can both target this
@@ -3827,6 +3837,8 @@ export class AgentSession {
 		// dead-letter rather than enqueue a follow-up into a disposing session.
 		this.#unregisterAsyncDeliverySink?.();
 		this.#unregisterAsyncDeliverySink = undefined;
+		this.#unregisterAsyncBatchDeliverySink?.();
+		this.#unregisterAsyncBatchDeliverySink = undefined;
 		const manager = this.#ownedAsyncJobManager;
 		// The shutdown reason is reserved for the top-level session that OWNS the
 		// manager — the genuine process/handled-shutdown path — so the task

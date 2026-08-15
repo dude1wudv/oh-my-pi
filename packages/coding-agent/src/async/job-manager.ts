@@ -118,7 +118,10 @@ export interface AsyncJobRegisterOptions {
 /** Supported user-facing wake intervals for an async task batch. */
 export type AsyncBatchWakeInterval = "off" | "5m" | "10m" | "20m" | "30m";
 
-export type AsyncBatchWakeReason = "timer" | "all-settled";
+export type AsyncBatchWakeReason = "timer" | "all-settled" | "first-error";
+
+/** Single aggregate wake delivered to the owner session for a task batch. */
+export type AsyncBatchDeliverySink = (snapshot: AsyncBatchSnapshot) => void | Promise<void>;
 
 /** Runtime handle for a Main-owned group of async jobs. */
 export interface AsyncBatchGate {
@@ -218,6 +221,7 @@ export class AsyncJobManager {
 	readonly #evictionTimers = new Map<string, NodeJS.Timeout>();
 	readonly #pollEscalation = new Map<string | undefined, PollEscalationState>();
 	readonly #deliverySinks = new Map<string, AsyncJobDeliverySink>();
+	readonly #batchDeliverySinks = new Map<string, AsyncBatchDeliverySink>();
 	readonly #batchGates = new Map<string, MutableAsyncBatchGate>();
 	readonly #batchGateByJob = new Map<string, MutableAsyncBatchGate>();
 	readonly #batchSuppressedDeliveries = new Set<string>();
@@ -545,19 +549,20 @@ export class AsyncJobManager {
 	}
 
 	/**
-	 * Route completions for jobs owned by `ownerId` to `sink`. Sessions register
-	 * their own sink at construction and unregister on dispose. Owned deliveries
-	 * with no live sink are dead-lettered — `onJobComplete` serves only unowned
-	 * deliveries.
-	 *
-	 * Last registration wins for an owner id; the returned unregister clears the
-	 * mapping only while it still points at `sink`, so a revived session's fresh
-	 * registration survives its parked predecessor's late cleanup.
+	 * Route completions for jobs owned by `ownerId` to `sink`.
 	 */
 	registerDeliverySink(ownerId: string, sink: AsyncJobDeliverySink): () => void {
 		this.#deliverySinks.set(ownerId, sink);
 		return () => {
 			if (this.#deliverySinks.get(ownerId) === sink) this.#deliverySinks.delete(ownerId);
+		};
+	}
+
+	/** Register the single aggregate wake sink for a task batch. */
+	registerBatchDeliverySink(ownerId: string, sink: AsyncBatchDeliverySink): () => void {
+		this.#batchDeliverySinks.set(ownerId, sink);
+		return () => {
+			if (this.#batchDeliverySinks.get(ownerId) === sink) this.#batchDeliverySinks.delete(ownerId);
 		};
 	}
 
@@ -778,7 +783,7 @@ export class AsyncJobManager {
 		return snapshot;
 	}
 
-	closeBatchGate(gateOrId: AsyncBatchGate | string): void {
+	closeBatchGate(gateOrId: AsyncBatchGate | string, options?: { releaseDeliveries?: boolean }): void {
 		const gate = typeof gateOrId === "string" ? this.#batchGates.get(gateOrId) : this.#batchGates.get(gateOrId.id);
 		if (!gate) return;
 		gate.closed = true;
@@ -790,7 +795,8 @@ export class AsyncJobManager {
 			if (this.#batchGateByJob.get(id) === gate) this.#batchGateByJob.delete(id);
 			this.#batchSuppressedDeliveries.delete(id);
 			const job = this.#jobs.get(id);
-			if (job?.status !== "running") this.#enqueueDelivery(id, job?.resultText ?? job?.errorText ?? "");
+			if (options?.releaseDeliveries !== false && job?.status !== "running")
+				this.#enqueueDelivery(id, job?.resultText ?? job?.errorText ?? "");
 		}
 	}
 
@@ -811,20 +817,33 @@ export class AsyncJobManager {
 	#notifyBatchJobSettled(jobId: string): void {
 		const gate = this.#batchGateByJob.get(jobId);
 		if (!gate || gate.closed) return;
+		const job = this.#jobs.get(jobId);
+		if (job?.status === "failed" && !gate.wakeSnapshot) {
+			this.#wakeBatchGate(gate, "first-error");
+			return;
+		}
 		const snapshot = this.collectBatchSnapshot(gate);
-		if (snapshot.allSettled) this.#wakeBatchGate(gate, "all-settled");
+		if (snapshot.allSettled) {
+			if (gate.wakeSnapshot) {
+				this.closeBatchGate(gate, { releaseDeliveries: false });
+			} else {
+				this.#wakeBatchGate(gate, "all-settled");
+			}
+		}
 	}
+
 	#wakeBatchGate(gate: MutableAsyncBatchGate, reason: AsyncBatchWakeReason): void {
 		if (gate.closed || gate.wakeSnapshot) return;
 		const snapshot = this.collectBatchSnapshot(gate, reason);
-		if (reason === "timer" && snapshot.allSettled) reason = "all-settled";
 		gate.generation += 1;
 		gate.wakeSnapshot = { ...snapshot, generation: gate.generation, reason };
 		for (const id of snapshot.settledJobIds) gate.reportedJobIds.add(id);
 		gate.wakeResolve(gate.wakeSnapshot);
+		const sink = this.#batchDeliverySinks.get(gate.ownerId);
+		if (sink) void sink(gate.wakeSnapshot);
 		if (reason === "all-settled") {
 			gate.allSettled = true;
-			this.closeBatchGate(gate);
+			this.closeBatchGate(gate, { releaseDeliveries: false });
 		}
 	}
 

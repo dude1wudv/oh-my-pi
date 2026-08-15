@@ -537,6 +537,64 @@ describe("AsyncJobManager", () => {
 		expect(manager.getJob("hung-1")?.status).toBe("cancelled");
 	});
 });
+test("delivers one aggregate wake when a batch completes", async () => {
+	const completions: string[] = [];
+	const wakes: Array<{ reason?: string; statuses: string[] }> = [];
+	const manager = new AsyncJobManager({
+		onJobComplete: async jobId => completions.push(jobId),
+	});
+	const gate = manager.createBatchGate({ ownerId: "main", wakeInterval: "off" });
+	manager.registerBatchDeliverySink("main", snapshot => {
+		wakes.push({ reason: snapshot.reason, statuses: snapshot.jobs.map(job => job.status) });
+	});
+	manager.register("task", "one", async () => "one done", { ownerId: "main", batchGate: gate });
+	manager.register("task", "two", async () => "two done", { ownerId: "main", batchGate: gate });
+
+	await manager.waitForAll();
+	await manager.drainDeliveries({ timeoutMs: 2_000 });
+
+	expect(wakes).toEqual([{ reason: "all-settled", statuses: ["completed", "completed"] }]);
+	expect(completions).toEqual([]);
+});
+
+test("wakes immediately on the first failed child and suppresses later child deliveries", async () => {
+	const completions: string[] = [];
+	const wakes: Array<{ reason?: string; pending: string[] }> = [];
+	const release = Promise.withResolvers<void>();
+	const manager = new AsyncJobManager({
+		onJobComplete: async jobId => completions.push(jobId),
+	});
+	const gate = manager.createBatchGate({ ownerId: "main", wakeInterval: "off" });
+	manager.registerBatchDeliverySink("main", snapshot => {
+		wakes.push({ reason: snapshot.reason, pending: snapshot.pendingJobIds });
+	});
+	manager.register(
+		"task",
+		"fails",
+		async () => {
+			throw new Error("child failed");
+		},
+		{ ownerId: "main", batchGate: gate },
+	);
+	const laterJobId = manager.register(
+		"task",
+		"later",
+		async () => {
+			await release.promise;
+			return "later done";
+		},
+		{ ownerId: "main", batchGate: gate },
+	);
+
+	await scheduler.yield();
+	expect(wakes).toEqual([{ reason: "first-error", pending: [laterJobId] }]);
+	release.resolve();
+	await manager.waitForAll();
+	await manager.drainDeliveries({ timeoutMs: 2_000 });
+
+	expect(wakes).toHaveLength(1);
+	expect(completions).toEqual([]);
+});
 
 describe("AsyncJobManager smart poll-wait escalation", () => {
 	const newManager = () => new AsyncJobManager({ onJobComplete: async () => {} });

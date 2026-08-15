@@ -43,7 +43,7 @@ import {
 } from "./types";
 // Import review tools for side effects (registers subagent tool handlers)
 import "../tools/review";
-import type { AsyncJobManager } from "../async";
+import type { AsyncBatchGate, AsyncJobManager } from "../async";
 import { hasResolvableTranscript } from "../internal-urls/registry-helpers";
 import { AgentRegistry } from "../registry/agent-registry";
 import { type DiscoveryResult, discoverAgents } from "./discovery";
@@ -1120,12 +1120,14 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 		let failedCount = 0;
 		const syncResults: SingleResult[] = [];
 		let batchId: string | undefined;
+		let batchGate: AsyncBatchGate | undefined;
 		const ownerId = this.session.getAgentId?.();
 		if (ownerId) {
-			batchId = manager.createBatchGate({
+			batchGate = manager.createBatchGate({
 				ownerId,
 				wakeInterval: this.session.settings.get("async.batchWakeInterval") as "off" | "5m" | "10m" | "20m" | "30m",
-			}).id;
+			});
+			batchId = batchGate.id;
 		}
 		let primaryJobId = asyncSpawns[0].agentId;
 		let syncUsage: Usage | undefined;
@@ -1159,6 +1161,7 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 			try {
 				const jobId = this.#registerSpawnJob({
 					manager,
+					batchGate,
 					toolCallId,
 					spawnParams: spawnParamsFor(params, spawn.item, defaultAgent),
 					agentId: spawn.agentId,
@@ -1326,6 +1329,7 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 	 */
 	#registerSpawnJob(options: {
 		manager: AsyncJobManager;
+		batchGate?: AsyncBatchGate;
 		toolCallId: string;
 		spawnParams: TaskParams;
 		agentId: string;
@@ -1340,6 +1344,7 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 	}): string {
 		const {
 			manager,
+			batchGate,
 			toolCallId,
 			spawnParams,
 			agentId,
@@ -1511,6 +1516,7 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 				agentId,
 				queued: true,
 				ownerId: this.session.getAgentId?.() ?? undefined,
+				batchGate,
 				onProgress: text => {
 					onUpdate?.({ content: [{ type: "text", text }], details: buildDetails() });
 				},
