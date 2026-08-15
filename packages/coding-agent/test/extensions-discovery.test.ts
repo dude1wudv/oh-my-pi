@@ -2,7 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "bun:test";
 import * as fs from "node:fs";
 import * as fsPromises from "node:fs/promises";
 import * as path from "node:path";
-import { type ExtensionModule, extensionModuleCapability } from "@dude1wudv/pi-coding-agent/capability/extension-module";
+import {
+	type ExtensionModule,
+	extensionModuleCapability,
+} from "@dude1wudv/pi-coding-agent/capability/extension-module";
 import { resetSettingsForTest, Settings } from "@dude1wudv/pi-coding-agent/config/settings";
 import { getCapability, initializeWithSettings } from "@dude1wudv/pi-coding-agent/discovery";
 import {

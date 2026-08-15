@@ -1,6 +1,10 @@
 # Changelog
 
-## [Unreleased]
+## [20.1.3] - 2026-08-15
+
+### Fixed
+
+- Restored the `async.maxJobs` settings schema entry so normal, RPC, and ACP sessions no longer crash during startup.
 
 ## [20.1.2] - 2026-08-15
 

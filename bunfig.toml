@@ -2,7 +2,15 @@ telemetry = false
 
 [install]
 minimumReleaseAge = 259200 # 3 days in seconds
-minimumReleaseAgeExcludes = ["@types/bun", "bun-types"]
+minimumReleaseAgeExcludes = [
+  "@types/bun",
+  "bun-types",
+  "@dude1wudv/pi-natives-linux-x64",
+  "@dude1wudv/pi-natives-linux-arm64",
+  "@dude1wudv/pi-natives-darwin-x64",
+  "@dude1wudv/pi-natives-darwin-arm64",
+  "@dude1wudv/pi-natives-win32-x64",
+]
 linker = "hoisted"
 exact = true
 saveTextLockfile = true

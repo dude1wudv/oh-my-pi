@@ -6,7 +6,11 @@ import {
 	preprocessTinyMessage,
 	stripCodeBlocks,
 } from "@dude1wudv/pi-coding-agent/tiny/message-preproc";
-import { isLowSignalTitleInput, NO_TITLE_SENTINEL, normalizeGeneratedTitle } from "@dude1wudv/pi-coding-agent/tiny/text";
+import {
+	isLowSignalTitleInput,
+	NO_TITLE_SENTINEL,
+	normalizeGeneratedTitle,
+} from "@dude1wudv/pi-coding-agent/tiny/text";
 
 describe("stripCodeBlocks", () => {
 	it("drops fenced code blocks but keeps the surrounding prose", () => {

@@ -1,5 +1,11 @@
 import { type Agent, ThinkingLevel } from "@dude1wudv/pi-agent-core";
-import type { Model, ProviderSessionState, ServiceTier, ServiceTierByFamily, ServiceTierFamily } from "@dude1wudv/pi-ai";
+import type {
+	Model,
+	ProviderSessionState,
+	ServiceTier,
+	ServiceTierByFamily,
+	ServiceTierFamily,
+} from "@dude1wudv/pi-ai";
 import {
 	clearAnthropicFastModeFallback,
 	Effort,

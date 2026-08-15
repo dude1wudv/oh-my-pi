@@ -22,7 +22,13 @@ import {
 	resolveTelemetry,
 	type TelemetryHookContext,
 } from "@dude1wudv/pi-agent-core/telemetry";
-import type { AgentContext, AgentEvent, AgentLoopConfig, AgentMessage, AgentTool } from "@dude1wudv/pi-agent-core/types";
+import type {
+	AgentContext,
+	AgentEvent,
+	AgentLoopConfig,
+	AgentMessage,
+	AgentTool,
+} from "@dude1wudv/pi-agent-core/types";
 import type { Message } from "@dude1wudv/pi-ai";
 import { createMockModel } from "@dude1wudv/pi-ai/providers/mock";
 import type { EventStream } from "@dude1wudv/pi-ai/utils/event-stream";

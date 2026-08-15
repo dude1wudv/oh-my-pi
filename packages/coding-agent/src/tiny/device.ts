@@ -1,5 +1,5 @@
-import type { DeviceType } from "@huggingface/transformers";
 import { $env } from "@dude1wudv/pi-utils";
+import type { DeviceType } from "@huggingface/transformers";
 
 export type TinyModelDevice = DeviceType;
 

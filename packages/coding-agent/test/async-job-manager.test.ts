@@ -541,7 +541,9 @@ test("delivers one aggregate wake when a batch completes", async () => {
 	const completions: string[] = [];
 	const wakes: Array<{ reason?: string; statuses: string[] }> = [];
 	const manager = new AsyncJobManager({
-		onJobComplete: async jobId => completions.push(jobId),
+		onJobComplete: async jobId => {
+			completions.push(jobId);
+		},
 	});
 	const gate = manager.createBatchGate({ ownerId: "main", wakeInterval: "off" });
 	manager.registerBatchDeliverySink("main", snapshot => {
@@ -562,7 +564,9 @@ test("wakes immediately on the first failed child and suppresses later child del
 	const wakes: Array<{ reason?: string; pending: string[] }> = [];
 	const release = Promise.withResolvers<void>();
 	const manager = new AsyncJobManager({
-		onJobComplete: async jobId => completions.push(jobId),
+		onJobComplete: async jobId => {
+			completions.push(jobId);
+		},
 	});
 	const gate = manager.createBatchGate({ ownerId: "main", wakeInterval: "off" });
 	manager.registerBatchDeliverySink("main", snapshot => {

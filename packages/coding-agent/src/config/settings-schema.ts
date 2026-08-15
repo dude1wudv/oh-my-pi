@@ -4253,6 +4253,11 @@ export const SETTINGS_SCHEMA = {
 			],
 		},
 	},
+
+	"async.maxJobs": {
+		type: "number",
+		default: 100,
+	},
 	"async.pollWaitDuration": {
 		type: "enum",
 		values: ["5s", "10s", "30s", "1m", "5m", "smart"] as const,

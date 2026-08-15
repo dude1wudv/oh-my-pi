@@ -657,19 +657,18 @@ export function __getLegacyPiBundledModulesGlobal(): string {
 }
 
 // Canonical scope for in-process pi packages. Plugins published against any of
-// the aliased scopes below (mariozechner's original publish, earendil-works'
-// fork, or the canonical @oh-my-pi scope itself) are remapped to this scope and
-// resolved against the bundled copy that ships inside the omp binary. This
-// keeps plugins running against the exact runtime state of the host (single
-// module registry, single tool registry, etc.) regardless of which historical
-// scope name they happened to declare in their peerDependencies.
-const CANONICAL_PI_SCOPE = "@oh-my-pi";
+// the historical scopes below (mariozechner, earendil-works, and oh-my-pi)
+// are remapped to the current @dude1wudv scope and resolved against the
+// bundled copy that ships inside the omp binary. This keeps plugins running
+// against the exact runtime state of the host (single module registry, single
+// tool registry, etc.) regardless of which scope name they declare in their
+// peerDependencies.
+const CANONICAL_PI_SCOPE = "@dude1wudv";
 
 // Scopes that have historically been used to publish (or alias) the same set
-// of internal pi-* packages. `@oh-my-pi` is intentionally included so direct
-// canonical imports still pass through the same host-bundled package resolution
-// path instead of pulling a duplicate copy from plugin node_modules.
-const PI_SCOPE_ALIASES = ["oh-my-pi", "mariozechner", "earendil-works"] as const;
+// of internal pi-* packages. `@dude1wudv` is the current package scope;
+// historical scopes remain accepted so installed plugins keep working.
+const PI_SCOPE_ALIASES = ["dude1wudv", "oh-my-pi", "mariozechner", "earendil-works"] as const;
 
 // Internal pi-* package basenames bundled inside the omp binary.
 const PI_PACKAGE_NAMES = ["pi-agent-core", "pi-ai", "pi-coding-agent", "pi-natives", "pi-tui", "pi-utils"] as const;

@@ -3,7 +3,11 @@ import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
 import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
-import { loadSkills, resetActiveSkillsForTests, setActiveSkills } from "@dude1wudv/pi-coding-agent/extensibility/skills";
+import {
+	loadSkills,
+	resetActiveSkillsForTests,
+	setActiveSkills,
+} from "@dude1wudv/pi-coding-agent/extensibility/skills";
 import { parseInternalUrl } from "@dude1wudv/pi-coding-agent/internal-urls/parse";
 import { SkillProtocolHandler } from "@dude1wudv/pi-coding-agent/internal-urls/skill-protocol";
 import type { ToolSession } from "@dude1wudv/pi-coding-agent/tools";

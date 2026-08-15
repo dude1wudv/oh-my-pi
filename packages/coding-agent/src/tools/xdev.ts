@@ -28,7 +28,12 @@
  * known and provably does not target `xd://`; device writes then delegate to
  * the wrapped tool's own renderer with the decoded inner args.
  */
-import type { AgentToolContext, AgentToolResult, AgentToolUpdateCallback, ToolLoadMode } from "@dude1wudv/pi-agent-core";
+import type {
+	AgentToolContext,
+	AgentToolResult,
+	AgentToolUpdateCallback,
+	ToolLoadMode,
+} from "@dude1wudv/pi-agent-core";
 import { type Tool as AiTool, jsonSchemaToTypeScript, toolWireSchema, validateToolArguments } from "@dude1wudv/pi-ai";
 import { type Component, Container, Text } from "@dude1wudv/pi-tui";
 import { parseStreamingJson } from "@dude1wudv/pi-utils";

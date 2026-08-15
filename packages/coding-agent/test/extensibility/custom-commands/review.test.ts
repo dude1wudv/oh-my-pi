@@ -236,7 +236,9 @@ describe("ReviewCommand", () => {
 			expect(result).toBeDefined();
 			const promptText = result!;
 			expect(promptText).toContain("Spawn **2 reviewer agents** in parallel");
-			expect(promptText).toContain("After every parallel reviewer settles, dispatch exactly **1 additional reviewer task** marked `FINAL VALIDATION`");
+			expect(promptText).toContain(
+				"After every parallel reviewer settles, dispatch exactly **1 additional reviewer task** marked `FINAL VALIDATION`",
+			);
 			expect(promptText).toContain("MUST NOT run project-wide or large-scale tests, builds, or validation gates");
 		} finally {
 			jjRepoSpy.mockRestore();

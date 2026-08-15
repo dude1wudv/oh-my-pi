@@ -4,7 +4,10 @@ import type { Model } from "@dude1wudv/pi-ai";
 import { buildModel } from "@dude1wudv/pi-catalog/build";
 import type { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry";
 import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
-import { ModelPickerComponent, type ModelPickerOptions } from "@dude1wudv/pi-coding-agent/modes/components/model-picker";
+import {
+	ModelPickerComponent,
+	type ModelPickerOptions,
+} from "@dude1wudv/pi-coding-agent/modes/components/model-picker";
 import { resolveSegmentPalette } from "@dude1wudv/pi-coding-agent/modes/components/segment-track";
 import { getThemeByName, setThemeInstance, theme } from "@dude1wudv/pi-coding-agent/modes/theme/theme";
 import type { ResolvedRoleModel } from "@dude1wudv/pi-coding-agent/session/agent-session";
