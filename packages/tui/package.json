@@ -1,7 +1,7 @@
 {
 	"type": "module",
 	"name": "@dude1wudv/pi-tui",
-	"version": "20.1.2",
+	"version": "20.1.3",
 	"description": "Terminal User Interface library with differential rendering for efficient text-based applications",
 	"homepage": "https://omp.sh",
 	"author": "Can Boluk",

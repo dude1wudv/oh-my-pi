@@ -1,7 +1,7 @@
 {
 	"type": "module",
 	"name": "@dude1wudv/pi-coding-agent",
-	"version": "20.1.2",
+	"version": "20.1.3",
 	"description": "Coding agent CLI with read, bash, edit, write tools and session management",
 	"homepage": "https://omp.sh",
 	"author": "Can Boluk",
