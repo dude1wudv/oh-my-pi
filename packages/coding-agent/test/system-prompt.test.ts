@@ -2,6 +2,8 @@ import { describe, expect, it, spyOn } from "bun:test";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
+import { renderOrchestrateNotice } from "../src/modes/orchestrate";
+import { renderWorkflowNotice } from "../src/modes/workflow";
 import { buildSystemPrompt } from "../src/system-prompt";
 
 interface ProbeRunResult {
@@ -232,5 +234,25 @@ describe("non-Linux system prompt CPU model", () => {
 			cpus.mockRestore();
 			Object.defineProperty(process, "platform", { value: originalPlatform });
 		}
+	});
+});
+
+describe("passive async batch prompt contract", () => {
+	it("renders periodic re-arm and no-polling guidance without repeat-wait instructions", () => {
+		const rendered = [
+			renderOrchestrateNotice({ tools: ["task", "hub", "bash", "todo"] }),
+			renderWorkflowNotice({ taskBatch: true, scoutAvailable: true }),
+		].join("\n");
+
+		expect(rendered).toContain("defaults to `20m`");
+		expect(rendered).toContain("periodic aggregate");
+		expect(rendered).toContain("re-arms the timer");
+		expect(rendered).toContain("No polling needed");
+		expect(rendered).toContain("first-error");
+		expect(rendered).toContain("all-settled");
+		expect(rendered).not.toContain("repeat `hub wait`");
+		expect(rendered).not.toContain("defaults to `off`");
+		expect(rendered).not.toContain("use only wait/monitor/status operations");
+		expect(rendered).not.toContain("elapsed time alone must trigger");
 	});
 });

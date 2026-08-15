@@ -1187,6 +1187,7 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 		}
 
 		if (started.length === 0 && syncSpawns.length === 0) {
+			if (batchGate) manager.closeBatchGate(batchGate);
 			return {
 				content: [
 					{
@@ -1205,11 +1206,11 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 		const coordinationHint = [
 			started.length === 1
 				? ircEnabled
-					? `DM \`${started[0].agentId}\` via \`hub\` send to coordinate while it runs; use \`hub\` only to inspect (\`jobs\`), wait, or cancel a stuck task.`
-					: `Use \`hub\` to inspect (\`jobs\`), wait, or cancel a stuck task.`
+					? `DM \`${started[0].agentId}\` via \`hub send\` only when explicit coordination is needed; use \`hub cancel\` to stop a stuck task.`
+					: `Use \`hub cancel\` to stop a stuck task.`
 				: ircEnabled
-					? `DM these ids via \`hub\` send to coordinate while they run; use \`hub\` only to inspect (\`jobs\`), wait, or cancel a stuck task.`
-					: `Use \`hub\` to inspect (\`jobs\`), wait, or cancel a stuck task by id.`,
+					? `DM these ids via \`hub send\` only when explicit coordination is needed; use \`hub cancel\` to stop a stuck task.`
+					: `Use \`hub cancel\` to stop a stuck task by id.`,
 			taskAsyncContractTemplate.trim(),
 		].join("\n");
 
@@ -1224,7 +1225,7 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 					content: [
 						{
 							type: "text",
-							text: `Spawned agent \`${agentId}\` (job \`${jobId}\`). Its result auto-delivers on yield unless a settled \`hub jobs\`/\`wait\` snapshot consumes it first. ${coordinationHint}`,
+							text: `Spawned agent \`${agentId}\` (job \`${jobId}\`). The runtime owns passive batch waiting and will deliver aggregate wake messages. ${coordinationHint}`,
 						},
 					],
 					details: buildAsyncDetails(),
@@ -1239,7 +1240,7 @@ export class TaskTool implements AgentTool<TaskToolSchemaInstance, TaskToolDetai
 				content: [
 					{
 						type: "text",
-						text: `Spawned ${started.length} background agents using ${agentLabel}.${scheduleFailureSummary} Each result auto-delivers on yield unless a settled \`hub jobs\`/\`wait\` snapshot consumes it first.\n${startedListing}\n${coordinationHint}`,
+						text: `Spawned ${started.length} background agents using ${agentLabel}.${scheduleFailureSummary} The runtime owns passive batch waiting and will deliver aggregate wake messages.\n${startedListing}\n${coordinationHint}`,
 					},
 				],
 				details: buildAsyncDetails(),

@@ -4,9 +4,9 @@ Settle barrier: when the next phase or synthesis depends on the full batch, wait
 
 Intermediate async results update internal collection state only. During `WAIT_ALL`, do not read partial `agent://`/`history://` artifacts, repeat same-domain exploration, or emit repeated partial summaries. After collection, read `agent://<id>` artifacts, use `history://<id>` only when process evidence is needed, deduplicate claims, and then synthesize once.
 
-`hub wait` is a FIRST-event operation, not a full-batch barrier. Repeat it or use an equivalent all-settled operation until every expected id has a terminal status. A settled-job snapshot suppresses duplicate `async-result`; a dispatch preflight failure must be recorded separately and repaired or closed before synthesis.
+Runtime batch gate: first failure, final all-settled, and the configured periodic checkpoint arrive as aggregate resume messages. The runtime re-arms after every non-terminal wake. Do not poll jobs owned by an active batch through coordination tools; if no independent work remains, end the turn and wait passively.
 
-Settled-job inspection: `hub jobs` | `hub wait` delivers its snapshot → no duplicate `async-result`.
+Aggregate delivery is independent of ordinary per-job delivery and cannot be consumed by read-only coordination snapshots.
 
 Job IDs: process memory ~5min after settlement; afterward use agent ID: `hub send`, `agent://<id>`, `history://<id>`.
 

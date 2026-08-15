@@ -109,9 +109,9 @@ Scale: `"find any bugs"` → few finders, single-vote verify. `"thoroughly audit
  - Decompose surface first; multi-phase work: capture in `todo`.
  - Agent output branched on → prefer a valid JSON Schema object via `schema=`; validate the schema shape before dispatch. A failed dispatch/preflight is a dispatch failure, not a subagent result; record it and either retry with a valid schema or classify it as failed before the result barrier.
  - Fan-out return: YOU own correctness — read artifacts, gate, verify before action. Subagents do legwork, not final word.
- - If Main has no independent, necessary work after dispatch, stop active exploration and wait for the full result barrier rather than inventing work or repeating summaries. During `WAIT_ALL`, do not read `agent://`/`history://` artifacts and do not perform same-domain read/grep/search; only update internal status and wait/monitor.
- - A single returned result updates internal state but does not advance a phase that depends on all results. Collect success, failure, cancellation, and timeout before synthesis or advancement. Because `hub wait` is FIRST-event, repeat it or use an equivalent all-settled barrier until every dispatched subagent has a terminal status.
- - Continue until closed; returned fan-out is a step, not endpoint.
+ - If Main has no independent, necessary work after dispatch, stop active exploration and end the turn so the runtime can park Main at the full result barrier. During `WAIT_ALL`, do not read `agent://`/`history://` artifacts or perform same-domain read/grep/search; only process real failure/blocker or runtime aggregate wake state.
+ - A single returned result updates internal state but does not advance a phase that depends on all results. Collect success, failure, cancellation, and timeout before synthesis or advancement. The runtime owns active batches: default 20m periodic aggregate wakes, immediate first-error and final all-settled wakes, with the timer re-armed after each non-terminal delivery. No polling needed.
+ - A periodic wake without a real failure or blocker ends by returning to passive waiting. Elapsed time alone must never trigger a coordination message.
  - Default output policy: do not emit repeated partial summaries when subagents wake Main. Synthesize and output once after all required results are collected, unless the user requests progress or an immediate failure/blocker requires intervention.
 </execution>
 </system-notice>

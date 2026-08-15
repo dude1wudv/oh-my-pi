@@ -39,6 +39,7 @@ function createSession(
 		settings?: Record<string, unknown>;
 		agentId?: string;
 		planMode?: boolean;
+		planReferencePath?: string;
 	} = {},
 ): ToolSession {
 	return {
@@ -48,6 +49,7 @@ function createSession(
 		getSessionFile: () => null,
 		getSessionSpawns: () => "*",
 		getAgentId: () => options.agentId ?? null,
+		getPlanReferencePath: () => options.planReferencePath ?? "",
 		getPlanModeState: options.planMode ? () => ({ enabled: true }) : undefined,
 		asyncJobManager: options.manager,
 	} as unknown as ToolSession;
@@ -384,6 +386,36 @@ describe("task.batch spawning", () => {
 		expect(byId.get("Beta")?.outputSchemaMode).toBe("permissive");
 		expect(seen.map(spawn => spawn.assignment).sort()).toEqual(["Do A.", "Do B."]);
 		for (const spawn of seen) expect(spawn.parentAgentId).toBe("ParentA");
+	});
+
+	it("treats a historical false outputSchema as no caller schema", async () => {
+		mockDiscovery({
+			...taskAgent,
+			output: { type: "object", properties: { agentOutput: { type: "string" } } },
+		});
+		const seen: Array<{ outputSchema?: unknown; outputSchemaSource?: string }> = [];
+		vi.spyOn(executorModule, "runSubprocess").mockImplementation(async options => {
+			seen.push({ outputSchema: options.outputSchema, outputSchemaSource: options.outputSchemaSource });
+			return makeResult(options.id ?? "?");
+		});
+
+		const manager = createManager();
+		const tool = await TaskTool.create(
+			createSession({ manager, settings: { "async.enabled": true, "task.batch": true } }),
+		);
+		const result = await tool.execute("tc-false-schema", {
+			context: "Shared background.",
+			tasks: [{ name: "Legacy", task: "Do work.", outputSchema: false }],
+		} as TaskParams);
+
+		expect(getFirstText(result)).toContain("Spawned agent `Legacy`");
+		await manager.getJob("Legacy")!.promise;
+		expect(seen).toEqual([
+			{
+				outputSchemaSource: "agent",
+				outputSchema: { type: "object", properties: { agentOutput: { type: "string" } } },
+			},
+		]);
 	});
 
 	it("routes each mixed-agent item through its selected definition while preserving caller overrides", async () => {

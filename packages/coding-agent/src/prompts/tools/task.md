@@ -5,7 +5,9 @@ Agents marked BLOCKING run inline — results return in this call; non-blocking 
 {{#if asyncEnabled}}
 
 # Async Job Contract
-- Results auto-deliver. A settled `hub jobs`/`hub wait` snapshot is the delivery; no duplicate `async-result` follows.
+- No polling needed. The runtime owns active task batches and parks Main after a task-only async response.
+- Default wake cadence: 20m periodic aggregate status, plus immediate first-error and final all-settled wakes. Every non-terminal aggregate wake re-arms the timer from delivery; elapsed time alone is never a reason to message or chase pending agents.
+- User messages, cancellation, and safety events may interrupt passive waiting immediately. Read-only job snapshots do not consume or replace the independent batch aggregate.
 - Job IDs are process-local and expire roughly five minutes after settlement. Afterward, use the agent ID with `hub send`, `agent://<id>`, or `history://<id>`.
 - `completed` means successful yield/job exit, not artifact acceptance. Verify claimed changes.
 {{/if}}

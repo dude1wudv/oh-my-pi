@@ -1,4 +1,4 @@
-import { describe, expect, test } from "bun:test";
+import { describe, expect, test, vi } from "bun:test";
 import { scheduler } from "node:timers/promises";
 import { AsyncJobManager } from "@dude1wudv/pi-coding-agent/async/job-manager";
 
@@ -539,7 +539,7 @@ describe("AsyncJobManager", () => {
 });
 test("delivers one aggregate wake when a batch completes", async () => {
 	const completions: string[] = [];
-	const wakes: Array<{ reason?: string; statuses: string[] }> = [];
+	const wakes: Array<{ generation: number; reason?: string; statuses: string[] }> = [];
 	const manager = new AsyncJobManager({
 		onJobComplete: async jobId => {
 			completions.push(jobId);
@@ -547,57 +547,138 @@ test("delivers one aggregate wake when a batch completes", async () => {
 	});
 	const gate = manager.createBatchGate({ ownerId: "main", wakeInterval: "off" });
 	manager.registerBatchDeliverySink("main", snapshot => {
-		wakes.push({ reason: snapshot.reason, statuses: snapshot.jobs.map(job => job.status) });
+		wakes.push({
+			generation: snapshot.generation,
+			reason: snapshot.reason,
+			statuses: snapshot.jobs.map(job => job.status),
+		});
 	});
-	manager.register("task", "one", async () => "one done", { ownerId: "main", batchGate: gate });
+	const firstId = manager.register("task", "one", async () => "one done", {
+		ownerId: "main",
+		batchGate: gate,
+	});
 	manager.register("task", "two", async () => "two done", { ownerId: "main", batchGate: gate });
 
+	expect(manager.isJobInActiveBatch(firstId)).toBe(true);
 	await manager.waitForAll();
 	await manager.drainDeliveries({ timeoutMs: 2_000 });
 
-	expect(wakes).toEqual([{ reason: "all-settled", statuses: ["completed", "completed"] }]);
+	expect(wakes).toEqual([{ generation: 1, reason: "all-settled", statuses: ["completed", "completed"] }]);
+	expect(manager.isJobInActiveBatch(firstId)).toBe(false);
 	expect(completions).toEqual([]);
 });
 
-test("wakes immediately on the first failed child and suppresses later child deliveries", async () => {
-	const completions: string[] = [];
-	const wakes: Array<{ reason?: string; pending: string[] }> = [];
+test("uses a 20m default timer and rearms periodic batch wakes", () => {
+	vi.useFakeTimers();
+	try {
+		const wakes: Array<{ generation: number; reason?: string }> = [];
+		const manager = new AsyncJobManager({ onJobComplete: async () => {} });
+		const gate = manager.createBatchGate({ ownerId: "main" });
+		manager.registerBatchDeliverySink("main", snapshot => {
+			wakes.push({ generation: snapshot.generation, reason: snapshot.reason });
+		});
+
+		expect(gate.wakeIntervalMs).toBe(1_200_000);
+		vi.advanceTimersByTime(1_199_999);
+		expect(wakes).toEqual([]);
+		vi.advanceTimersByTime(1);
+		expect(wakes).toEqual([{ generation: 1, reason: "timer" }]);
+		vi.advanceTimersByTime(1_200_000);
+		expect(wakes).toEqual([
+			{ generation: 1, reason: "timer" },
+			{ generation: 2, reason: "timer" },
+		]);
+
+		manager.closeBatchGate(gate);
+		vi.advanceTimersByTime(1_200_000);
+		expect(wakes).toHaveLength(2);
+	} finally {
+		vi.useRealTimers();
+	}
+});
+
+test("wakes on first error, rearms, then wakes again when all children settle", async () => {
+	vi.useFakeTimers();
+	try {
+		const wakes: Array<{ generation: number; reason?: string; pending: string[]; newlySettled: string[] }> = [];
+		const release = Promise.withResolvers<void>();
+		const manager = new AsyncJobManager({ onJobComplete: async () => {} });
+		const gate = manager.createBatchGate({ ownerId: "main", wakeInterval: 100 });
+		manager.registerBatchDeliverySink("main", snapshot => {
+			wakes.push({
+				generation: snapshot.generation,
+				reason: snapshot.reason,
+				pending: snapshot.pendingJobIds,
+				newlySettled: snapshot.newSettledJobIds,
+			});
+		});
+		const failedId = manager.register(
+			"task",
+			"fails",
+			async () => {
+				throw new Error("child failed");
+			},
+			{ ownerId: "main", batchGate: gate },
+		);
+		const laterId = manager.register(
+			"task",
+			"later",
+			async () => {
+				await release.promise;
+				return "later done";
+			},
+			{ ownerId: "main", batchGate: gate },
+		);
+
+		await Promise.resolve();
+		await Promise.resolve();
+		expect(wakes).toEqual([{ generation: 1, reason: "first-error", pending: [laterId], newlySettled: [failedId] }]);
+		vi.advanceTimersByTime(99);
+		expect(wakes).toHaveLength(1);
+		vi.advanceTimersByTime(1);
+		expect(wakes[1]).toEqual({ generation: 2, reason: "timer", pending: [laterId], newlySettled: [] });
+
+		release.resolve();
+		await Promise.resolve();
+		await Promise.resolve();
+		expect(wakes[2]).toEqual({
+			generation: 3,
+			reason: "all-settled",
+			pending: [],
+			newlySettled: [laterId],
+		});
+		vi.advanceTimersByTime(100);
+		expect(wakes).toHaveLength(3);
+	} finally {
+		vi.useRealTimers();
+	}
+});
+
+test("prioritizes all-settled when the final child fails", async () => {
+	const wakes: Array<{ generation: number; reason?: string }> = [];
 	const release = Promise.withResolvers<void>();
-	const manager = new AsyncJobManager({
-		onJobComplete: async jobId => {
-			completions.push(jobId);
-		},
-	});
+	const manager = new AsyncJobManager({ onJobComplete: async () => {} });
 	const gate = manager.createBatchGate({ ownerId: "main", wakeInterval: "off" });
 	manager.registerBatchDeliverySink("main", snapshot => {
-		wakes.push({ reason: snapshot.reason, pending: snapshot.pendingJobIds });
+		wakes.push({ generation: snapshot.generation, reason: snapshot.reason });
 	});
+	manager.register("task", "first", async () => "done", { ownerId: "main", batchGate: gate });
 	manager.register(
 		"task",
-		"fails",
-		async () => {
-			throw new Error("child failed");
-		},
-		{ ownerId: "main", batchGate: gate },
-	);
-	const laterJobId = manager.register(
-		"task",
-		"later",
+		"last failure",
 		async () => {
 			await release.promise;
-			return "later done";
+			throw new Error("last failed");
 		},
 		{ ownerId: "main", batchGate: gate },
 	);
 
-	await scheduler.yield();
-	expect(wakes).toEqual([{ reason: "first-error", pending: [laterJobId] }]);
+	await Promise.resolve();
+	await Promise.resolve();
+	expect(wakes).toEqual([]);
 	release.resolve();
 	await manager.waitForAll();
-	await manager.drainDeliveries({ timeoutMs: 2_000 });
-
-	expect(wakes).toHaveLength(1);
-	expect(completions).toEqual([]);
+	expect(wakes).toEqual([{ generation: 1, reason: "all-settled" }]);
 });
 
 describe("AsyncJobManager smart poll-wait escalation", () => {

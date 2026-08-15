@@ -362,10 +362,24 @@ export class HubTool implements AgentTool<typeof hubSchema, HubDetails> {
 		if (manager && ids?.length && jobsToWatch.length === 0) {
 			return noMatchingJobsResult(this.session, ids);
 		}
-		const runningJobs = jobsToWatch.filter(j => j.status === "running");
+		const runningJobs = jobsToWatch.filter(job => job.status === "running");
 		if (manager && jobsToWatch.length > 0 && runningJobs.length === 0) {
 			// Every explicitly watched job already settled — immediate snapshot.
 			return buildJobResult(this.session, manager, "wait", jobsToWatch, []);
+		}
+		const ungatedRunningJobs = manager ? runningJobs.filter(job => !manager.isJobInActiveBatch(job.id)) : runningJobs;
+		if (manager && runningJobs.length > 0 && ungatedRunningJobs.length === 0) {
+			const snapshot = buildJobResult(this.session, manager, "wait", jobsToWatch, []);
+			return {
+				...snapshot,
+				content: [
+					{
+						type: "text",
+						text: `Runtime owns this async task batch; no polling is needed.\n\n${snapshot.content[0]?.type === "text" ? snapshot.content[0].text : ""}`.trimEnd(),
+					},
+				],
+				useless: true,
+			};
 		}
 
 		if (!manager || runningJobs.length === 0) {
@@ -391,7 +405,7 @@ export class HubTool implements AgentTool<typeof hubSchema, HubDetails> {
 		const windowMs = params.timeoutMs !== undefined ? normalizeIrcTimeoutMs(params.timeoutMs) : window.waitMs;
 		const usedSmartWindow = window.smart && params.timeoutMs === undefined;
 
-		const racePromises: Promise<unknown>[] = runningJobs.map(j => j.promise);
+		const racePromises: Promise<unknown>[] = ungatedRunningJobs.map(job => job.promise);
 
 		// Message leg: park a bus waiter with no timeout of its own — the race
 		// window governs. Cancelled via sentinel so late losers do not reject.
@@ -428,7 +442,7 @@ export class HubTool implements AgentTool<typeof hubSchema, HubDetails> {
 		const timeoutHandle = windowMs > 0 ? setTimeout(() => timeoutResolve(), windowMs) : undefined;
 		if (timeoutHandle) racePromises.push(timeoutPromise);
 
-		const watchedJobIds = runningJobs.map(job => job.id);
+		const watchedJobIds = ungatedRunningJobs.map(job => job.id);
 		manager.watchJobs(watchedJobIds);
 
 		const emitProgress = () => {

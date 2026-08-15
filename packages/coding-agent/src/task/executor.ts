@@ -43,7 +43,7 @@ import { AgentRegistry } from "../registry/agent-registry";
 import { type CreateAgentSessionOptions, createAgentSession, discoverAuthStorage } from "../sdk";
 import type { AgentSession, AgentSessionEvent, Prewalk } from "../session/agent-session";
 import type { ArtifactManager } from "../session/artifacts";
-import { ASYNC_RESULT_MESSAGE_TYPE } from "../session/async-job-delivery";
+import { ASYNC_BATCH_RESULT_MESSAGE_TYPE, ASYNC_RESULT_MESSAGE_TYPE } from "../session/async-job-delivery";
 import type { AuthStorage } from "../session/auth-storage";
 import { SKILL_PROMPT_MESSAGE_TYPE, USER_INTERRUPT_LABEL } from "../session/messages";
 import { SessionManager } from "../session/session-manager";
@@ -998,13 +998,12 @@ interface SubagentRunMonitor {
 	finish(): void;
 }
 
-/**
- * True when `message` is the session-injected async-result follow-up
- * ({@link ASYNC_RESULT_MESSAGE_TYPE}): the transcript-ordered signal that a
- * background job outcome landed after whatever the model said before it.
- */
+/** True when a transcript-ordered async job or aggregate batch outcome was injected after a prior yield. */
 function isAsyncResultInjection(message: AgentMessage | undefined): boolean {
-	return message?.role === "custom" && message.customType === ASYNC_RESULT_MESSAGE_TYPE;
+	return (
+		message?.role === "custom" &&
+		(message.customType === ASYNC_RESULT_MESSAGE_TYPE || message.customType === ASYNC_BATCH_RESULT_MESSAGE_TYPE)
+	);
 }
 
 function createSubagentRunMonitor(args: RunMonitorArgs): SubagentRunMonitor {
@@ -2438,7 +2437,11 @@ export async function finalizeSubagentLifecycle(args: {
 	const cleanupDeadlineAt = args.cleanupDeadlineAt ?? Date.now() + 5000;
 	const disposeSession = async (): Promise<void> => {
 		const disposal = args.session.dispose();
-		const remainingMs = Math.max(0, cleanupDeadlineAt - Date.now());
+		const remainingMs = cleanupDeadlineAt - Date.now();
+		if (remainingMs <= 0) {
+			args.onCleanupDeferred?.(disposal);
+			return;
+		}
 		try {
 			await untilAborted(AbortSignal.timeout(remainingMs), () => disposal);
 		} catch (error) {
@@ -3356,19 +3359,20 @@ export async function runSubprocess(options: ExecutorOptions): Promise<SingleRes
 			}
 			sessionAbortController.abort();
 			const activeSessionAbort = monitor.waitForActiveSessionAbort();
-			try {
-				await untilAborted(
-					AbortSignal.timeout(Math.max(0, cleanupDeadlineAt - Date.now())),
-					() => activeSessionAbort,
-				);
-			} catch (cleanupError) {
-				if (Date.now() >= cleanupDeadlineAt) {
-					deferCleanup(activeSessionAbort);
-				} else {
-					logger.warn("Subagent abort cleanup failed", {
-						id,
-						error: cleanupError instanceof Error ? cleanupError.message : String(cleanupError),
-					});
+			if (Date.now() >= cleanupDeadlineAt) {
+				deferCleanup(activeSessionAbort);
+			} else {
+				try {
+					await untilAborted(AbortSignal.timeout(cleanupDeadlineAt - Date.now()), () => activeSessionAbort);
+				} catch (cleanupError) {
+					if (Date.now() >= cleanupDeadlineAt) {
+						deferCleanup(activeSessionAbort);
+					} else {
+						logger.warn("Subagent abort cleanup failed", {
+							id,
+							error: cleanupError instanceof Error ? cleanupError.message : String(cleanupError),
+						});
+					}
 				}
 			}
 			if (unsubscribe) {

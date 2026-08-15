@@ -9,7 +9,8 @@
  * every completion — regardless of owner — into the first top-level session.
  */
 import { prompt } from "@dude1wudv/pi-utils";
-import type { AsyncJob } from "../async";
+import type { AsyncBatchSnapshot, AsyncJob } from "../async";
+import asyncBatchResultTemplate from "../prompts/tools/async-batch-result.md" with { type: "text" };
 import asyncResultTemplate from "../prompts/tools/async-result.md" with { type: "text" };
 import type { CustomMessage } from "./messages";
 
@@ -19,6 +20,7 @@ import type { CustomMessage } from "./messages";
  * yield: a result injected after the yield supersedes that yield's payload.
  */
 export const ASYNC_RESULT_MESSAGE_TYPE = "async-result";
+export const ASYNC_BATCH_RESULT_MESSAGE_TYPE = "async-batch-result";
 
 /** Result payloads longer than this spill to an artifact with an inline preview. */
 export const ASYNC_INLINE_RESULT_MAX_CHARS = 12_000;
@@ -38,6 +40,15 @@ export interface AsyncResultEntry {
 	 */
 	epoch: number;
 }
+
+export interface AsyncBatchResultEntry {
+	snapshot: AsyncBatchSnapshot;
+	epoch: number;
+}
+
+export type AsyncBatchResultDetails = {
+	snapshots: AsyncBatchSnapshot[];
+};
 
 type AsyncResultJobDetails = {
 	jobId: string;
@@ -77,6 +88,45 @@ export function buildAsyncResultBatchMessage(entries: AsyncResultEntry[]): Custo
 		display: true,
 		attribution: "agent",
 		details,
+		timestamp: Date.now(),
+	};
+}
+
+export function buildAsyncBatchResultMessage(
+	entries: AsyncBatchResultEntry[],
+): CustomMessage<AsyncBatchResultDetails> | null {
+	if (entries.length === 0) return null;
+	const unique = new Map<string, AsyncBatchSnapshot>();
+	for (const entry of entries) {
+		const snapshot = entry.snapshot;
+		unique.set(`${snapshot.gateId}:${snapshot.generation}`, snapshot);
+	}
+	const snapshots = [...unique.values()];
+	const wakes = snapshots.map(snapshot => {
+		const failed = snapshot.jobs.filter(job => job.status === "failed");
+		const formatJob = (job: AsyncBatchSnapshot["jobs"][number]): string => {
+			const detail = job.status === "failed" ? job.errorText : job.resultText;
+			return `- ${job.id}${job.label ? ` (${job.label})` : ""}: ${job.status}${detail ? ` — ${detail}` : ""}`;
+		};
+		return {
+			gateId: snapshot.gateId,
+			generation: snapshot.generation,
+			reason: snapshot.reason,
+			timer: snapshot.reason === "timer",
+			firstError: snapshot.reason === "first-error",
+			allSettled: snapshot.reason === "all-settled",
+			failed: failed.map(formatJob).join("\n"),
+			pending: snapshot.pending.map(formatJob).join("\n"),
+			jobs: snapshot.jobs.map(formatJob).join("\n"),
+		};
+	});
+	return {
+		role: "custom",
+		customType: ASYNC_BATCH_RESULT_MESSAGE_TYPE,
+		content: prompt.render(asyncBatchResultTemplate, { wakes }),
+		display: true,
+		attribution: "agent",
+		details: { snapshots },
 		timestamp: Date.now(),
 	};
 }

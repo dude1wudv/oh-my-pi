@@ -29,13 +29,18 @@ const taskAgent: AgentDefinition = {
 	source: "bundled",
 };
 
-function createSession(options: { manager?: AsyncJobManager; settings?: Record<string, unknown> }): ToolSession {
+function createSession(options: {
+	manager?: AsyncJobManager;
+	settings?: Record<string, unknown>;
+	ownerId?: string;
+}): ToolSession {
 	return {
 		cwd: "/tmp",
 		hasUI: false,
 		settings: Settings.isolated(options.settings ?? {}),
 		getSessionFile: () => null,
 		getSessionSpawns: () => "*",
+		getAgentId: () => options.ownerId,
 		asyncJobManager: options.manager,
 	} as unknown as ToolSession;
 }
@@ -133,6 +138,10 @@ describe("task spawn routing", () => {
 		const jobId = result.details?.async?.jobId;
 		expect(jobId).toBeTruthy();
 		expect(text).toContain(`job \`${jobId}\``);
+		expect(text).toContain("hub cancel");
+		expect(text).not.toContain("hub wait");
+		expect(text).not.toContain("hub jobs");
+		expect(text).not.toContain("consumes it first");
 		const job = manager.getJob(jobId!);
 		expect(job?.status).toBe("running");
 		expect(job?.resultText).toBeUndefined();
@@ -146,6 +155,34 @@ describe("task spawn routing", () => {
 		expect(job!.resultText).toContain("history://Spawnling");
 		expect(runSpy).toHaveBeenCalledTimes(1);
 		expect(runSpy.mock.calls[0]?.[0].modelOverride).toEqual(["openai/gpt-4.1-mini"]);
+	});
+
+	it("closes an empty gate when every async schedule fails", async () => {
+		vi.spyOn(discoveryModule, "discoverAgents").mockResolvedValue({
+			agents: [taskAgent],
+			projectAgentsDir: null,
+		});
+		const manager = new AsyncJobManager({ onJobComplete: () => {}, maxRunningJobs: 1 });
+		managers.push(manager);
+		const blocker = deferred();
+		const blockerId = manager.register("bash", "capacity blocker", async () => {
+			await blocker.promise;
+			return "done";
+		});
+		const tool = await TaskTool.create(createSession({ manager, ownerId: "Main" }));
+
+		const result = await tool.execute("tc-failed", {
+			agent: "task",
+			name: "CannotStart",
+			task: "This cannot schedule.",
+		} as TaskParams);
+		expect(getFirstText(result)).toContain("Failed to start background task job");
+
+		blocker.resolve();
+		await manager.getJob(blockerId)?.promise;
+		const laterId = manager.register("task", "later owner job", async () => "later", { ownerId: "Main" });
+		expect(manager.isJobInActiveBatch(laterId)).toBe(false);
+		await manager.getJob(laterId)?.promise;
 	});
 
 	it("bounds concurrent job bodies with the session spawn semaphore", async () => {

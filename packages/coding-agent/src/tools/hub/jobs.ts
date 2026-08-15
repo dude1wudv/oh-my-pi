@@ -197,7 +197,9 @@ export function buildJobResult(
 	});
 	const jobResults = snapshotJobs(session, uniqueJobs);
 
-	manager.acknowledgeDeliveries(jobResults.filter(j => j.status !== "running").map(j => j.id));
+	manager.acknowledgeDeliveries(
+		jobResults.filter(job => job.status !== "running" && !manager.isJobInActiveBatch(job.id)).map(job => job.id),
+	);
 
 	const completed = jobResults.filter(j => j.status !== "running");
 	const running = jobResults.filter(j => j.status === "running");

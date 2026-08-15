@@ -6,15 +6,20 @@
  * run quiescence the task executor's barrier is built on.
  */
 import { afterEach, describe, expect, it, vi } from "bun:test";
-import { Agent } from "@dude1wudv/pi-agent-core";
+import { type } from "@dude1wudv/omptype";
+import { Agent, type AgentTool } from "@dude1wudv/pi-agent-core";
 import { createMockModel } from "@dude1wudv/pi-ai/providers/mock";
 import { getBundledModel } from "@dude1wudv/pi-catalog/models";
-import { AsyncJobManager } from "@dude1wudv/pi-coding-agent/async";
+import { type AsyncBatchSnapshot, AsyncJobManager } from "@dude1wudv/pi-coding-agent/async";
 import { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry";
 import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
 import type { DaemonCompletionNotification } from "@dude1wudv/pi-coding-agent/launch/protocol";
 import { AgentSession } from "@dude1wudv/pi-coding-agent/session/agent-session";
-import type { AsyncResultEntry } from "@dude1wudv/pi-coding-agent/session/async-job-delivery";
+import {
+	ASYNC_BATCH_RESULT_MESSAGE_TYPE,
+	type AsyncResultEntry,
+	buildAsyncBatchResultMessage,
+} from "@dude1wudv/pi-coding-agent/session/async-job-delivery";
 import { AuthStorage } from "@dude1wudv/pi-coding-agent/session/auth-storage";
 import { convertToLlm } from "@dude1wudv/pi-coding-agent/session/messages";
 import { SessionManager } from "@dude1wudv/pi-coding-agent/session/session-manager";
@@ -392,5 +397,271 @@ describe("AgentSession owner-routed async delivery", () => {
 		await Promise.resolve();
 		expect(flushed).toBe(true);
 		expect(vi.getTimerCount()).toBe(baselineTimers + 1);
+	});
+
+	it("resumes only on an aggregate batch message after all children settle", async () => {
+		const model = getBundledModel("anthropic", "claude-sonnet-4-5")!;
+		const mock = createMockModel({ handler: () => ({ content: ["Done"] }) });
+		const agent = new Agent({
+			getApiKey: () => "test-key",
+			initialState: { model, systemPrompt: ["Test"], tools: [] },
+			convertToLlm,
+			streamFn: mock.stream,
+		});
+		const authStorage = await AuthStorage.create(":memory:");
+		authStorages.push(authStorage);
+		authStorage.setRuntimeApiKey("anthropic", "test-key");
+		const manager = new AsyncJobManager({});
+		AsyncJobManager.setInstance(manager);
+		session = new AgentSession({
+			agent,
+			sessionManager: SessionManager.inMemory(),
+			settings: Settings.isolated(),
+			modelRegistry: new ModelRegistry(authStorage),
+			agentId: "Main",
+			agentKind: "main",
+			asyncJobManager: manager,
+		});
+
+		const release = Promise.withResolvers<void>();
+		const batchGate = manager.createBatchGate({ ownerId: "Main", wakeInterval: "off" });
+		manager.register("task", "first", async () => "first done", {
+			ownerId: "Main",
+			batchGate,
+		});
+		manager.register(
+			"task",
+			"second",
+			async () => {
+				await release.promise;
+				return "second done";
+			},
+			{ ownerId: "Main", batchGate },
+		);
+
+		await Promise.resolve();
+		await Promise.resolve();
+		expect(mock.calls).toHaveLength(0);
+		release.resolve();
+		await session.settleAsyncWork();
+
+		expect(mock.calls).toHaveLength(1);
+		const injected = session.messages.find(
+			message => message.role === "custom" && message.customType === ASYNC_BATCH_RESULT_MESSAGE_TYPE,
+		);
+		expect(injected).toBeDefined();
+		if (injected?.role !== "custom") throw new Error("Expected async batch custom message");
+		expect(injected.content).toContain("Every child is terminal");
+	});
+
+	it("parks Main after a task-only async response without another provider call", async () => {
+		const model = getBundledModel("anthropic", "claude-sonnet-4-5")!;
+		const mock = createMockModel({
+			responses: [
+				{
+					content: [
+						{ type: "toolCall", id: "task-1", name: "task", arguments: {} },
+						{ type: "toolCall", id: "task-2", name: "task", arguments: {} },
+					],
+				},
+				{ content: ["should not be reached"] },
+			],
+		});
+		const asyncTaskTool: AgentTool = {
+			name: "task",
+			label: "Task",
+			description: "Schedule async work",
+			parameters: type({}),
+			execute: async () => ({
+				content: [{ type: "text" as const, text: "scheduled" }],
+				details: { async: { state: "running", type: "task", batchId: "batch_1" } },
+			}),
+		};
+		const agent = new Agent({
+			getApiKey: () => "test-key",
+			initialState: { model, systemPrompt: ["Test"], tools: [asyncTaskTool] },
+			convertToLlm,
+			streamFn: mock.stream,
+		});
+		const authStorage = await AuthStorage.create(":memory:");
+		authStorages.push(authStorage);
+		authStorage.setRuntimeApiKey("anthropic", "test-key");
+		session = new AgentSession({
+			agent,
+			sessionManager: SessionManager.inMemory(),
+			settings: Settings.isolated(),
+			modelRegistry: new ModelRegistry(authStorage),
+			agentId: "Main",
+			agentKind: "main",
+		});
+
+		await session.prompt("dispatch");
+		await session.waitForIdle();
+
+		expect(mock.calls).toHaveLength(1);
+		expect(session.isStreaming).toBe(false);
+	});
+
+	it("does not park a mixed task and non-task response", async () => {
+		const model = getBundledModel("anthropic", "claude-sonnet-4-5")!;
+		const mock = createMockModel({
+			responses: [
+				{
+					content: [
+						{ type: "toolCall", id: "task-1", name: "task", arguments: {} },
+						{ type: "toolCall", id: "read-1", name: "read", arguments: {} },
+					],
+				},
+				{ content: ["continued"] },
+			],
+		});
+		const asyncTaskTool: AgentTool = {
+			name: "task",
+			label: "Task",
+			description: "Schedule async work",
+			parameters: type({}),
+			execute: async () => ({
+				content: [{ type: "text" as const, text: "scheduled" }],
+				details: { async: { state: "running", type: "task", batchId: "batch_1" } },
+			}),
+		};
+		const readTool: AgentTool = {
+			name: "read",
+			label: "Read",
+			description: "Read data",
+			parameters: type({}),
+			execute: async () => ({ content: [{ type: "text" as const, text: "read" }] }),
+		};
+		const agent = new Agent({
+			getApiKey: () => "test-key",
+			initialState: { model, systemPrompt: ["Test"], tools: [asyncTaskTool, readTool] },
+			convertToLlm,
+			streamFn: mock.stream,
+		});
+		const authStorage = await AuthStorage.create(":memory:");
+		authStorages.push(authStorage);
+		authStorage.setRuntimeApiKey("anthropic", "test-key");
+		session = new AgentSession({
+			agent,
+			sessionManager: SessionManager.inMemory(),
+			settings: Settings.isolated(),
+			modelRegistry: new ModelRegistry(authStorage),
+			agentId: "Main",
+			agentKind: "main",
+		});
+
+		await session.prompt("dispatch and read");
+		await session.waitForIdle();
+
+		expect(mock.calls).toHaveLength(2);
+		expect(session.getLastAssistantMessage()?.content).toEqual([{ type: "text", text: "continued" }]);
+	});
+
+	it("coalesces ordered batch generations without dropping error or terminal wakes", () => {
+		const failedJob = {
+			id: "job-failed",
+			type: "task" as const,
+			status: "failed" as const,
+			startTime: 1,
+			label: "failed child",
+			errorText: "boom",
+		};
+		const pendingJob = {
+			id: "job-pending",
+			type: "task" as const,
+			status: "running" as const,
+			startTime: 1,
+			label: "pending child",
+		};
+		const firstError: AsyncBatchSnapshot = {
+			gateId: "batch_1",
+			ownerId: "Main",
+			generation: 1,
+			reason: "first-error",
+			allSettled: false,
+			jobs: [failedJob, pendingJob],
+			settled: [failedJob],
+			pending: [pendingJob],
+			settledJobIds: [failedJob.id],
+			pendingJobIds: [pendingJob.id],
+			newSettledJobIds: [failedJob.id],
+			createdAt: 1,
+			observedAt: 2,
+		};
+		const completedJob = { ...pendingJob, status: "completed" as const, resultText: "done" };
+		const allSettled: AsyncBatchSnapshot = {
+			...firstError,
+			generation: 2,
+			reason: "all-settled",
+			allSettled: true,
+			jobs: [failedJob, completedJob],
+			settled: [failedJob, completedJob],
+			pending: [],
+			settledJobIds: [failedJob.id, completedJob.id],
+			pendingJobIds: [],
+			newSettledJobIds: [completedJob.id],
+			observedAt: 3,
+		};
+
+		const message = buildAsyncBatchResultMessage([
+			{ snapshot: firstError, epoch: 0 },
+			{ snapshot: firstError, epoch: 0 },
+			{ snapshot: allSettled, epoch: 0 },
+		]);
+
+		expect(message?.details?.snapshots.map((snapshot: AsyncBatchSnapshot) => snapshot.reason)).toEqual([
+			"first-error",
+			"all-settled",
+		]);
+		expect(message?.content).toContain("The first child failure arrived");
+		expect(message?.content).toContain("Every child is terminal");
+	});
+
+	it("does not park when any task result fails the async running contract", async () => {
+		const model = getBundledModel("anthropic", "claude-sonnet-4-5")!;
+		const mock = createMockModel({
+			responses: [
+				{
+					content: [
+						{ type: "toolCall", id: "task-ok", name: "task", arguments: {} },
+						{ type: "toolCall", id: "task-error", name: "task", arguments: {} },
+					],
+				},
+				{ content: ["continued after task error"] },
+			],
+		});
+		const asyncTaskTool: AgentTool = {
+			name: "task",
+			label: "Task",
+			description: "Schedule async work",
+			parameters: type({}),
+			execute: async toolCallId => ({
+				content: [{ type: "text" as const, text: toolCallId }],
+				details: { async: { state: "running", type: "task", batchId: "batch_1" } },
+				isError: toolCallId === "task-error",
+			}),
+		};
+		const agent = new Agent({
+			getApiKey: () => "test-key",
+			initialState: { model, systemPrompt: ["Test"], tools: [asyncTaskTool] },
+			convertToLlm,
+			streamFn: mock.stream,
+		});
+		const authStorage = await AuthStorage.create(":memory:");
+		authStorages.push(authStorage);
+		authStorage.setRuntimeApiKey("anthropic", "test-key");
+		session = new AgentSession({
+			agent,
+			sessionManager: SessionManager.inMemory(),
+			settings: Settings.isolated(),
+			modelRegistry: new ModelRegistry(authStorage),
+			agentId: "Main",
+			agentKind: "main",
+		});
+
+		await session.prompt("dispatch");
+		await session.waitForIdle();
+
+		expect(mock.calls).toHaveLength(2);
 	});
 });

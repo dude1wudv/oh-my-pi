@@ -83,16 +83,18 @@ export function repairDoubleEncodedJsonString(value: string): string {
 function repairTaskItem(item: TaskItem): TaskItem {
 	if (item === null || typeof item !== "object") return item;
 	const task = typeof item.task === "string" ? repairDoubleEncodedJsonString(item.task) : item.task;
-	if (task === item.task) return item;
+	if (task === item.task && item.outputSchema !== false) return item;
+	if (item.outputSchema === false) {
+		const { outputSchema: _ignored, ...withoutSchema } = item;
+		return task === item.task ? withoutSchema : { ...withoutSchema, task };
+	}
 	return { ...item, task };
 }
 
 /**
- * Repair double-encoded prose in task-tool params (flat `task`, shared
- * `context`, and each batch task item's `task`). Returns the same reference
- * when nothing changed so callers can cheaply skip work. Defensive against
- * partially-streamed args (missing/undefined fields, partial task arrays) so
- * it is safe on the render path as well as on execution.
+ * Repair double-encoded prose and normalize the historical `outputSchema:false`
+ * sentinel. False means "no schema" at the task-tool boundary; retaining it as
+ * a caller schema makes the structured-subagent preflight reject every output.
  */
 export function repairTaskParams(params: TaskParams): TaskParams {
 	if (params === null || typeof params !== "object") return params;
@@ -111,8 +113,12 @@ export function repairTaskParams(params: TaskParams): TaskParams {
 		if (changed) tasks = repaired;
 	}
 
-	if (task === params.task && context === params.context && tasks === params.tasks) {
+	if (task === params.task && context === params.context && tasks === params.tasks && params.outputSchema !== false) {
 		return params;
+	}
+	if (params.outputSchema === false) {
+		const { outputSchema: _ignored, ...withoutSchema } = params;
+		return { ...withoutSchema, task, context, tasks };
 	}
 	return { ...params, task, context, tasks };
 }

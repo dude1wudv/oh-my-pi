@@ -4237,7 +4237,7 @@ export const SETTINGS_SCHEMA = {
 	"async.batchWakeInterval": {
 		type: "enum",
 		values: ["off", "5m", "10m", "20m", "30m"] as const,
-		default: "off",
+		default: "20m",
 		ui: {
 			tab: "tools",
 			group: "Execution",

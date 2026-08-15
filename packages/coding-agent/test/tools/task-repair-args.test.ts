@@ -89,4 +89,16 @@ describe("repairTaskParams", () => {
 		};
 		expect(repairTaskParams(params)).toBe(params);
 	});
+
+	it("removes the historical false outputSchema sentinel", () => {
+		const params: TaskParams = {
+			task: "Do work.",
+			outputSchema: false,
+			tasks: [{ task: "Batch work.", outputSchema: false }],
+		};
+
+		const repaired = repairTaskParams(params);
+		expect(Object.hasOwn(repaired, "outputSchema")).toBe(false);
+		expect(Object.hasOwn(repaired.tasks?.[0] ?? {}, "outputSchema")).toBe(false);
+	});
 });

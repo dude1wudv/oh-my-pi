@@ -106,8 +106,9 @@ export interface SubagentLifecyclePayload {
 /** Display cap for a normalized one-line label (roster line, registry `displayName`, prompt field). */
 export const LABEL_MAX = 80;
 
-// Keep this explicit: ArkType serializes `unknown` as a boolean subschema, which llama.cpp grammars reject.
-const outputSchemaInputSchema = type("object | boolean | string | null");
+// `false` was a historical unconstrained-schema sentinel. Normalize it at the
+// task boundary for stale calls, but do not advertise it to new model calls.
+const outputSchemaInputSchema = type("object | string | null");
 // Coarse per-spawn thinking effort; must stay in sync with TASK_EFFORTS in ../thinking.
 const effortRule = '"lo" | "med" | "hi"' as const;
 

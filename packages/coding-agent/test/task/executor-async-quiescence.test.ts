@@ -52,6 +52,7 @@ interface AsyncQuiescenceHarness {
 interface AsyncSessionOptions {
 	abort?: () => Promise<void>;
 	dispose?: () => Promise<void>;
+	asyncMessageType?: "async-result" | "async-batch-result";
 }
 
 /**
@@ -100,7 +101,7 @@ function createAsyncSession(
 			type: "message_start",
 			message: {
 				role: "custom",
-				customType: "async-result",
+				customType: options.asyncMessageType ?? "async-result",
 				content: "<system-notice>Background job job-1 has completed.\nexit 1: build FAILED</system-notice>",
 				display: true,
 				attribution: "agent",
@@ -216,6 +217,33 @@ describe("runSubprocess async quiescence fresh-yield contract", () => {
 		// The fresh yield — not the stale one — is the result of record.
 		expect(result.exitCode).toBe(0);
 		expect(result.output).toContain("FRESH: build failed");
+		expect(result.output).not.toContain("STALE");
+	});
+
+	it("invalidates a stale yield when an aggregate batch result arrives", async () => {
+		const harness = createAsyncSession(
+			({ promptIndex, harness: h }) => {
+				if (promptIndex === 1) {
+					h.emitTerminalYield({ report: "STALE: batch pending" });
+					return;
+				}
+				if (promptIndex === 3) h.emitTerminalYield({ report: "FRESH: aggregate accepted" });
+			},
+			{ asyncMessageType: "async-batch-result" },
+		);
+		mockCreateAgentSession(harness.session);
+
+		const result = await runSubprocess({
+			cwd: "/tmp",
+			agent: baseAgent,
+			task: "do the work",
+			index: 0,
+			id: "quiescence-aggregate-yield",
+		});
+
+		expect(harness.prompts).toHaveLength(3);
+		expect(result.exitCode).toBe(0);
+		expect(result.output).toContain("FRESH: aggregate accepted");
 		expect(result.output).not.toContain("STALE");
 	});
 

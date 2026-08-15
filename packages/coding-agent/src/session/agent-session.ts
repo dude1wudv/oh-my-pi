@@ -237,10 +237,13 @@ import type {
 	UsageFallbackConfirmer,
 } from "./agent-session-types";
 import {
+	ASYNC_BATCH_RESULT_MESSAGE_TYPE,
 	ASYNC_INLINE_RESULT_MAX_CHARS,
 	ASYNC_PREVIEW_MAX_CHARS,
 	ASYNC_RESULT_MESSAGE_TYPE,
+	type AsyncBatchResultEntry,
 	type AsyncResultEntry,
+	buildAsyncBatchResultMessage,
 	buildAsyncResultBatchMessage,
 } from "./async-job-delivery";
 import { BashRunner, type BashRunnerHost } from "./bash-runner";
@@ -560,6 +563,8 @@ export class AgentSession {
 	 * across a `/new` is dropped regardless of job-id reuse.
 	 */
 	#asyncDeliveryEpoch = 0;
+	/** Successful async task completions observed within each assistant tool-call batch. */
+	#asyncTaskBatchCompletions = new WeakMap<AssistantMessage, Map<string, boolean>>();
 
 	readonly #irc: IrcBridge;
 	#ircWakeTurnObserver:
@@ -1369,11 +1374,15 @@ export class AgentSession {
 				this.#deliverAsyncJobResult(manager, jobId, text, job),
 			);
 			this.#unregisterAsyncBatchDeliverySink = manager.registerBatchDeliverySink(this.#agentId, snapshot =>
-				this.#deliverAsyncBatchResult(manager, snapshot),
+				this.#deliverAsyncBatchResult(snapshot),
 			);
-			this.yieldQueue.register<AsyncResultEntry>("async-result", {
+			this.yieldQueue.register<AsyncResultEntry>(ASYNC_RESULT_MESSAGE_TYPE, {
 				isStale: entry => entry.epoch !== this.#asyncDeliveryEpoch || manager.isDeliverySuppressed(entry.jobId),
 				build: buildAsyncResultBatchMessage,
+			});
+			this.yieldQueue.register<AsyncBatchResultEntry>(ASYNC_BATCH_RESULT_MESSAGE_TYPE, {
+				isStale: entry => entry.epoch !== this.#asyncDeliveryEpoch,
+				build: buildAsyncBatchResultMessage,
 			});
 		}
 		this.agent.setAssistantMessageEventInterceptor((message, assistantMessageEvent) => {
@@ -1849,7 +1858,8 @@ export class AgentSession {
 		// generation, then drop any async-result follow-up already queued, so a
 		// prior session's background result cannot inject into the next transcript.
 		this.#asyncDeliveryEpoch += 1;
-		this.yieldQueue.clear("async-result");
+		this.yieldQueue.clear(ASYNC_RESULT_MESSAGE_TYPE);
+		this.yieldQueue.clear(ASYNC_BATCH_RESULT_MESSAGE_TYPE);
 	}
 
 	/**
@@ -1875,7 +1885,8 @@ export class AgentSession {
 			// longer reports it. Without this leg a terminal yield in the
 			// (idle-flush delay / step-boundary) handoff window would read as
 			// quiescent and the run driver would drop the queued result.
-			this.yieldQueue.has(ASYNC_RESULT_MESSAGE_TYPE)
+			this.yieldQueue.has(ASYNC_RESULT_MESSAGE_TYPE) ||
+			this.yieldQueue.has(ASYNC_BATCH_RESULT_MESSAGE_TYPE)
 		);
 	}
 
@@ -1947,15 +1958,12 @@ export class AgentSession {
 		return preview;
 	}
 
-	async #deliverAsyncBatchResult(manager: AsyncJobManager, snapshot: AsyncBatchSnapshot): Promise<void> {
+	#deliverAsyncBatchResult(snapshot: AsyncBatchSnapshot): void {
 		if (this.#isDisposed) return;
-		const resultLines = snapshot.jobs.map(job => {
-			const detail = job.status === "failed" ? job.errorText : job.resultText;
-			return `- ${job.id}: ${job.status}${detail ? `\n${detail}` : ""}`;
+		this.yieldQueue.enqueue<AsyncBatchResultEntry>(ASYNC_BATCH_RESULT_MESSAGE_TYPE, {
+			snapshot,
+			epoch: this.#asyncDeliveryEpoch,
 		});
-		const reason = snapshot.reason ?? "all-settled";
-		const text = `Async task batch ${snapshot.gateId} woke on ${reason}.\n${resultLines.join("\n")}`;
-		await this.#deliverAsyncJobResult(manager, snapshot.gateId, text);
 	}
 
 	// =========================================================================
@@ -3302,6 +3310,41 @@ export class AgentSession {
 			this.#markTerminalYieldToolCall(ctx.toolCall.id);
 			this.#synchronouslyTerminatedYieldToolCallIds.add(ctx.toolCall.id);
 			this.agent.abort(TERMINAL_TOOL_RESULT_ABORT_REASON);
+		}
+		if (this.#agentKind === "main") {
+			const toolCalls = ctx.assistantMessage.content.filter(
+				(part): part is AgentToolCall => part.type === "toolCall",
+			);
+			if (toolCalls.length > 0 && toolCalls.every(call => call.name === "task")) {
+				let completions = this.#asyncTaskBatchCompletions.get(ctx.assistantMessage);
+				if (!completions) {
+					completions = new Map();
+					this.#asyncTaskBatchCompletions.set(ctx.assistantMessage, completions);
+				}
+				const details = ctx.result.details;
+				let asyncDetails: unknown;
+				if (typeof details === "object" && details !== null && "async" in details) {
+					asyncDetails = details.async;
+				}
+				const runningTask =
+					!ctx.isError &&
+					typeof asyncDetails === "object" &&
+					asyncDetails !== null &&
+					"state" in asyncDetails &&
+					asyncDetails.state === "running" &&
+					"type" in asyncDetails &&
+					asyncDetails.type === "task" &&
+					"batchId" in asyncDetails &&
+					typeof asyncDetails.batchId === "string" &&
+					asyncDetails.batchId.length > 0;
+				completions.set(ctx.toolCall.id, runningTask);
+				if (completions.size === toolCalls.length) {
+					this.#asyncTaskBatchCompletions.delete(ctx.assistantMessage);
+					if (toolCalls.every(call => completions.get(call.id) === true)) {
+						this.agent.abort(TERMINAL_TOOL_RESULT_ABORT_REASON);
+					}
+				}
+			}
 		}
 		return this.#ttsr.afterToolCall(ctx);
 	}

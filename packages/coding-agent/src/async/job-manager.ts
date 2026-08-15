@@ -179,10 +179,7 @@ interface MutableAsyncBatchGate extends AsyncBatchGate {
 	/** Include jobs registered by this owner while the gate is active. */
 	captureOwnerJobs: boolean;
 	reportedJobIds: Set<string>;
-	wakeSnapshot?: AsyncBatchSnapshot;
-	lastWakeSnapshot?: AsyncBatchSnapshot;
-	wakePromise: Promise<AsyncBatchSnapshot | undefined>;
-	wakeResolve: (snapshot: AsyncBatchSnapshot | undefined) => void;
+	firstErrorReported: boolean;
 	timer?: NodeJS.Timeout;
 }
 
@@ -630,7 +627,6 @@ export class AsyncJobManager {
 
 		const timeout = Promise.withResolvers<"timeout">();
 		const timer = setTimeout(() => timeout.resolve("timeout"), remainingMs);
-		timer.unref();
 		try {
 			const result = await Promise.race([Promise.all(promises).then(() => "settled" as const), timeout.promise]);
 			return result === "settled";
@@ -710,7 +706,6 @@ export class AsyncJobManager {
 				: ({ off: 0, "5m": 300000, "10m": 600000, "20m": 1200000, "30m": 1800000 } as const)[
 						options.wakeInterval ?? "20m"
 					];
-		const wake = Promise.withResolvers<AsyncBatchSnapshot | undefined>();
 		const gate: MutableAsyncBatchGate = {
 			id: `batch_${++this.#batchGateSequence}`,
 			ownerId: options.ownerId,
@@ -722,15 +717,11 @@ export class AsyncJobManager {
 			allSettled: false,
 			captureOwnerJobs: true,
 			reportedJobIds: new Set(),
-			wakePromise: wake.promise,
-			wakeResolve: wake.resolve,
+			firstErrorReported: false,
 		};
 		this.#batchGates.set(gate.id, gate);
 		for (const jobId of gate.jobIds) this.#batchGateByJob.set(jobId, gate);
-		if (interval > 0) {
-			gate.timer = setTimeout(() => this.#wakeBatchGate(gate, "timer"), interval);
-			gate.timer.unref();
-		}
+		this.#armBatchTimer(gate);
 		return gate;
 	}
 
@@ -769,27 +760,15 @@ export class AsyncJobManager {
 		};
 	}
 
-	waitForBatchWake(gateOrId: AsyncBatchGate | string): Promise<AsyncBatchSnapshot | undefined> {
-		const gate = typeof gateOrId === "string" ? this.#batchGates.get(gateOrId) : this.#batchGates.get(gateOrId.id);
-		if (!gate) return Promise.resolve(undefined);
-		return gate.wakePromise;
-	}
-
-	resumeBatchDeliveries(gateOrId: AsyncBatchGate | string): AsyncBatchSnapshot | undefined {
-		const gate = typeof gateOrId === "string" ? this.#batchGates.get(gateOrId) : this.#batchGates.get(gateOrId.id);
-		if (!gate) return undefined;
-		const snapshot = gate.wakeSnapshot;
-		gate.wakeSnapshot = undefined;
-		return snapshot;
-	}
-
 	closeBatchGate(gateOrId: AsyncBatchGate | string, options?: { releaseDeliveries?: boolean }): void {
 		const gate = typeof gateOrId === "string" ? this.#batchGates.get(gateOrId) : this.#batchGates.get(gateOrId.id);
 		if (!gate) return;
 		gate.closed = true;
 		gate.captureOwnerJobs = false;
-		if (gate.timer) clearTimeout(gate.timer);
-		gate.wakeResolve(undefined);
+		if (gate.timer) {
+			clearTimeout(gate.timer);
+			gate.timer = undefined;
+		}
 		this.#batchGates.delete(gate.id);
 		for (const id of gate.jobIds) {
 			if (this.#batchGateByJob.get(id) === gate) this.#batchGateByJob.delete(id);
@@ -798,6 +777,11 @@ export class AsyncJobManager {
 			if (options?.releaseDeliveries !== false && job?.status !== "running")
 				this.#enqueueDelivery(id, job?.resultText ?? job?.errorText ?? "");
 		}
+	}
+
+	isJobInActiveBatch(jobId: string): boolean {
+		const gate = this.#batchGateByJob.get(jobId);
+		return gate !== undefined && !gate.closed && this.#batchGates.get(gate.id) === gate;
 	}
 
 	#attachBatchJob(gate: AsyncBatchGate, jobId: string): void {
@@ -817,34 +801,42 @@ export class AsyncJobManager {
 	#notifyBatchJobSettled(jobId: string): void {
 		const gate = this.#batchGateByJob.get(jobId);
 		if (!gate || gate.closed) return;
-		const job = this.#jobs.get(jobId);
-		if (job?.status === "failed" && !gate.wakeSnapshot) {
-			this.#wakeBatchGate(gate, "first-error");
-			return;
-		}
 		const snapshot = this.collectBatchSnapshot(gate);
 		if (snapshot.allSettled) {
-			if (gate.wakeSnapshot) {
-				this.closeBatchGate(gate, { releaseDeliveries: false });
-			} else {
-				this.#wakeBatchGate(gate, "all-settled");
-			}
+			this.#wakeBatchGate(gate, "all-settled");
+			return;
+		}
+		const job = this.#jobs.get(jobId);
+		if (job?.status === "failed" && snapshot.pending.length > 0 && !gate.firstErrorReported) {
+			this.#wakeBatchGate(gate, "first-error");
 		}
 	}
 
+	#armBatchTimer(gate: MutableAsyncBatchGate): void {
+		if (gate.closed || gate.wakeIntervalMs <= 0) return;
+		clearTimeout(gate.timer);
+		gate.timer = setTimeout(() => this.#wakeBatchGate(gate, "timer"), gate.wakeIntervalMs);
+		gate.timer.unref();
+	}
+
 	#wakeBatchGate(gate: MutableAsyncBatchGate, reason: AsyncBatchWakeReason): void {
-		if (gate.closed || gate.wakeSnapshot) return;
-		const snapshot = this.collectBatchSnapshot(gate, reason);
+		if (gate.closed) return;
+		if (gate.timer) {
+			clearTimeout(gate.timer);
+			gate.timer = undefined;
+		}
 		gate.generation += 1;
-		gate.wakeSnapshot = { ...snapshot, generation: gate.generation, reason };
+		const snapshot = { ...this.collectBatchSnapshot(gate, reason), generation: gate.generation, reason };
 		for (const id of snapshot.settledJobIds) gate.reportedJobIds.add(id);
-		gate.wakeResolve(gate.wakeSnapshot);
+		if (reason === "first-error") gate.firstErrorReported = true;
 		const sink = this.#batchDeliverySinks.get(gate.ownerId);
-		if (sink) void sink(gate.wakeSnapshot);
+		if (sink) void sink(snapshot);
 		if (reason === "all-settled") {
 			gate.allSettled = true;
 			this.closeBatchGate(gate, { releaseDeliveries: false });
+			return;
 		}
+		this.#armBatchTimer(gate);
 	}
 
 	#resolveJobId(preferredId?: string): string {
