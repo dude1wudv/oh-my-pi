@@ -5,7 +5,11 @@ import * as path from "node:path";
 import { scheduler } from "node:timers/promises";
 import { isOfficialAnthropicApiUrl } from "@dude1wudv/pi-catalog/compat/anthropic";
 import type { Effort } from "@dude1wudv/pi-catalog/effort";
-import { isVertexExpressOpenAIUrl, isVertexRawPredictUrl, resolveVertexEndpointHost } from "@dude1wudv/pi-catalog/hosts";
+import {
+	isVertexExpressOpenAIUrl,
+	isVertexRawPredictUrl,
+	resolveVertexEndpointHost,
+} from "@dude1wudv/pi-catalog/hosts";
 import {
 	mapEffortToAnthropicAdaptiveEffort,
 	mapEffortToGoogleThinkingLevel,

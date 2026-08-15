@@ -7,10 +7,10 @@ import {
 	resolveLocalUrlToPath,
 	resolveVaultUrlToPath,
 } from "../internal-urls";
+import { resolveProjectPlanPath } from "../plan-mode/state";
 import type { ToolSession } from ".";
 import { normalizeLocalScheme, resolveToCwd } from "./path-utils";
 import { ToolError } from "./tool-errors";
-import { resolveProjectPlanPath } from "../plan-mode/state";
 
 const VAULT_SCHEME_PREFIX = "vault:";
 const LOCAL_SCHEME_PREFIX = "local:";

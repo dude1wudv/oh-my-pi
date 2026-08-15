@@ -2,7 +2,14 @@
 
 import type { Agent, AgentMessage } from "@dude1wudv/pi-agent-core";
 import type { CompactionPreparation } from "@dude1wudv/pi-agent-core/compaction";
-import type { AssistantMessage, ImageContent, Message, Model, SimpleStreamOptions, TextContent } from "@dude1wudv/pi-ai";
+import type {
+	AssistantMessage,
+	ImageContent,
+	Message,
+	Model,
+	SimpleStreamOptions,
+	TextContent,
+} from "@dude1wudv/pi-ai";
 import { isRecord, logger } from "@dude1wudv/pi-utils";
 import * as snapcompact from "@dude1wudv/snapcompact";
 import type { ModelRegistry } from "../config/model-registry";

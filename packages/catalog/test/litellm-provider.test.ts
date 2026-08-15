@@ -1,5 +1,8 @@
 import { afterEach, describe, expect, test, vi } from "bun:test";
-import { fetchLiteLLMRichModels, litellmModelManagerOptions } from "@dude1wudv/pi-catalog/provider-models/openai-compat";
+import {
+	fetchLiteLLMRichModels,
+	litellmModelManagerOptions,
+} from "@dude1wudv/pi-catalog/provider-models/openai-compat";
 import type { FetchImpl } from "@dude1wudv/pi-catalog/types";
 import * as logger from "@dude1wudv/pi-utils/logger";
 

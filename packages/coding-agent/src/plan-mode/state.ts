@@ -1,5 +1,5 @@
-import * as fs from "node:fs/promises";
 import * as fsSync from "node:fs";
+import * as fs from "node:fs/promises";
 import * as path from "node:path";
 
 export type ProjectPlanStatus = "planned" | "executing" | "blocked" | "completed";

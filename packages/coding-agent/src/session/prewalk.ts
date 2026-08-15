@@ -5,7 +5,7 @@ import { prompt } from "@dude1wudv/pi-utils";
 import type { LocalProtocolOptions } from "../internal-urls";
 import { migrateLegacyPlan, projectPlanPathForTitle, resolveApprovedPlan } from "../plan-mode/approved-plan";
 import { listPlanFiles, readPlanFile } from "../plan-mode/plan-files";
-import { PROJECT_PLAN_ENTRY_TYPE, type PlanModeState, updateProjectPlanFile } from "../plan-mode/state";
+import { type PlanModeState, PROJECT_PLAN_ENTRY_TYPE, updateProjectPlanFile } from "../plan-mode/state";
 import planYoloHandoffPrompt from "../prompts/system/plan-yolo-handoff.md" with { type: "text" };
 import prewalkChecklistPrompt from "../prompts/system/prewalk-checklist.md" with { type: "text" };
 import prewalkContinuePrompt from "../prompts/system/prewalk-continue.md" with { type: "text" };
@@ -256,7 +256,10 @@ export class PrewalkCoordinator {
 		const planFilePath = this.#host.getPlanReferencePath();
 		this.#host.setPlanModeState({
 			enabled: true,
-			planFilePath: planFilePath && !planFilePath.startsWith("local:") ? planFilePath : projectPlanPathForTitle(this.#host.sessionManager.getCwd(), "plan"),
+			planFilePath:
+				planFilePath && !planFilePath.startsWith("local:")
+					? planFilePath
+					: projectPlanPathForTitle(this.#host.sessionManager.getCwd(), "plan"),
 			workflow: "parallel",
 		});
 		this.#host.setPlanProposalHandler(title => this.#finalizePlanYoloProposal(title));
@@ -279,20 +282,39 @@ export class PrewalkCoordinator {
 		const planYolo = this.#planYolo;
 		const state = this.#host.getPlanModeState();
 		if (!planYolo || !state?.enabled) throw new ToolError("Plan mode is not active.");
-		const { planFilePath, planContent, title: resolvedTitle } = await resolveApprovedPlan({
+		const {
+			planFilePath,
+			planContent,
+			title: resolvedTitle,
+		} = await resolveApprovedPlan({
 			suppliedTitle: title,
 			statePlanFilePath: state.planFilePath,
 			cwd: this.#host.sessionManager.getCwd(),
 			createdDate: state.createdDate,
-			readPlan: url => readPlanFile(url, { localProtocolOptions: this.#host.localProtocolOptions(), cwd: this.#host.sessionManager.getCwd() }),
+			readPlan: url =>
+				readPlanFile(url, {
+					localProtocolOptions: this.#host.localProtocolOptions(),
+					cwd: this.#host.sessionManager.getCwd(),
+				}),
 			listPlanFiles: () => listPlanFiles({ cwd: this.#host.sessionManager.getCwd() }),
 		});
 		const cwd = this.#host.sessionManager.getCwd();
 		const projectPlanPath = planFilePath.startsWith("local:")
-			? (await migrateLegacyPlan({ cwd, legacyPath: planFilePath, content: planContent, title: resolvedTitle, createdDate: state.createdDate })).projectPlanPath
+			? (
+					await migrateLegacyPlan({
+						cwd,
+						legacyPath: planFilePath,
+						content: planContent,
+						title: resolvedTitle,
+						createdDate: state.createdDate,
+					})
+				).projectPlanPath
 			: planFilePath;
 		await updateProjectPlanFile({ cwd, projectPlanPath, event: { type: "status_changed", status: "executing" } });
-		this.#host.sessionManager.appendCustomEntry(PROJECT_PLAN_ENTRY_TYPE, { path: projectPlanPath, planId: resolvedTitle });
+		this.#host.sessionManager.appendCustomEntry(PROJECT_PLAN_ENTRY_TYPE, {
+			path: projectPlanPath,
+			planId: resolvedTitle,
+		});
 		this.#host.setPlanReferencePath(projectPlanPath);
 		this.#host.setProjectPlanPath(projectPlanPath);
 		this.#host.setPlanModeState(undefined);

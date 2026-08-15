@@ -8,7 +8,15 @@ import {
 	convertResponsesInputContent,
 } from "@dude1wudv/pi-ai/providers/openai-shared";
 import { NON_VISION_IMAGE_PLACEHOLDER } from "@dude1wudv/pi-ai/providers/vision-guard";
-import type { Api, AssistantMessage, Context, Model, ModelSpec, ToolResultMessage, Usage } from "@dude1wudv/pi-ai/types";
+import type {
+	Api,
+	AssistantMessage,
+	Context,
+	Model,
+	ModelSpec,
+	ToolResultMessage,
+	Usage,
+} from "@dude1wudv/pi-ai/types";
 import { buildModel } from "@dude1wudv/pi-catalog/build";
 import type { ResolvedOpenAICompat } from "@dude1wudv/pi-catalog/types";
 

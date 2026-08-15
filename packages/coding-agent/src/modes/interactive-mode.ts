@@ -94,8 +94,8 @@ import {
 import {
 	humanizePlanTitle,
 	migrateLegacyPlan,
-	projectPlanPathForTitle,
 	type PlanApprovalDetails,
+	projectPlanPathForTitle,
 	resolvePlanTitle,
 } from "../plan-mode/approved-plan";
 import { resolvePlanModelTransition } from "../plan-mode/model-transition";
@@ -2290,7 +2290,9 @@ export class InteractiveMode implements InteractiveModeContext {
 	}
 	async #getPlanFilePath(): Promise<string> {
 		const reference = this.session.getPlanReferencePath();
-		return reference && !reference.startsWith("local:") ? reference : projectPlanPathForTitle(this.sessionManager.getCwd(), "plan");
+		return reference && !reference.startsWith("local:")
+			? reference
+			: projectPlanPathForTitle(this.sessionManager.getCwd(), "plan");
 	}
 
 	#resolvePlanFilePath(planFilePath: string): string {
@@ -3200,7 +3202,15 @@ export class InteractiveMode implements InteractiveModeContext {
 		const cwd = this.sessionManager.getCwd();
 		const state = this.session.getPlanModeState();
 		const projectPlanPath = options.planFilePath.startsWith("local:")
-			? (await migrateLegacyPlan({ cwd, legacyPath: options.planFilePath, content: planContent, title: options.title, createdDate: state?.createdDate })).projectPlanPath
+			? (
+					await migrateLegacyPlan({
+						cwd,
+						legacyPath: options.planFilePath,
+						content: planContent,
+						title: options.title,
+						createdDate: state?.createdDate,
+					})
+				).projectPlanPath
 			: options.planFilePath;
 		resolveProjectPlanPath(cwd, projectPlanPath);
 		await updateProjectPlanFile({ cwd, projectPlanPath, event: { type: "status_changed", status: "executing" } });

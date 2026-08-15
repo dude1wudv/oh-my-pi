@@ -17,7 +17,11 @@ import * as os from "node:os";
 import * as path from "node:path";
 import { resetSettingsForTest, Settings } from "@dude1wudv/pi-coding-agent/config/settings";
 import { initializeWithSettings, reset as resetDiscoveryCache } from "@dude1wudv/pi-coding-agent/discovery";
-import { readMCPConfigFile, setMcpServerEnabled, setServerDisabled } from "@dude1wudv/pi-coding-agent/mcp/config-writer";
+import {
+	readMCPConfigFile,
+	setMcpServerEnabled,
+	setServerDisabled,
+} from "@dude1wudv/pi-coding-agent/mcp/config-writer";
 import { loadAllExtensions } from "@dude1wudv/pi-coding-agent/modes/components/extensions/state-manager";
 import { __resetDirsFromEnvForTests, getMCPConfigPath, removeWithRetries, setAgentDir } from "@dude1wudv/pi-utils";
 

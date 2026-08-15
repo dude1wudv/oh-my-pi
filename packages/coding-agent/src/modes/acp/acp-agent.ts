@@ -63,8 +63,8 @@ import { theme } from "../../modes/theme/theme";
 import {
 	migrateLegacyPlan,
 	normalizePlanTitle,
-	projectPlanPathForTitle,
 	type PlanApprovalDetails,
+	projectPlanPathForTitle,
 	resolveApprovedPlan,
 } from "../../plan-mode/approved-plan";
 import { PROJECT_PLAN_ENTRY_TYPE, resolveProjectPlanPath, updateProjectPlanFile } from "../../plan-mode/state";

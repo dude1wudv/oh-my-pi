@@ -1,6 +1,5 @@
 import * as fs from "node:fs/promises";
 import * as path from "node:path";
-import { normalizeLocalScheme } from "../tools/path-utils";
 import { ToolError } from "../tools/tool-errors";
 import { PROJECT_PLAN_FILENAME_RE } from "./plan-files";
 import { projectPlanRelativePath, resolveProjectPlanPath } from "./state";
@@ -73,7 +72,7 @@ function localDate(now: Date): string {
 	return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
 }
 
-export function projectPlanPathForTitle(cwd: string, title: string, createdDate = localDate(new Date())): string {
+export function projectPlanPathForTitle(_cwd: string, title: string, createdDate = localDate(new Date())): string {
 	const slug =
 		normalizePlanTitle(title)
 			.title.replace(/_/g, "-")
@@ -116,7 +115,7 @@ export async function resolveApprovedPlan(input: ResolveApprovedPlanInput): Prom
 	for (const candidate of input.listPlanFiles ? await input.listPlanFiles() : []) consider(candidate);
 	for (const candidate of ordered) {
 		const content = await input.readPlan(candidate);
-		if (content !== null && content.trim()) return finalizeApprovedPlan(candidate, content, input.suppliedTitle);
+		if (content?.trim()) return finalizeApprovedPlan(candidate, content, input.suppliedTitle);
 	}
 	throw new ToolError(
 		`Plan file not found at ${ordered[0] ?? input.statePlanFilePath}. Write the finalized plan to a project .omp/plans/YYYY-MM-DD-<slug>.md file before requesting approval.`,

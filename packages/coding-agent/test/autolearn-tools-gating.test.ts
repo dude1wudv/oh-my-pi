@@ -5,7 +5,11 @@ import * as path from "node:path";
 import { type } from "@dude1wudv/omptype";
 import { getManagedSkillsDir } from "@dude1wudv/pi-coding-agent/autolearn/managed-skills";
 import { type SettingPath, Settings } from "@dude1wudv/pi-coding-agent/config/settings";
-import { resetActiveSkillsForTests, type Skill, setActiveSkills } from "@dude1wudv/pi-coding-agent/extensibility/skills";
+import {
+	resetActiveSkillsForTests,
+	type Skill,
+	setActiveSkills,
+} from "@dude1wudv/pi-coding-agent/extensibility/skills";
 import type { HindsightSessionState } from "@dude1wudv/pi-coding-agent/hindsight/state";
 import type { MnemopiSessionState } from "@dude1wudv/pi-coding-agent/mnemopi/state";
 import { createTools, type ToolSession } from "@dude1wudv/pi-coding-agent/tools";

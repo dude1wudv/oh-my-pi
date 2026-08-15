@@ -1,7 +1,6 @@
 import * as fsp from "node:fs/promises";
 import { createRequire } from "node:module";
 import * as path from "node:path";
-import type { ProgressInfo } from "@huggingface/transformers";
 import {
 	ensureRuntimeInstalled,
 	getTinyModelsCacheDir,
@@ -9,6 +8,7 @@ import {
 	isCompiledBinary,
 	resolveRuntimeModule,
 } from "@dude1wudv/pi-utils";
+import type { ProgressInfo } from "@huggingface/transformers";
 import packageJson from "../../package.json" with { type: "json" };
 
 /**

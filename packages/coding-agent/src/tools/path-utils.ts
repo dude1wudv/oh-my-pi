@@ -3,7 +3,13 @@ import * as os from "node:os";
 import * as path from "node:path";
 import * as url from "node:url";
 import { glob } from "@dude1wudv/pi-natives";
-import { hasFsCode, isEnoent, isEnotdir, stripWindowsExtendedLengthPathPrefix, untilAborted } from "@dude1wudv/pi-utils";
+import {
+	hasFsCode,
+	isEnoent,
+	isEnotdir,
+	stripWindowsExtendedLengthPathPrefix,
+	untilAborted,
+} from "@dude1wudv/pi-utils";
 import type { Skill } from "../extensibility/skills";
 import { InternalUrlRouter, type LocalProtocolOptions } from "../internal-urls";
 import { ToolAbortError, ToolError } from "./tool-errors";

@@ -487,12 +487,12 @@ export class ReadTool implements AgentTool<typeof readSchema, ReadToolDetails> {
 		try {
 			const approvedPlanPath = planReferencePath.startsWith("local:")
 				? resolveLocalUrlToPath(
-					normalizeLocalScheme(planReferencePath),
-					this.session.localProtocolOptions ?? {
-						getArtifactsDir: () => this.session.getArtifactsDir?.() ?? null,
-						getSessionId: () => this.session.getSessionId?.() ?? null,
-					},
-				)
+						normalizeLocalScheme(planReferencePath),
+						this.session.localProtocolOptions ?? {
+							getArtifactsDir: () => this.session.getArtifactsDir?.() ?? null,
+							getSessionId: () => this.session.getSessionId?.() ?? null,
+						},
+					)
 				: resolveProjectPlanPath(this.session.cwd, planReferencePath);
 			return path.basename(requestedPath) === path.basename(approvedPlanPath) ? approvedPlanPath : undefined;
 		} catch {
