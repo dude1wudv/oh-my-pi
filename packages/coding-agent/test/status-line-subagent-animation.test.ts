@@ -61,7 +61,7 @@ const customSettings: StatusLineSettings = {
 	preset: "custom",
 	leftSegments: [],
 	rightSegments: [],
-	separator: "space",
+	separator: "none",
 	sessionAccent: false,
 };
 
