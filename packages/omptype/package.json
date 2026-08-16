@@ -1,7 +1,7 @@
 {
   "type": "module",
   "name": "@dude1wudv/omptype",
-  "version": "20.1.5",
+  "version": "20.1.6",
   "description": "ArkType-compatible runtime schema validation with lazy JIT compilation",
   "homepage": "https://omp.sh",
   "author": "Can Boluk",

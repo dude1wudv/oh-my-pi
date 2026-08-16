@@ -21,7 +21,7 @@
     },
     "packages/agent": {
       "name": "@dude1wudv/pi-agent-core",
-      "version": "20.1.5",
+      "version": "20.1.6",
       "dependencies": {
         "@dude1wudv/pi-ai": "catalog:",
         "@dude1wudv/pi-catalog": "catalog:",
@@ -40,7 +40,7 @@
     },
     "packages/ai": {
       "name": "@dude1wudv/pi-ai",
-      "version": "20.1.5",
+      "version": "20.1.6",
       "dependencies": {
         "@bufbuild/protobuf": "catalog:",
         "@dude1wudv/omptype": "catalog:",
@@ -63,7 +63,7 @@
     },
     "packages/catalog": {
       "name": "@dude1wudv/pi-catalog",
-      "version": "20.1.5",
+      "version": "20.1.6",
       "dependencies": {
         "@bufbuild/protobuf": "catalog:",
         "@dude1wudv/omptype": "catalog:",
@@ -76,7 +76,7 @@
     },
     "packages/coding-agent": {
       "name": "@dude1wudv/pi-coding-agent",
-      "version": "20.1.5",
+      "version": "20.1.6",
       "bin": {
         "omp": "dist/cli.js",
       },
@@ -133,7 +133,7 @@
     },
     "packages/hashline": {
       "name": "@dude1wudv/hashline",
-      "version": "20.1.5",
+      "version": "20.1.6",
       "dependencies": {
         "@dude1wudv/pi-natives": "catalog:",
         "@dude1wudv/pi-utils": "catalog:",
@@ -177,7 +177,7 @@
     },
     "packages/mnemopi": {
       "name": "@dude1wudv/pi-mnemopi",
-      "version": "20.1.5",
+      "version": "20.1.6",
       "bin": {
         "mnemopi": "src/cli.ts",
       },
@@ -203,7 +203,7 @@
     },
     "packages/natives": {
       "name": "@dude1wudv/pi-natives",
-      "version": "20.1.5",
+      "version": "20.1.6",
       "devDependencies": {
         "@napi-rs/cli": "catalog:",
         "@types/bun": "catalog:",
@@ -218,7 +218,7 @@
     },
     "packages/omptype": {
       "name": "@dude1wudv/omptype",
-      "version": "20.1.5",
+      "version": "20.1.6",
       "devDependencies": {
         "@ark/attest": "0.56.3",
         "@ark/schema": "0.56.2",
@@ -231,7 +231,7 @@
     },
     "packages/snapcompact": {
       "name": "@dude1wudv/snapcompact",
-      "version": "20.1.5",
+      "version": "20.1.6",
       "dependencies": {
         "@dude1wudv/pi-ai": "catalog:",
         "@dude1wudv/pi-catalog": "catalog:",
@@ -245,7 +245,7 @@
     },
     "packages/stats": {
       "name": "@dude1wudv/omp-stats",
-      "version": "20.1.5",
+      "version": "20.1.6",
       "bin": {
         "omp-stats": "./src/index.ts",
       },
@@ -270,7 +270,7 @@
     },
     "packages/tui": {
       "name": "@dude1wudv/pi-tui",
-      "version": "20.1.5",
+      "version": "20.1.6",
       "dependencies": {
         "@dude1wudv/pi-natives": "catalog:",
         "@dude1wudv/pi-utils": "catalog:",
@@ -306,7 +306,7 @@
     },
     "packages/utils": {
       "name": "@dude1wudv/pi-utils",
-      "version": "20.1.5",
+      "version": "20.1.6",
       "dependencies": {
         "@dude1wudv/pi-natives": "catalog:",
       },
@@ -316,7 +316,7 @@
     },
     "packages/wire": {
       "name": "@dude1wudv/pi-wire",
-      "version": "20.1.5",
+      "version": "20.1.6",
       "devDependencies": {
         "@types/bun": "catalog:",
       },
@@ -352,19 +352,19 @@
     "@biomejs/biome": "^2.5.3",
     "@bufbuild/protobuf": "^2.12.1",
     "@bufbuild/protoc-gen-es": "^2.12.1",
-    "@dude1wudv/hashline": "20.1.5",
-    "@dude1wudv/omp-stats": "20.1.5",
-    "@dude1wudv/omptype": "20.1.5",
-    "@dude1wudv/pi-agent-core": "20.1.5",
-    "@dude1wudv/pi-ai": "20.1.5",
-    "@dude1wudv/pi-catalog": "20.1.5",
-    "@dude1wudv/pi-coding-agent": "20.1.5",
-    "@dude1wudv/pi-mnemopi": "20.1.5",
-    "@dude1wudv/pi-natives": "20.1.5",
-    "@dude1wudv/pi-tui": "20.1.5",
-    "@dude1wudv/pi-utils": "20.1.5",
-    "@dude1wudv/pi-wire": "20.1.5",
-    "@dude1wudv/snapcompact": "20.1.5",
+    "@dude1wudv/hashline": "20.1.6",
+    "@dude1wudv/omp-stats": "20.1.6",
+    "@dude1wudv/omptype": "20.1.6",
+    "@dude1wudv/pi-agent-core": "20.1.6",
+    "@dude1wudv/pi-ai": "20.1.6",
+    "@dude1wudv/pi-catalog": "20.1.6",
+    "@dude1wudv/pi-coding-agent": "20.1.6",
+    "@dude1wudv/pi-mnemopi": "20.1.6",
+    "@dude1wudv/pi-natives": "20.1.6",
+    "@dude1wudv/pi-tui": "20.1.6",
+    "@dude1wudv/pi-utils": "20.1.6",
+    "@dude1wudv/pi-wire": "20.1.6",
+    "@dude1wudv/snapcompact": "20.1.6",
     "@huggingface/transformers": "^4.2.0",
     "@napi-rs/cli": "3.7.2",
     "@opentelemetry/api": "^1.9.1",
