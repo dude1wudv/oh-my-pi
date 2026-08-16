@@ -277,6 +277,46 @@ describe("runSubprocess yield reminders", () => {
 		expect(result.output.includes("SYSTEM WARNING")).toBe(false);
 	});
 
+	it("requires a terminal yield after incremental sections", async () => {
+		const prompts: string[] = [];
+		const session = createMockSession(({ text, promptIndex, emit, state }) => {
+			prompts.push(text);
+			if (promptIndex === 1) {
+				const assistant = createAssistantStopMessage("recorded one finding");
+				state.messages.push(assistant);
+				emit({ type: "message_end", message: assistant });
+				emit({
+					type: "tool_execution_end",
+					toolCallId: "tool-incremental",
+					toolName: "yield",
+					result: {
+						content: [{ type: "text", text: "Section submitted; task remains active." }],
+						details: { status: "success", data: { title: "bug" }, type: ["findings"] },
+					},
+					isError: false,
+				});
+				return;
+			}
+			emit({
+				type: "tool_execution_end",
+				toolCallId: "tool-terminal",
+				toolName: "yield",
+				result: {
+					content: [{ type: "text", text: "Result submitted; task complete." }],
+					details: { status: "success", data: { done: true } },
+				},
+				isError: false,
+			});
+		});
+
+		mockCreateAgentSession(session);
+
+		const result = await runSubprocess({ ...baseOptions, id: "subagent-incremental-then-terminal" });
+		expect(prompts).toHaveLength(2);
+		expect(result.exitCode).toBe(0);
+		expect(result.output).toContain('"done": true');
+	});
+
 	it("keeps null yield warning when subagent submits success without data", async () => {
 		const session = createMockSession(({ promptIndex, emit, state }) => {
 			if (promptIndex === 1) {

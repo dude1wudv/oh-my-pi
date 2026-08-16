@@ -92,6 +92,13 @@ function render(sessions: ObservableSession[], columns = 120): string {
 	return Bun.stripANSI(renderSubagentHudLines(sessions, columns).join("\n"));
 }
 
+function setTerminalColumns(mode: InteractiveMode, columns: number): void {
+	Object.defineProperty(mode.ui.terminal, "columns", {
+		configurable: true,
+		value: columns,
+	});
+}
+
 describe("subagent HUD lines", () => {
 	beforeAll(async () => {
 		await initTheme();
@@ -302,5 +309,14 @@ describe("InteractiveMode subagent observer UI sync", () => {
 		expect(hud).toContain("BurstAgent5: Burst job 5");
 		expect(rebuildHud).toHaveBeenCalledTimes(1);
 		expect(requestRender).toHaveBeenCalledTimes(1);
+
+		setTerminalColumns(mode, 121);
+		process.stdout.emit("resize");
+		expect(mode.todoContainer.render(121)).toEqual([]);
+		expect(mode.subagentContainer.render(121)).toEqual([]);
+
+		setTerminalColumns(mode, 120);
+		process.stdout.emit("resize");
+		expect(Bun.stripANSI(mode.subagentContainer.render(120).join("\n"))).toContain("BurstAgent0: Burst job 0");
 	});
 });

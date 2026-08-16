@@ -404,9 +404,11 @@ export class YieldTool implements AgentTool<TSchema, YieldDetails> {
 		const responseText =
 			status === "aborted"
 				? `Task aborted: ${errorMessage}`
-				: schemaValidationOverridden
-					? `Result submitted (schema validation overridden after ${this.#schemaValidationFailures} failed attempt(s)).`
-					: "Result submitted.";
+				: isIncremental
+					? "Section submitted; task remains active. Finish the remaining scope, then submit one terminal result."
+					: schemaValidationOverridden
+						? `Result submitted (schema validation overridden after ${this.#schemaValidationFailures} failed attempt(s)).`
+						: "Result submitted.";
 		return {
 			content: [{ type: "text", text: responseText }],
 			details: {

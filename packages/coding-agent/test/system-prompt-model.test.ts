@@ -22,6 +22,14 @@ const EMPTY_TREE = {
 	agentsMdFiles: [],
 };
 
+const RESPONSE_LANGUAGE_BLOCK = `<response-language>
+本项目主要面向中文开发者。除非用户明确要求使用其他语言，所有面向用户的自然语言回复必须使用简洁、直接的中文。代码、命令、文件路径、API/协议/配置字段、工具参数、错误原文保持原样；结构化输出遵循既定 schema，不翻译字段名。
+</response-language>`;
+
+function expectResponseLanguageOnce(promptText: string): void {
+	expect(promptText.split(RESPONSE_LANGUAGE_BLOCK)).toHaveLength(2);
+}
+
 async function expectPromptDateFromStartupTimezone(options: {
 	tempDir: string;
 	tempHomeDir: string;
@@ -217,12 +225,23 @@ describe("AgentSession model-change prompt refresh", () => {
 		session = newSession(modelA, Settings.isolated({ "compaction.enabled": false }), async () => {
 			rebuildCount++;
 			const active = session?.model;
-			return { systemPrompt: [`model:${active ? `${active.provider}/${active.id}` : ""}`] };
+			const { systemPrompt } = await buildSystemPrompt({
+				cwd: tempDir,
+				contextFiles: [],
+				skills: [],
+				rules: [],
+				toolNames: [],
+				workspaceTree: { ...EMPTY_TREE, rootPath: tempDir },
+				model: active ? `${active.provider}/${active.id}` : undefined,
+			});
+			return { systemPrompt };
 		});
 
 		await session.setModel(modelB);
 		expect(rebuildCount).toBe(1);
-		expect(session.agent.state.systemPrompt).toEqual([`model:${modelB.provider}/${modelB.id}`]);
+		const renderedPrompt = session.agent.state.systemPrompt.join("\n\n");
+		expect(renderedPrompt).toContain(`Model: ${modelB.provider}/${modelB.id}`);
+		expectResponseLanguageOnce(renderedPrompt);
 
 		// Re-selecting the same model leaves the rendered model unchanged → no rebuild.
 		await session.setModel(modelB);

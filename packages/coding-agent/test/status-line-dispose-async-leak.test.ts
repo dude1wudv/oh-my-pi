@@ -119,7 +119,7 @@ describe("StatusLineComponent dispose guards async callbacks", () => {
 		// Render with a `pr` segment → #lookupPr → #isDefaultBranch("main")
 		// → starts the delayed git.branch.default IIFE (no gh spawn: the
 		// sync default-branch check returns true and PR lookup bails).
-		component.getTopBorder(80);
+		component.render(80);
 		expect(resolveDefault).toBeDefined();
 
 		// Tear down the component before the awaited promise resolves.
@@ -144,7 +144,7 @@ describe("StatusLineComponent dispose guards async callbacks", () => {
 		const component = new StatusLineComponent(makeSession());
 		component.updateSettings(gitSegmentSettings);
 		component.watchBranch(onBranchChange);
-		component.getTopBorder(80);
+		component.render(80);
 
 		// Dispose before the resolved-promise microtask gets a chance to run.
 		component.dispose();

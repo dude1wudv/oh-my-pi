@@ -1379,9 +1379,13 @@ function createSubagentRunMonitor(args: RunMonitorArgs): SubagentRunMonitor {
 		existing.push(data);
 		progress.extractedToolData[toolName] = existing;
 		if (toolName === "yield") {
-			yieldCalled = true;
+			const type = isRecord(data) ? data.type : undefined;
+			const incremental = Array.isArray(type) && type.length > 0;
 			yieldCallPending = false;
-			yieldInvalidatedByAsync = false;
+			if (!incremental) {
+				yieldCalled = true;
+				yieldInvalidatedByAsync = false;
+			}
 		}
 	};
 

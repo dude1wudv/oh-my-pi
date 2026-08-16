@@ -33,4 +33,25 @@ describe("approved plan execution prompts", () => {
 		expect(approved).toContain("MUST read `local://durable-plan.md`");
 		expect(reference).toContain("MUST read `local://durable-plan.md`");
 	});
+
+	it("requires owned execution waves, barrier acceptance, and bounded takeover", () => {
+		const approved = prompt.render(planModeApprovedPrompt, {
+			planFilePath: PLAN_FILE_PATH,
+			contextPreserved: false,
+		});
+		const reference = prompt.render(planModeReferencePrompt, { planFilePath: PLAN_FILE_PATH });
+
+		for (const rendered of [approved, reference]) {
+			expect(rendered).toContain("stable `owner`");
+			expect(rendered).toContain("label/name assignment");
+			expect(rendered).toContain("one parallel `task` batch");
+			expect(rendered).toContain("WAIT_ALL: active");
+			expect(rendered).toContain("artifact_accepted");
+			expect(rendered).toContain("verification_recorded");
+			expect(rendered).toContain("dispatch failure");
+			expect(rendered).toContain("retried once");
+			expect(rendered).toContain("Main-only");
+			expect(rendered).toContain(PLAN_FILE_PATH);
+		}
+	});
 });

@@ -1,7 +1,7 @@
 import * as path from "node:path";
 import type { AgentMessage } from "@dude1wudv/pi-agent-core";
 import type { AssistantMessage, UsageLimit, UsageReport } from "@dude1wudv/pi-ai";
-import { type Component, truncateToWidth, visibleWidth } from "@dude1wudv/pi-tui";
+import { type Component, padding, visibleWidth, wrapTextWithAnsi } from "@dude1wudv/pi-tui";
 import { getProjectDir } from "@dude1wudv/pi-utils";
 import { settings } from "../../../config/settings";
 import type { AgentSession } from "../../../session/agent-session";
@@ -326,14 +326,17 @@ export class StatusLineComponent implements Component {
 	#autoCompactEnabled: boolean = true;
 	#hookStatuses: Map<string, string> = new Map();
 	#subagentCount: number = 0;
+	#subagentSpinnerFrame = 0;
+	#subagentSpinnerTimer: NodeJS.Timeout | undefined;
+	#requestRepaint: ((component: Component) => void) | undefined;
 	/**
 	 * Active-processing accounting for the `time_spent` segment, keyed per
 	 * {@link AgentSession} so the focus-controller mid-turn attach path
 	 * cannot leak an unmatched synthesized `agent_start` from a subagent
 	 * into the main session's meter.
 	 *
-	 * Each meter is `{ activeMs, activeStartedAt }`: `activeMs` is the union
-	 * of every completed `agent_start`→`agent_end` window since
+	 * Each meter is `{ activeMs, activeStartedAt }`: `activeMs` is the union of
+	 * every completed `agent_start`→`agent_end` window since
 	 * {@link resetActiveTime} last reset it; `activeStartedAt` is the start
 	 * timestamp of the currently-running window (or `null` when idle).
 	 * `getActiveMs()` returns `activeMs + (now - activeStartedAt)` for the
@@ -342,7 +345,7 @@ export class StatusLineComponent implements Component {
 	 *
 	 * WeakMap so meters die with their session (e.g. a parked subagent
 	 * dropped from the registry); the main session's meter survives focus
-	 * round-trips because the same {@link AgentSession} ref is reused.
+	 * round-trips because the same `AgentSession` ref is reused.
 	 */
 	#activeMeters: WeakMap<AgentSession, ActiveMeter> = new WeakMap();
 	#planModeStatus: { enabled: boolean; paused: boolean } | null = null;
@@ -351,7 +354,7 @@ export class StatusLineComponent implements Component {
 	#vibeModeStatus: { enabled: boolean } | null = null;
 	/**
 	 * Injected aggregator that returns the aggregate tok/s of this session's
-	 * live vibe worker sessions, or null when no workers are streaming. Kept as
+	 * live vibe worker sessions, or null when no workers are streaming. Kept
 	 * a callback so the render layer doesn't import the heavy vibe/task
 	 * dependency graph; interactive-mode wires it to VibeSessionRegistry.
 	 */
@@ -415,7 +418,11 @@ export class StatusLineComponent implements Component {
 	// message list + model window yields a stable result we can return verbatim.
 	#contextUsageCache: ContextUsageMemo | undefined;
 
-	constructor(private session: AgentSession) {
+	constructor(
+		private session: AgentSession,
+		requestRepaint?: (component: Component) => void,
+	) {
+		this.#requestRepaint = requestRepaint;
 		this.#settings = {
 			preset: settings.get("statusLine.preset"),
 			leftSegments: settings.get("statusLine.leftSegments"),
@@ -428,6 +435,7 @@ export class StatusLineComponent implements Component {
 			compactThinkingLevel: settings.get("statusLine.compactThinkingLevel"),
 		};
 	}
+
 	#gitEnabled(): boolean {
 		return settings.get("git.enabled");
 	}
@@ -501,7 +509,38 @@ export class StatusLineComponent implements Component {
 	}
 
 	setSubagentCount(count: number): void {
+		const wasRunning = this.#subagentCount > 0;
 		this.#subagentCount = count;
+		if (count > 0) {
+			if (!wasRunning) {
+				this.#subagentSpinnerFrame = 0;
+				this.#startSubagentSpinner();
+			}
+			return;
+		}
+		if (wasRunning || this.#subagentSpinnerTimer) this.#stopSubagentSpinner();
+	}
+
+	#startSubagentSpinner(): void {
+		if (this.#disposed || this.#subagentSpinnerTimer) return;
+		this.#subagentSpinnerTimer = setInterval(() => {
+			if (this.#disposed || this.#subagentCount <= 0) {
+				this.#stopSubagentSpinner();
+				return;
+			}
+			const frameCount = theme.spinnerFrames.length;
+			if (frameCount > 0) this.#subagentSpinnerFrame = (this.#subagentSpinnerFrame + 1) % frameCount;
+			this.#requestRepaint?.(this);
+		}, 80);
+		this.#subagentSpinnerTimer.unref?.();
+	}
+
+	#stopSubagentSpinner(): void {
+		if (this.#subagentSpinnerTimer) {
+			clearInterval(this.#subagentSpinnerTimer);
+			this.#subagentSpinnerTimer = undefined;
+		}
+		this.#subagentSpinnerFrame = 0;
 	}
 
 	/**
@@ -690,6 +729,7 @@ export class StatusLineComponent implements Component {
 
 	dispose(): void {
 		this.#disposed = true;
+		this.#stopSubagentSpinner();
 		this.#branchResolveActive?.controller.abort();
 		this.#branchResolveActive = undefined;
 		this.#resetJjRequests();
@@ -1676,13 +1716,27 @@ export class StatusLineComponent implements Component {
 	}
 
 	#subagentBadgeText(): string | undefined {
-		if (this.#subagentCount === 0) return undefined;
+		if (this.#subagentCount <= 0) return undefined;
+		const frames = theme.spinnerFrames;
+		const spinner = frames.length > 0 ? frames[this.#subagentSpinnerFrame % frames.length] : theme.icon.agents;
 		const noun = this.#subagentCount === 1 ? "agent" : "agents";
-		return theme.fg("statusLineSubagents", `${theme.icon.agents} ${this.#subagentCount} ${noun}`);
+		return theme.fg("statusLineSubagents", `${spinner} ${this.#subagentCount} ${noun} running`);
 	}
 
-	#buildStatusLine(width: number): string {
+	#focusedAgentGuidance(): string | undefined {
+		if (!this.#focusedAgentId) return undefined;
+		return theme.fg("statusLineSubagents", `Viewing ${this.#focusedAgentId} · Esc main · ←← parent`);
+	}
+
+	#buildStatusRows(width: number): string[] {
 		const effectiveSettings = this.#resolveSettings();
+		const losslessSegmentOptions: StatusLineSettings["segmentOptions"] = {
+			...effectiveSettings.segmentOptions,
+			path: {
+				...effectiveSettings.segmentOptions.path,
+				maxLength: 32_768,
+			},
+		};
 		const includePath =
 			hasPathSegment(effectiveSettings.leftSegments) || hasPathSegment(effectiveSettings.rightSegments);
 		const includeContext =
@@ -1695,7 +1749,7 @@ export class StatusLineComponent implements Component {
 			gitEnabled && (hasPrSegment(effectiveSettings.leftSegments) || hasPrSegment(effectiveSettings.rightSegments));
 		const ctx = this.#buildSegmentContext(
 			width,
-			effectiveSettings.segmentOptions,
+			losslessSegmentOptions,
 			includePath,
 			includeContext,
 			includeGit,
@@ -1704,10 +1758,8 @@ export class StatusLineComponent implements Component {
 		const separatorDef = getSeparator(effectiveSettings.separator ?? "powerline-thin", theme);
 
 		// `transparent` reuses the empty-string sentinel (`\x1b[49m`) so the bar
-		// inherits the terminal's default background, matching custom themes that
-		// set `statusLineBg: ""`. Powerline end caps need a contrasting fill to
-		// bridge the bar into the surrounding terminal; without one they read as
-		// stray glyphs, so the cap renderer drops them when the fill is empty.
+		// inherits the terminal's default background. Powerline caps need a fill
+		// to bridge into the surrounding terminal, so transparent rows omit them.
 		const TRANSPARENT_BG_ANSI = "\x1b[49m";
 		const themeBgAnsi = theme.getBgAnsi("statusLineBg");
 		const bgAnsi = effectiveSettings.transparent ? TRANSPARENT_BG_ANSI : themeBgAnsi;
@@ -1716,114 +1768,46 @@ export class StatusLineComponent implements Component {
 		const sepAnsi = theme.getFgAnsi("statusLineSep");
 		const subagentBadge = this.#subagentBadgeText();
 
-		// Collect visible segment contents
 		const leftParts: string[] = [];
-		const leftSegIds: StatusLineSegmentId[] = [];
 		for (const segId of effectiveSettings.leftSegments) {
 			if (subagentBadge && segId === "subagents") continue;
 			const rendered = renderSegment(segId, ctx);
-			if (rendered.visible && rendered.content) {
-				leftParts.push(rendered.content);
-				leftSegIds.push(segId);
-			}
+			if (rendered.visible && rendered.content) leftParts.push(rendered.content);
 		}
 
 		const rightParts: string[] = [];
 		for (const segId of effectiveSettings.rightSegments) {
 			if (subagentBadge && segId === "subagents") continue;
 			const rendered = renderSegment(segId, ctx);
-			if (rendered.visible && rendered.content) {
-				rightParts.push(rendered.content);
-			}
+			if (rendered.visible && rendered.content) rightParts.push(rendered.content);
 		}
 
 		const runningBackgroundJobs = this.session.getAsyncJobSnapshot()?.running.length ?? 0;
 		if (runningBackgroundJobs > 0) {
 			rightParts.unshift(theme.fg("statusLineSubagents", `${theme.icon.job} ${runningBackgroundJobs}`));
 		}
-		if (subagentBadge) {
-			rightParts.unshift(subagentBadge);
-		}
-		const topFillWidth = Math.max(0, width);
-		const left = [...leftParts];
-		const right = [...rightParts];
+		if (subagentBadge) rightParts.unshift(subagentBadge);
+		const focusedGuidance = this.#focusedAgentGuidance();
+		if (focusedGuidance) rightParts.unshift(focusedGuidance);
+		if (leftParts.length === 0 && rightParts.length === 0) return [];
 
 		const leftSepWidth = visibleWidth(separatorDef.left);
 		const rightSepWidth = visibleWidth(separatorDef.right);
-		// Transparent mode drops powerline caps (they need a bg fill to bridge),
-		// so the width budget excludes them too.
 		const leftCapWidth = separatorDef.endCaps && !transparentBg ? visibleWidth(separatorDef.endCaps.right) : 0;
 		const rightCapWidth = separatorDef.endCaps && !transparentBg ? visibleWidth(separatorDef.endCaps.left) : 0;
-
-		const groupWidth = (parts: string[], capWidth: number, sepWidth: number): number => {
+		const groupWidth = (parts: readonly string[], capWidth: number, sepWidth: number): number => {
 			if (parts.length === 0) return 0;
-			const partsWidth = parts.reduce((sum, part) => sum + visibleWidth(part), 0);
-			const sepTotal = Math.max(0, parts.length - 1) * (sepWidth + 2);
-			return partsWidth + sepTotal + 2 + capWidth;
+			return (
+				parts.reduce((sum, part) => sum + visibleWidth(part), 0) +
+				Math.max(0, parts.length - 1) * (sepWidth + 2) +
+				2 +
+				capWidth
+			);
 		};
+		const leftWidth = groupWidth(leftParts, leftCapWidth, leftSepWidth);
+		const rightWidth = groupWidth(rightParts, rightCapWidth, rightSepWidth);
 
-		let leftWidth = groupWidth(left, leftCapWidth, leftSepWidth);
-		let rightWidth = groupWidth(right, rightCapWidth, rightSepWidth);
-		const totalWidth = () => leftWidth + rightWidth + (left.length > 0 && right.length > 0 ? 1 : 0);
-
-		if (topFillWidth > 0) {
-			while (totalWidth() > topFillWidth && right.length > 0) {
-				right.pop();
-				rightWidth = groupWidth(right, rightCapWidth, rightSepWidth);
-			}
-			// Shrink path before dropping left segments — path is the only elastic segment
-			const pathIdx = leftSegIds.indexOf("path");
-			if (pathIdx >= 0 && totalWidth() > topFillWidth) {
-				const overflow = totalWidth() - topFillWidth;
-				const currentPathVW = visibleWidth(left[pathIdx]);
-				const minPathVW = 8; // icon + ellipsis + a few chars
-				const shrinkable = currentPathVW - minPathVW;
-				if (shrinkable > 0) {
-					const shrinkBy = Math.min(shrinkable, overflow);
-					const currentMaxLen = ctx.options.path?.maxLength ?? 40;
-					let newMaxLen = Math.max(4, Math.min(currentMaxLen, currentPathVW) - shrinkBy);
-					const pathCtx = (maxLen: number): SegmentContext => ({
-						...ctx,
-						options: { ...ctx.options, path: { ...ctx.options.path, maxLength: maxLen } },
-					});
-					let reRendered = renderSegment("path", pathCtx(newMaxLen));
-					if (reRendered.visible && reRendered.content) {
-						// maxLength governs path text, not icon prefix; iterate to compensate
-						for (let i = 0; i < 8; i++) {
-							const saved = currentPathVW - visibleWidth(reRendered.content);
-							if (saved >= shrinkBy) break;
-							const nextMaxLen = Math.max(4, newMaxLen - (shrinkBy - saved));
-							if (nextMaxLen >= newMaxLen) break; // no progress or hit floor
-							newMaxLen = nextMaxLen;
-							const adjusted = renderSegment("path", pathCtx(newMaxLen));
-							if (!adjusted.visible || !adjusted.content) break;
-							reRendered = adjusted;
-						}
-						left[pathIdx] = reRendered.content;
-						leftWidth = groupWidth(left, leftCapWidth, leftSepWidth);
-					}
-				}
-			}
-			const leftOverflowDropIndex = (): number => {
-				// Preserve the current working directory as long as possible. The
-				// previous right-to-left pop could collapse a normal-width bar to
-				// just the model segment, hiding the path before less-critical left
-				// segments such as model/mode/collab were removed.
-				for (let i = leftSegIds.length - 1; i >= 0; i--) {
-					if (leftSegIds[i] !== "path") return i;
-				}
-				return left.length - 1;
-			};
-
-			while (totalWidth() > topFillWidth && left.length > 0) {
-				const dropIdx = leftOverflowDropIndex();
-				left.splice(dropIdx, 1);
-				leftSegIds.splice(dropIdx, 1);
-				leftWidth = groupWidth(left, leftCapWidth, leftSepWidth);
-			}
-		}
-
-		const renderGroup = (parts: string[], direction: "left" | "right"): string => {
+		const renderGroup = (parts: readonly string[], direction: "left" | "right"): string => {
 			if (parts.length === 0) return "";
 			const sep = direction === "left" ? separatorDef.left : separatorDef.right;
 			const cap =
@@ -1834,59 +1818,77 @@ export class StatusLineComponent implements Component {
 					: "";
 			const capPrefix = separatorDef.endCaps?.useBgAsFg ? bgAnsi.replace("\x1b[48;", "\x1b[38;") : bgAnsi + sepAnsi;
 			const capText = cap ? `${capPrefix}${this.#focusedAgentId ? "\x1b[22m" : ""}${cap}\x1b[0m` : "";
+			const content = `${bgAnsi}${fgAnsi} ${parts.join(` ${sepAnsi}${sep}${fgAnsi} `)} \x1b[0m`;
+			if (!capText) return content;
+			return direction === "right" ? capText + content : content + capText;
+		};
 
-			let content = bgAnsi + fgAnsi;
-			content += ` ${parts.join(` ${sepAnsi}${sep}${fgAnsi} `)} `;
-			content += "\x1b[0m";
-
-			if (capText) {
-				return direction === "right" ? capText + content : content + capText;
+		const leftGroup = renderGroup(leftParts, "left");
+		const rightGroup = renderGroup(rightParts, "right");
+		const combinedWidth = leftWidth + rightWidth + (leftParts.length > 0 && rightParts.length > 0 ? 1 : 0);
+		let rows: string[];
+		if (combinedWidth <= width) {
+			if (leftGroup && rightGroup) {
+				const gapWidth = Math.max(1, width - leftWidth - rightWidth);
+				const sessionName =
+					effectiveSettings.sessionAccent !== false ? this.session.sessionManager?.getSessionName() : undefined;
+				const accentHex = sessionName
+					? getSessionAccentHex(sessionName, theme.getMajorThemeColorHexes(), theme.accentSurfaceLuminance)
+					: undefined;
+				const gapColor = getSessionAccentAnsi(accentHex) ?? theme.getFgAnsi("border");
+				rows = [leftGroup + `${gapColor}${theme.boxRound.horizontal.repeat(gapWidth)}\x1b[39m` + rightGroup];
+			} else {
+				rows = [leftGroup || rightGroup];
 			}
-			return content;
-		};
-
-		const leftGroup = renderGroup(left, "left");
-		const rightGroup = renderGroup(right, "right");
-		if (!leftGroup && !rightGroup) return "";
-
-		if (topFillWidth === 0 || left.length === 0 || right.length === 0) {
-			return leftGroup + (leftGroup && rightGroup ? " " : "") + rightGroup;
+		} else if (leftWidth <= width && rightWidth <= width) {
+			rows = [];
+			if (leftGroup) rows.push(leftGroup);
+			if (rightGroup) rows.push(`${padding(Math.max(0, width - rightWidth))}${rightGroup}`);
+		} else {
+			// Decorations are expendable; logical chunks are not. Pack whole chunks
+			// where possible and wrap an oversized chunk without truncation.
+			const compactSeparator = ` ${sepAnsi}${separatorDef.left}${fgAnsi} `;
+			const compactSeparatorWidth = visibleWidth(compactSeparator);
+			rows = [];
+			let current = "";
+			for (const chunk of [...leftParts, ...rightParts]) {
+				const chunkWidth = visibleWidth(chunk);
+				if (chunkWidth > width) {
+					if (current) {
+						rows.push(current);
+						current = "";
+					}
+					const wrapped = wrapTextWithAnsi(chunk, width);
+					rows.push(...wrapped.slice(0, -1));
+					current = wrapped.at(-1) ?? "";
+					continue;
+				}
+				if (!current) {
+					current = chunk;
+					continue;
+				}
+				if (visibleWidth(current) + compactSeparatorWidth + chunkWidth <= width) {
+					current += compactSeparator + chunk;
+				} else {
+					rows.push(current);
+					current = chunk;
+				}
+			}
+			if (current) rows.push(current);
 		}
 
-		const gapWidth = Math.max(1, topFillWidth - leftWidth - rightWidth);
-		const sessionName =
-			effectiveSettings.sessionAccent !== false ? this.session.sessionManager?.getSessionName() : undefined;
-		const accentHex = sessionName
-			? getSessionAccentHex(sessionName, theme.getMajorThemeColorHexes(), theme.accentSurfaceLuminance)
-			: undefined;
-		const gapColor = getSessionAccentAnsi(accentHex) ?? theme.getFgAnsi("border");
-		const gapFill = `${gapColor}${theme.boxRound.horizontal.repeat(gapWidth)}\x1b[39m`;
-		return leftGroup + gapFill + rightGroup;
-	}
-
-	getTopBorder(width: number): { content: string; width: number; revision: number } {
-		let content = this.#buildStatusLine(width);
-		if (this.#focusedAgentId && content) {
-			// Dim the whole bar while focus-proxied. Group/cap terminators emit full
-			// `\x1b[0m` resets that would cancel faint mid-bar, so re-open it after each.
-			content = `\x1b[2m${content.replaceAll("\x1b[0m", "\x1b[0m\x1b[2m")}\x1b[22m`;
-		}
-		return {
-			content,
-			width: visibleWidth(content),
-			revision: this.#widthEpochRevision,
-		};
+		if (!this.#focusedAgentId) return rows;
+		return rows.map(row => `\x1b[2m${row.replaceAll("\x1b[0m", "\x1b[0m\x1b[2m")}\x1b[22m`);
 	}
 
 	render(width: number): readonly string[] {
-		// Only render hook statuses - main status is in editor's top border
+		if (width <= 0) return [];
+		const mainRows = this.#buildStatusRows(width);
 		const showHooks = this.#settings.showHookStatus ?? true;
-		if (!showHooks || this.#hookStatuses.size === 0) {
-			return [];
-		}
-
-		return Array.from(this.#hookStatuses.entries())
+		if (!showHooks || this.#hookStatuses.size === 0) return mainRows;
+		const hookRows = Array.from(this.#hookStatuses.entries())
 			.sort(([a], [b]) => a.localeCompare(b))
-			.map(([, text]) => truncateToWidth(sanitizeStatusText(text), width));
+			.flatMap(([, text]) => wrapTextWithAnsi(sanitizeStatusText(text), width));
+		return [...mainRows, ...hookRows];
 	}
 }

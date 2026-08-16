@@ -247,6 +247,38 @@ describe("TUI.requestComponentRender", () => {
 		}
 	});
 
+	it("keeps component-scoped composition with a reserved right dock", async () => {
+		const term = new VirtualTerminal(80, 8, 1_000);
+		const scheduler = new StressRenderScheduler();
+		const tui = new TUI(term, undefined, { renderScheduler: scheduler });
+		const transcript = new CountingLines(["msg-0"]);
+		const spinner = new CountingLines(["spin-0"]);
+		tui.addChild(transcript);
+		tui.addChild(spinner);
+
+		try {
+			tui.start();
+			await scheduler.drain(term);
+			tui.showOverlay(new CountingLines(["dock"]), {
+				anchor: "top-right",
+				width: 20,
+				reserveRight: true,
+			});
+			await scheduler.drain(term);
+			const transcriptRenders = transcript.renders;
+
+			spinner.set(["spin-1"]);
+			tui.requestComponentRender(spinner);
+			await scheduler.drain(term);
+
+			expect(transcript.renders).toBe(transcriptRenders);
+			expect(visible(term)).toContain("spin-1");
+		} finally {
+			tui.stop();
+			await term.flush();
+		}
+	});
+
 	it("falls back to a full compose when the root child list changed", async () => {
 		const term = new VirtualTerminal(40, 8, 1_000);
 		const scheduler = new StressRenderScheduler();

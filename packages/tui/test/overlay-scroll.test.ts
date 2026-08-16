@@ -47,6 +47,19 @@ class WidthAwareHistoryComponent implements Component {
 	}
 }
 
+class WidthRecordingCursorComponent implements Component {
+	readonly widths: number[] = [];
+
+	invalidate(): void {
+		// No cached state
+	}
+
+	render(width: number): string[] {
+		this.widths.push(width);
+		return [...Array.from({ length: 11 }, (_v, i) => `history-${i}`), `cursor-anchor${CURSOR_MARKER}`];
+	}
+}
+
 class CursorOnlyComponent implements Component {
 	#cursorCol = 0;
 	readonly #line = "cursor-anchor";
@@ -205,6 +218,138 @@ describe("TUI overlays", () => {
 
 		// The scroll buffer should stay small; we should not have printed hundreds/thousands of blank lines.
 		expect(term.getScrollBuffer().length).toBeLessThan(200);
+	});
+
+	it("reserves a visible right dock and restores width, scrollback, and cursor across resize", async () => {
+		const term = new VirtualTerminal(121, 6, 100);
+		const tui = new TUI(term, true);
+		const content = new WidthRecordingCursorComponent();
+		tui.addChild(content);
+		const dock = tui.showOverlay(new LineComponent("dock-", 1), {
+			anchor: "top-right",
+			width: 42,
+			reserveRight: true,
+			visible: columns => columns > 120,
+		});
+
+		try {
+			tui.start();
+			await flushRender(term);
+			expect(content.widths.at(-1)).toBe(79);
+			expect(term.getViewport()[0]?.slice(79).trim()).toBe("dock-0");
+			const initialCursor = term.getCursor();
+			const initialBufferPosition = term.getBufferPosition();
+			expect(
+				term
+					.getScrollBuffer()
+					.slice(0, term.getBufferPosition().baseY)
+					.some(line => line.includes("dock-")),
+			).toBeFalsy();
+
+			term.resize(120, 6);
+			await settleResize(term);
+			expect(content.widths.at(-1)).toBe(120);
+			expect(term.getViewport().some(line => line.includes("dock-"))).toBeFalsy();
+			expect(term.getCursor()).toEqual(initialCursor);
+			expect(term.getBufferPosition().baseY).toBe(initialBufferPosition.baseY);
+
+			term.resize(121, 6);
+			await settleResize(term);
+			expect(content.widths.at(-1)).toBe(79);
+			expect(term.getViewport()[0]?.slice(79).trim()).toBe("dock-0");
+			expect(term.getCursor()).toEqual(initialCursor);
+			expect(term.getBufferPosition().baseY).toBe(initialBufferPosition.baseY);
+			expect(
+				term
+					.getScrollBuffer()
+					.slice(0, term.getBufferPosition().baseY)
+					.some(line => line.includes("dock-")),
+			).toBeFalsy();
+		} finally {
+			dock.hide();
+			tui.stop();
+		}
+	});
+
+	it("treats same-column dock visibility as an in-place width epoch", async () => {
+		Bun.env.HERDR_ENV = "1";
+		const term = new VirtualTerminal(121, 6, 100);
+		const tui = new TUI(term, true);
+		const content = new WidthRecordingCursorComponent();
+		tui.addChild(content);
+		let dockVisible = true;
+		const dock = tui.showOverlay(new LineComponent("dock-", 1), {
+			anchor: "top-right",
+			width: 42,
+			reserveRight: true,
+			visible: () => dockVisible,
+		});
+
+		try {
+			tui.start();
+			await flushRender(term);
+			expect(content.widths.at(-1)).toBe(79);
+			const initialCursor = term.getCursor();
+
+			dockVisible = false;
+			tui.requestRender();
+			await flushRender(term);
+			expect(content.widths.at(-1)).toBe(121);
+			expect(term.getCursor()).toEqual(initialCursor);
+			expect(term.getViewport().some(line => line.includes("dock-"))).toBe(false);
+
+			dockVisible = true;
+			tui.requestRender();
+			await flushRender(term);
+			expect(content.widths.at(-1)).toBe(79);
+			expect(term.getCursor()).toEqual(initialCursor);
+			expect(term.getViewport()[0]?.slice(79).trim()).toBe("dock-0");
+		} finally {
+			dock.hide();
+			tui.stop();
+		}
+	});
+
+	it("uses the topmost qualifying dock width and ignores ordinary overlays", async () => {
+		const term = new VirtualTerminal(121, 6);
+		const tui = new TUI(term);
+		const content = new WidthRecordingCursorComponent();
+		tui.addChild(content);
+		const lowerDock = tui.showOverlay(new LineComponent("lower-", 1), {
+			anchor: "top-right",
+			width: 30,
+			reserveRight: true,
+		});
+		const upperDock = tui.showOverlay(new LineComponent("upper-", 1), {
+			anchor: "top-right",
+			width: 42,
+			reserveRight: true,
+		});
+
+		try {
+			tui.start();
+			await flushRender(term);
+			expect(content.widths.at(-1)).toBe(79);
+			upperDock.hide();
+			await settleResize(term);
+			expect(content.widths.at(-1)).toBe(91);
+
+			const ordinary = tui.showOverlay(new LineComponent("ordinary-", 1), {
+				anchor: "center",
+				width: 42,
+				reserveRight: true,
+			});
+			await settleResize(term);
+			expect(content.widths.at(-1)).toBe(91);
+			ordinary.hide();
+			lowerDock.hide();
+			await settleResize(term);
+			expect(content.widths.at(-1)).toBe(121);
+		} finally {
+			upperDock.hide();
+			lowerDock.hide();
+			tui.stop();
+		}
 	});
 
 	it("keeps the native viewport anchored when an overlay repaint follows a focused cursor below the frame tail", async () => {

@@ -72,5 +72,9 @@ describe("InteractiveMode.setEditorComponent", () => {
 		expect(mode.editor.onSubmit).toBeDefined();
 		expect(mode.editor.onEscape).toBeDefined();
 		expect(refreshSpy).toHaveBeenCalled();
+		const rendered = mode.editor.render(80).join("\n");
+		expect(rendered).toContain("Claude Sonnet 4.5");
+		expect(rendered).toContain("anthropic");
+		expect(rendered).toContain("draft prompt");
 	});
 });

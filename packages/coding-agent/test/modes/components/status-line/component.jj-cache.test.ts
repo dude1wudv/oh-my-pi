@@ -12,8 +12,8 @@ import * as jj from "../../../../src/utils/jj";
 
 // Minimal session the git-only status line render path touches: state.messages
 // (token-rate scan), model window, streaming flag, and the async-job snapshot.
-// The `git` segment reads none of these — they only keep #buildStatusLine from
-// throwing while it renders the single segment under test.
+// The `git` segment reads none of these — they only keep render() from throwing
+// while it paints the single segment under test.
 function makeSession(): AgentSession {
 	const model = { contextWindow: 128000 } as const;
 	return {
@@ -69,8 +69,14 @@ afterAll(() => {
 	settings.clearOverride("statusLine.leftSegments");
 	settings.clearOverride("statusLine.rightSegments");
 	setProjectDir(originalProjectDir);
-	fs.rmSync(tmpA, { recursive: true, force: true });
-	fs.rmSync(tmpB, { recursive: true, force: true });
+	for (const tempDir of [tmpA, tmpB]) {
+		try {
+			fs.rmSync(tempDir, { recursive: true, force: true, maxRetries: 5, retryDelay: 50 });
+		} catch (error) {
+			const code = (error as NodeJS.ErrnoException).code;
+			if (code !== "EBUSY" && code !== "EPERM") throw error;
+		}
+	}
 });
 
 beforeEach(() => {
@@ -111,16 +117,16 @@ describe("StatusLineComponent jj cache coherence", () => {
 
 		// First render kicks off the async lookup (returns the empty cache); after
 		// it resolves, a second render paints the fetched label.
-		statusLine.getTopBorder(WIDTH);
+		statusLine.render(WIDTH);
 		await flushMicrotasks();
-		expect(visible(statusLine.getTopBorder(WIDTH).content)).toContain("bookmark-v1");
+		expect(visible(statusLine.render(WIDTH).join("\n"))).toContain("bookmark-v1");
 		expect(branchSpy).toHaveBeenCalledTimes(1);
 
 		// Move the bookmark: a plain render within the 5s TTL must keep serving the
 		// cached label without a refetch (guards that the TTL is real, so the next
 		// assertion proves invalidateGitCaches() — not TTL expiry — forces the refresh).
 		branchSpy.mockResolvedValue("bookmark-v2");
-		const throttled = visible(statusLine.getTopBorder(WIDTH).content);
+		const throttled = visible(statusLine.render(WIDTH).join("\n"));
 		await flushMicrotasks();
 		expect(throttled).toContain("bookmark-v1");
 		expect(branchSpy).toHaveBeenCalledTimes(1);
@@ -128,11 +134,12 @@ describe("StatusLineComponent jj cache coherence", () => {
 		// A HEAD/bookmark change must explicitly reset the jj caches so the next
 		// render refetches despite being inside the TTL and paints the new label.
 		statusLine.invalidateGitCaches();
-		statusLine.getTopBorder(WIDTH);
+		statusLine.render(WIDTH);
 		await flushMicrotasks();
 		expect(branchSpy).toHaveBeenCalledTimes(2);
-		expect(visible(statusLine.getTopBorder(WIDTH).content)).toContain("bookmark-v2");
-		expect(visible(statusLine.getTopBorder(WIDTH).content)).not.toContain("bookmark-v1");
+		expect(visible(statusLine.render(WIDTH).join("\n"))).toContain("bookmark-v2");
+		expect(visible(statusLine.render(WIDTH).join("\n"))).not.toContain("bookmark-v1");
+		statusLine.dispose();
 	});
 
 	it("a jj lookup that resolves after the root changed never lands in the new root's cache", async () => {
@@ -150,7 +157,7 @@ describe("StatusLineComponent jj cache coherence", () => {
 
 		// Render in repo A: starts the (hanging) lookup for ROOT_A. Nothing painted
 		// yet — the cache is empty and the query is unresolved.
-		expect(visible(statusLine.getTopBorder(WIDTH).content)).not.toContain("branch-A-STALE");
+		expect(visible(statusLine.render(WIDTH).join("\n"))).not.toContain("branch-A-STALE");
 		expect(branchSpy).toHaveBeenCalledTimes(1);
 
 		// Switch to repo B mid-flight. The cwd-change caller explicitly resets the
@@ -158,7 +165,7 @@ describe("StatusLineComponent jj cache coherence", () => {
 		// B's lookup can start immediately on the next render.
 		setProjectDir(tmpB);
 		statusLine.invalidateGitCaches();
-		statusLine.getTopBorder(WIDTH);
+		statusLine.render(WIDTH);
 		await flushMicrotasks();
 		expect(branchSpy).toHaveBeenCalledTimes(2);
 
@@ -175,13 +182,14 @@ describe("StatusLineComponent jj cache coherence", () => {
 		// dropped), so this render both refuses to paint A's label AND is free to
 		// launch B's refetch. Without the fix, A's stale label is already sitting
 		// in B's cache and paints here.
-		const paintedImmediate = visible(statusLine.getTopBorder(WIDTH).content);
+		const paintedImmediate = visible(statusLine.render(WIDTH).join("\n"));
 		expect(paintedImmediate).not.toContain("branch-A-STALE");
 
 		// Steady state: B's (now unthrottled) refetch resolves and paints B's real
 		// label — confirming the switch left B's cache coherent, not poisoned.
 		await flushMicrotasks();
-		expect(visible(statusLine.getTopBorder(WIDTH).content)).toContain("branch-B");
+		expect(visible(statusLine.render(WIDTH).join("\n"))).toContain("branch-B");
+		statusLine.dispose();
 	});
 
 	it("a jj lookup that resolves after a same-root invalidation never lands as stale", async () => {
@@ -202,14 +210,14 @@ describe("StatusLineComponent jj cache coherence", () => {
 		const statusLine = new StatusLineComponent(makeSession());
 
 		// Render in ROOT_A: starts the (hanging) first lookup. Nothing cached yet.
-		statusLine.getTopBorder(WIDTH);
+		statusLine.render(WIDTH);
 		await flushMicrotasks();
 		expect(branchSpy).toHaveBeenCalledTimes(1);
 
 		// A HEAD/bookmark move fires the watcher → invalidateGitCaches(). The cwd is
 		// unchanged, so the next #jjRootFor re-resolves #jjRoot to the SAME ROOT_A.
 		statusLine.invalidateGitCaches();
-		statusLine.getTopBorder(WIDTH);
+		statusLine.render(WIDTH);
 		await flushMicrotasks();
 
 		// The stale first query now resolves. The generation captured at its launch
@@ -217,13 +225,14 @@ describe("StatusLineComponent jj cache coherence", () => {
 		// never cached, and the throttle must NOT be advanced on it.
 		deferred.resolve("bookmark-stale");
 		await flushMicrotasks();
-		const paintedImmediate = visible(statusLine.getTopBorder(WIDTH).content);
+		const paintedImmediate = visible(statusLine.render(WIDTH).join("\n"));
 		expect(paintedImmediate).not.toContain("bookmark-stale");
 
 		// Because the stale result did not advance the throttle, the post-invalidate
 		// cache is free to refetch and paint the fresh label.
 		await flushMicrotasks();
-		expect(visible(statusLine.getTopBorder(WIDTH).content)).toContain("bookmark-fresh");
+		expect(visible(statusLine.render(WIDTH).join("\n"))).toContain("bookmark-fresh");
 		expect(branchSpy).toHaveBeenCalledTimes(2);
+		statusLine.dispose();
 	});
 });

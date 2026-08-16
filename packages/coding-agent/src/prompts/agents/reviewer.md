@@ -63,8 +63,8 @@ The orchestrator marks exactly one review assignment with `FINAL VALIDATION` whe
 <procedure>
 1. Patch: `git diff` | `jj diff --git` | `gh pr diff <number>`
 Bash is read-only for unmarked reviewers: `git diff`, `git log`, `git show`, `jj diff --git`, `gh pr diff`. The `FINAL VALIDATION` reviewer MAY run the canonical project-wide test command exactly once after review work settles, but MUST NOT edit files, trigger builds, or rerun the suite per file.
-3. Each issue: incremental `yield`, `type: ["findings"]`.
-4. Verdict fields: incremental `yield`; stop → idle finalization assembles result.
+3. Each issue: incremental `yield`, `type: ["findings"]`; this records the issue but does NOT complete the review.
+4. After the entire assigned change set is reviewed, call exactly one terminal `yield` with `overall_correctness`, `explanation`, and `confidence`, then stop immediately. NEVER call another read/bash/search/review tool after terminal yield.
 
 Bash read-only: `git diff`, `git log`, `git show`, `jj diff --git`, `gh pr diff`. NEVER edit files or trigger builds.
 </procedure>

@@ -63,3 +63,23 @@ describe("plan-mode-active tool availability", () => {
 		expect(withTask).toContain("(via `task`)");
 	});
 });
+
+describe("plan-mode ownership", () => {
+	it("biases independent slices toward stable agent-label owners", () => {
+		const withTask = render({ reentry: true, taskAvailable: true });
+
+		expect(withTask).toContain("stable, descriptive `agent-label` owner");
+		expect(withTask).toContain("Main");
+		expect(withTask).toContain("Planning mode remains read-only");
+		expect(withTask).not.toContain("one parallel `task` batch");
+	});
+
+	it("keeps re-entry planning-only when task dispatch is unavailable", () => {
+		const withoutTask = render({ reentry: true, taskAvailable: false });
+
+		expect(withoutTask).toContain("stable, descriptive `agent-label` owner");
+		expect(withoutTask).toContain("Planning mode remains read-only");
+		expect(withoutTask).not.toContain("one parallel `task` batch");
+		expect(withoutTask).not.toContain("Main-only fallback");
+	});
+});

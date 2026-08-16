@@ -6,9 +6,12 @@ import {
 	Editor,
 	type EditorTheme,
 	type KeyId,
+	padding,
 	parseKey,
 	parseKittySequence,
 	TUI,
+	visibleWidth,
+	wrapTextWithAnsi,
 } from "@dude1wudv/pi-tui";
 import { BracketedPasteHandler } from "@dude1wudv/pi-tui/bracketed-paste";
 import type { AppKeybinding } from "../../config/keybindings";
@@ -164,8 +167,12 @@ function normalizePastedPath(path: string): string {
 		try {
 			return fileURLToPath(unquoted);
 		} catch {
-			// Malformed file URL: drop through to the shell-unescape branch
-			// so the caller can still reject it as a non-explicit path.
+			// Bun rejects POSIX file URLs on Windows. Preserve their decoded absolute
+			// path so a macOS-originated paste remains usable in a remote Windows TUI.
+			const url = new URL(unquoted);
+			if (url.protocol === "file:" && url.host === "" && url.pathname.startsWith("/")) {
+				return decodeURIComponent(url.pathname);
+			}
 		}
 	}
 	return unquoted.replace(SHELL_ESCAPED_PATH_CHAR_REGEX, "$1");
@@ -376,6 +383,14 @@ function isEditorTheme(value: unknown): value is EditorTheme {
 	);
 }
 
+export interface PromptMetadata {
+	model?: string;
+	provider?: string;
+	thinking?: string;
+}
+
+export type PromptMetadataProvider = () => PromptMetadata;
+
 /**
  * Custom editor that handles configurable app-level shortcuts for coding-agent.
  */
@@ -397,6 +412,8 @@ export class CustomEditor extends Editor {
 	 * in their overrides read it here (issue #4766).
 	 */
 	tui?: TUI;
+	#metadataProvider: PromptMetadataProvider | undefined;
+	#baseBorderVisible = true;
 
 	/**
 	 * Accept both the omp constructor convention — `new CustomEditor(theme)` —
@@ -414,6 +431,54 @@ export class CustomEditor extends Editor {
 	constructor(...args: readonly unknown[]) {
 		super(pickEditorTheme(args));
 		if (args[0] instanceof TUI) this.tui = args[0];
+	}
+
+	override setBorderVisible(borderVisible: boolean): void {
+		this.#baseBorderVisible = borderVisible;
+		super.setBorderVisible(borderVisible);
+	}
+
+	setMetadataProvider(provider: PromptMetadataProvider | undefined): void {
+		this.#metadataProvider = provider;
+	}
+
+	override render(width: number): readonly string[] {
+		const provider = this.#metadataProvider;
+		if (!provider || width < 4) return super.render(width);
+
+		let metadata: PromptMetadata;
+		try {
+			metadata = provider();
+		} catch {
+			return super.render(width);
+		}
+
+		const innerWidth = width - 2;
+		let baseRows: readonly string[];
+		super.setBorderVisible(false);
+		try {
+			baseRows = super.render(innerWidth);
+		} finally {
+			super.setBorderVisible(this.#baseBorderVisible);
+		}
+
+		const autocompleteCount = Math.min(this.lastAutocompleteRowCount, baseRows.length);
+		const promptRows = baseRows.slice(0, baseRows.length - autocompleteCount);
+		const autocompleteRows = autocompleteCount === 0 ? [] : baseRows.slice(-autocompleteCount);
+		const horizontal = theme.fg("accent", theme.boxRound.horizontal.repeat(width));
+		const rail = theme.fg("accent", theme.boxRound.vertical);
+		const frameRow = (content: string): string =>
+			`${rail} ${content}${padding(Math.max(0, innerWidth - visibleWidth(content)))}`;
+		const metadataText = [metadata.model, metadata.provider, metadata.thinking].filter(Boolean).join(" · ");
+		const metadataRows = metadataText ? wrapTextWithAnsi(metadataText, innerWidth) : [];
+		const card = [
+			horizontal,
+			...promptRows.map(frameRow),
+			frameRow(""),
+			...metadataRows.map(row => frameRow(theme.fg("dim", row))),
+			horizontal,
+		];
+		return [...card, ...autocompleteRows];
 	}
 
 	/** Clear the composer draft: optionally commit `historyText` to history, then

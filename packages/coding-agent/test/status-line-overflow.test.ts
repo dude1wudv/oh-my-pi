@@ -127,7 +127,7 @@ function createStatusLineSession(sessionName: string, modelName?: string) {
 }
 
 function stripAnsi(value: string): string {
-	return value.replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, "");
+	return value.replace(/\x1B\][^\x07]*(?:\x07|\x1B\\)/g, "").replace(/\x1B\[[0-?]*[ -/]*[@-~]/g, "");
 }
 
 describe("status line session accent", () => {
@@ -155,14 +155,14 @@ describe("status line session accent", () => {
 	it("paints the gap with the session accent when enabled", () => {
 		const ansi = accentAnsi();
 		expect(ansi).toBeDefined();
-		const border = buildComponent(true).getTopBorder(80).content;
+		const border = buildComponent(true).render(80).join("\n");
 		expect(border).toContain(`${ansi}${theme.boxRound.horizontal}`);
 	});
 
 	it("paints the gap with the border color and omits the session accent when disabled", () => {
 		const ansi = accentAnsi();
 		expect(ansi).toBeDefined();
-		const border = buildComponent(false).getTopBorder(80).content;
+		const border = buildComponent(false).render(80).join("\n");
 		// Positive: gap is rendered with the theme border color.
 		expect(border).toContain(`${theme.getFgAnsi("border")}${theme.boxRound.horizontal}`);
 		// Negative: neither the gap nor the session-name segment may emit the
@@ -202,7 +202,7 @@ describe("status line focused-agent dimming", () => {
 		});
 		component.setSession(createStatusLineSession("Focused session"), "agent-1");
 
-		const border = component.getTopBorder(80).content;
+		const border = component.render(80).join("\n");
 
 		expect(border).toStartWith("\x1b[2m");
 		expect(border).toContain(`\x1b[22m${theme.sep.powerlineLeft}\x1b[0m\x1b[2m`);
@@ -247,232 +247,80 @@ describe("path segment truncation at varying maxLength", () => {
 	});
 });
 
-describe("overflow: path shrinks before git is dropped", () => {
+describe("lossless footer reflow", () => {
 	let tmpDir: string;
 
 	beforeAll(() => {
-		// Long dir name guarantees the path segment is wide
-		tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omp-overflow-a-very-long-worktree-directory-name-here-"));
+		tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), "omp-footer-lossless-"));
 		setProjectDir(tmpDir);
 	});
 
-	/**
-	 * Simulates the overflow algorithm from #buildStatusLine:
-	 * render left segments, then shrink path before popping, same as production code.
-	 */
-	function simulateOverflow(
-		width: number,
-		leftSegmentIds: StatusLineSegmentId[],
-		ctx: SegmentContext,
-	): { surviving: StatusLineSegmentId[]; contents: string[] } {
-		const left: string[] = [];
-		const leftSegIds: StatusLineSegmentId[] = [];
-		for (const segId of leftSegmentIds) {
-			const rendered = renderSegment(segId, ctx);
-			if (rendered.visible && rendered.content) {
-				left.push(rendered.content);
-				leftSegIds.push(segId);
-			}
-		}
-
-		// Simplified groupWidth: sum of visible widths + padding between segments
-		const groupWidth = () => {
-			if (left.length === 0) return 0;
-			const partsWidth = left.reduce((sum, p) => sum + visibleWidth(p), 0);
-			// Each separator gap ~ 3 chars, plus 2 for outer padding
-			return partsWidth + Math.max(0, left.length - 1) * 3 + 2;
-		};
-
-		// Path shrink step (mirrors production code)
-		const pathIdx = leftSegIds.indexOf("path");
-		if (pathIdx >= 0 && groupWidth() > width) {
-			const overflow = groupWidth() - width;
-			const currentPathVW = visibleWidth(left[pathIdx]);
-			const minPathVW = 8;
-			const shrinkable = currentPathVW - minPathVW;
-			if (shrinkable > 0) {
-				const shrinkBy = Math.min(shrinkable, overflow);
-				const currentMaxLen = ctx.options.path?.maxLength ?? 40;
-				let newMaxLen = Math.max(4, Math.min(currentMaxLen, currentPathVW) - shrinkBy);
-				const pathCtx = (maxLen: number): SegmentContext => ({
-					...ctx,
-					options: { ...ctx.options, path: { ...ctx.options.path, maxLength: maxLen } },
-				});
-				let reRendered = renderSegment("path", pathCtx(newMaxLen));
-				if (reRendered.visible && reRendered.content) {
-					for (let i = 0; i < 8; i++) {
-						const saved = currentPathVW - visibleWidth(reRendered.content);
-						if (saved >= shrinkBy) break;
-						const nextMaxLen = Math.max(4, newMaxLen - (shrinkBy - saved));
-						if (nextMaxLen >= newMaxLen) break;
-						newMaxLen = nextMaxLen;
-						const adjusted = renderSegment("path", pathCtx(newMaxLen));
-						if (!adjusted.visible || !adjusted.content) break;
-						reRendered = adjusted;
-					}
-					left[pathIdx] = reRendered.content;
-				}
-			}
-		}
-
-		// Left-segment fallback loop.
-		const leftOverflowDropIndex = (): number => {
-			for (let i = leftSegIds.length - 1; i >= 0; i--) {
-				if (leftSegIds[i] !== "path") return i;
-			}
-			return left.length - 1;
-		};
-		while (groupWidth() > width && left.length > 0) {
-			const dropIdx = leftOverflowDropIndex();
-			left.splice(dropIdx, 1);
-			leftSegIds.splice(dropIdx, 1);
-		}
-
-		return { surviving: [...leftSegIds], contents: [...left] };
-	}
-
-	it("keeps git segment when path can be shrunk to fit", () => {
-		const ctx = createCtx({ pathMaxLength: 40, branch: "feat/long-branch-name" });
-		// Use a width that's tight but should fit both after path shrinks
-		const fullPath = renderSegment("path", ctx);
-		const fullGit = renderSegment("git", ctx);
-		const bothWidth = visibleWidth(fullPath.content) + visibleWidth(fullGit.content);
-		// Set width to ~60% of both segments — forces shrink but should keep both
-		const tightWidth = Math.floor(bothWidth * 0.6) + 10;
-
-		const result = simulateOverflow(tightWidth, ["path", "git"], ctx);
-
-		expect(result.surviving).toContain("git");
-		expect(result.surviving).toContain("path");
-	});
-
-	it("drops git only when terminal is extremely narrow", () => {
-		const ctx = createCtx({ pathMaxLength: 40, branch: "main" });
-		// Absurdly narrow — even minimally-truncated path won't fit with git
-		const result = simulateOverflow(5, ["path", "git"], ctx);
-
-		// At 5 columns, nothing fits
-		expect(result.surviving.length).toBeLessThanOrEqual(1);
-	});
-
-	it("is a no-op when there is enough space", () => {
-		const ctx = createCtx({ pathMaxLength: 40, branch: "main" });
-		const result = simulateOverflow(200, ["path", "git"], ctx);
-
-		expect(result.surviving).toEqual(["path", "git"]);
-	});
-
-	it("shrinks a short path when maxLength exceeds actual path length", () => {
-		// Short dir name — rendered path is well under the configured maxLength.
-		const shortDir = fs.mkdtempSync(path.join(os.tmpdir(), "omp-short-"));
-		setProjectDir(shortDir);
-		try {
-			const maxLength = 160;
-			const ctx = createCtx({ pathMaxLength: maxLength, branch: "feat/long-branch-name" });
-			const fullPath = renderSegment("path", ctx);
-			const fullGit = renderSegment("git", ctx);
-			const pathVW = visibleWidth(fullPath.content);
-			const gitVW = visibleWidth(fullGit.content);
-
-			// Sanity: path is shorter than maxLength — this is the bug scenario.
-			// macOS temp paths can exceed 80 columns once the path icon is included.
-			expect(pathVW).toBeLessThan(maxLength);
-
-			// Width that fits a shrunken path + git but not the full path + git
-			const tightWidth = Math.floor(pathVW * 0.5) + gitVW + 10;
-
-			const result = simulateOverflow(tightWidth, ["path", "git"], ctx);
-
-			expect(result.surviving).toContain("path");
-			expect(result.surviving).toContain("git");
-		} finally {
-			// Restore for other tests
-			setProjectDir(tmpDir);
-		}
-	});
-	it("preserves git when overflow is only 1-2 columns", () => {
-		const shortDir = fs.mkdtempSync(path.join(os.tmpdir(), "omp-narrow-ovf-"));
-		setProjectDir(shortDir);
-		try {
-			const ctx = createCtx({ pathMaxLength: 80, branch: "main" });
-			const fullPath = renderSegment("path", ctx);
-			const fullGit = renderSegment("git", ctx);
-			const pathVW = visibleWidth(fullPath.content);
-			const gitVW = visibleWidth(fullGit.content);
-
-			// Compute exact full width using the test's groupWidth formula:
-			// partsWidth + (numParts - 1) * 3 + 2
-			const fullWidth = pathVW + gitVW + (2 - 1) * 3 + 2;
-
-			// Overflow by exactly 2 columns — the scenario the single-pass missed
-			const result = simulateOverflow(fullWidth - 2, ["path", "git"], ctx);
-
-			expect(result.surviving).toContain("path");
-			expect(result.surviving).toContain("git");
-
-			// Path must have actually shrunk (proves the loop ran)
-			const shrunkPathVW = visibleWidth(result.contents[result.surviving.indexOf("path")]);
-			expect(shrunkPathVW).toBeLessThan(pathVW);
-		} finally {
-			setProjectDir(tmpDir);
-		}
-	});
-});
-
-describe("overflow: path survives before model", () => {
-	it("drops the model segment before the cwd path when both cannot fit", () => {
-		const root = fs.mkdtempSync(path.join(os.tmpdir(), "omp-statusline-overflow-"));
-		const cwd = path.join(root, "cwdxyz");
-		fs.mkdirSync(cwd);
-		setProjectDir(cwd);
-
-		const modelName = `MODEL_SHOULD_DROP_${"x".repeat(24)}`;
-		const session = createStatusLineSession("overflow test", modelName);
-		const component = new StatusLineComponent(session);
-		const pathOptions = {
-			abbreviate: false,
-			maxLength: 32,
-			stripWorkPrefix: false,
-		};
+	function buildLosslessComponent(): StatusLineComponent {
+		const modelName = `MODEL_${"界🙂".repeat(12)}`;
+		const component = new StatusLineComponent(createStatusLineSession("SESSION_KEEP", modelName));
 		component.updateSettings({
 			preset: "custom",
-			leftSegments: ["pi", "model", "path"],
-			rightSegments: [],
-			separator: "none",
+			leftSegments: ["model", "path"],
+			rightSegments: ["session_name"],
+			separator: "powerline-thin",
 			sessionAccent: false,
 			transparent: true,
 			segmentOptions: {
 				model: { showThinkingLevel: false },
-				path: pathOptions,
+				path: { abbreviate: false, maxLength: 8, stripWorkPrefix: false },
 			},
 		});
+		return component;
+	}
 
-		const ctx = {
-			...createCtx({ pathMaxLength: pathOptions.maxLength }),
-			session,
-			options: {
-				model: { showThinkingLevel: false },
-				path: pathOptions,
-			},
-		} as SegmentContext;
-		const pi = renderSegment("pi", ctx).content;
-		const model = renderSegment("model", ctx).content;
-		const minPath = renderSegment("path", {
-			...ctx,
-			options: { ...ctx.options, path: { ...pathOptions, maxLength: 4 } },
-		}).content;
-		const separatorWidth = visibleWidth(theme.sep.space);
-		const groupWidth = (parts: string[]) =>
-			parts.reduce((sum, part) => sum + visibleWidth(part), 0) +
-			Math.max(0, parts.length - 1) * (separatorWidth + 2) +
-			2;
-		const width = groupWidth([pi, model]) + 1;
+	it("keeps the 120-column fixture aligned on one row", () => {
+		const component = new StatusLineComponent(createStatusLineSession("wide"));
+		component.updateSettings({
+			preset: "custom",
+			leftSegments: ["pi"],
+			rightSegments: ["session_name"],
+			separator: "powerline-thin",
+			sessionAccent: false,
+		});
 
-		expect(groupWidth([pi, model, minPath])).toBeGreaterThan(width);
-		expect(groupWidth([pi, minPath])).toBeLessThanOrEqual(width);
+		const rows = component.render(120);
+		expect(rows).toHaveLength(1);
+		expect(visibleWidth(rows[0])).toBe(120);
+	});
 
-		const rendered = stripAnsi(component.getTopBorder(width).content);
-		expect(rendered).toContain("xyz");
-		expect(rendered).not.toContain("MODEL_SHOULD_DROP");
+	it("preserves every main logical chunk at 60, 40, and 20 columns", () => {
+		const component = buildLosslessComponent();
+		for (const width of [60, 40, 20]) {
+			const rows = component.render(width);
+			const plain = stripAnsi(rows.join(""));
+			expect(rows.every(row => visibleWidth(row) <= width)).toBe(true);
+			expect(plain).toContain(`MODEL_${"界🙂".repeat(12)}`);
+			expect(plain).toContain(tmpDir);
+			expect(plain).toContain("SESSION_KEEP");
+			expect(plain).not.toContain("…");
+		}
+	});
+
+	it("wraps sanitized ANSI, CJK, emoji, and one-column hook chunks without loss", () => {
+		const component = new StatusLineComponent(createStatusLineSession("unused"));
+		component.updateSettings({ preset: "custom", leftSegments: [], rightSegments: [], showHookStatus: true });
+		component.setHookStatus("a", "\x1b[31m检查🙂状态\x1b[0m");
+		component.setHookStatus("b", "ABCDEFGHIJK");
+
+		const rows20 = component.render(20);
+		expect(rows20.every(row => visibleWidth(row) <= 20)).toBe(true);
+		expect(stripAnsi(rows20.join(""))).toBe("检查🙂状态ABCDEFGHIJK");
+
+		component.setHookStatus("a", undefined);
+		const rows1 = component.render(1);
+		expect(rows1.every(row => visibleWidth(row) <= 1)).toBe(true);
+		expect(stripAnsi(rows1.join(""))).toBe("ABCDEFGHIJK");
+		expect(stripAnsi(rows1.join(""))).not.toContain("…");
+	});
+
+	it("returns no rows for non-positive widths", () => {
+		const component = buildLosslessComponent();
+		expect(component.render(0)).toEqual([]);
+		expect(component.render(-1)).toEqual([]);
 	});
 });

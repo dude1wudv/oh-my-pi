@@ -171,6 +171,7 @@ import type { HookInputComponent } from "./components/hook-input";
 import type { HookSelectorComponent, HookSelectorSlider } from "./components/hook-selector";
 import { type PlanReviewAnnotationState, PlanReviewOverlay } from "./components/plan-review-overlay";
 import { StatusLineComponent } from "./components/status-line";
+import { SESSION_STATUS_PANEL_WIDTH, SessionStatusPanelComponent } from "./components/session-status-panel";
 import type { ToolExecutionHandle } from "./components/tool-execution";
 import { TranscriptContainer } from "./components/transcript-container";
 import { WelcomeComponent, type LspServerInfo as WelcomeLspServerInfo } from "./components/welcome";
@@ -528,6 +529,7 @@ export class InteractiveMode implements InteractiveModeContext {
 	hookWidgetContainerAbove: Container;
 	hookWidgetContainerBelow: Container;
 	statusLine: StatusLineComponent;
+	#sessionStatusPanel?: SessionStatusPanelComponent;
 
 	isInitialized = false;
 	initialChatRendered = false;
@@ -811,6 +813,7 @@ export class InteractiveMode implements InteractiveModeContext {
 		this.modelCycleContainer = new AnchoredLiveContainer();
 		this.deferredCommandContainer = new AnchoredLiveContainer();
 		this.editor = new CustomEditor(getEditorTheme());
+		this.#installEditorMetadata(this.editor);
 		this.ui.enableScopedInputRender(this.editor);
 		this.editor.setUseTerminalCursor(this.ui.getShowHardwareCursor());
 		this.editor.setImeSafeCursorLayout(settings.get("tui.imeSafeCursor"));
@@ -825,6 +828,8 @@ export class InteractiveMode implements InteractiveModeContext {
 		this.#syncEditorMaxHeight();
 		this.#resizeHandler = () => {
 			this.#syncEditorMaxHeight();
+			this.#renderTodoList();
+			this.#renderSubagentList();
 			this.ui.requestRender();
 		};
 		process.stdout.on("resize", this.#resizeHandler);
@@ -840,7 +845,7 @@ export class InteractiveMode implements InteractiveModeContext {
 		this.hookWidgetContainerBelow = new Container();
 		this.editorContainer = new Container();
 		this.editorContainer.addChild(this.editor);
-		this.statusLine = new StatusLineComponent(session);
+		this.statusLine = new StatusLineComponent(session, component => this.ui.requestComponentRender(component));
 		this.statusLine.setAutoCompactEnabled(session.autoCompactionEnabled);
 		this.#codexResetFireworksController = new CodexResetFireworksController(this);
 		this.statusLine.setCodexResetFireworksHandler(event => {
@@ -853,12 +858,6 @@ export class InteractiveMode implements InteractiveModeContext {
 		this.statusLine.setVibeWorkerTokenRateProvider(() =>
 			aggregateVibeWorkerTokensPerSecond(this.session.getAgentId() ?? MAIN_AGENT_ID),
 		);
-		// Lazy provider — the top border rebuild coalesces to at most one
-		// invocation per painted frame instead of firing on every session event
-		// (#4145). The TUI throttles renders at ~30fps, so a long-running eval
-		// spraying events no longer runs `getTopBorder` synchronously in the
-		// hot path where the render never gets to paint the result.
-		this.editor.setTopBorderProvider(availableWidth => this.statusLine.getTopBorder(availableWidth));
 
 		this.hideToolActivity = settings.get("display.hideToolActivity");
 		this.chatContainer.setToolActivityVisible(!this.hideToolActivity);
@@ -1073,10 +1072,31 @@ export class InteractiveMode implements InteractiveModeContext {
 		// HUDs, just above the editor's hook-widget top margin — so it reads next to
 		// the prompt while keeping the one-line gap above the editor.
 		this.ui.addChild(this.statusContainer);
-		this.ui.addChild(this.statusLine); // Only renders hook statuses (main status in editor border)
 		this.ui.addChild(this.hookWidgetContainerAbove);
 		this.ui.addChild(this.editorContainer);
 		this.ui.addChild(this.hookWidgetContainerBelow);
+		this.ui.addChild(this.statusLine);
+		this.#sessionStatusPanel = new SessionStatusPanelComponent({
+			getPlanPath: () =>
+				this.planModePlanFilePath ??
+				this.session.getProjectPlanPath() ??
+				(this.session.getPlanReferencePath() || undefined),
+			getTodoPhases: () => this.todoPhases,
+			getTodoExpanded: () => this.todoExpanded,
+			getSessions: () => this.#observerRegistry.getSessions(),
+			getActiveDescriptions: () => this.#getActiveDetachedSubagentDescriptions(),
+			getHubHint: () => this.#getAgentHubHint(),
+		});
+		this.ui.showOverlay(this.#sessionStatusPanel, {
+			anchor: "top-right",
+			width: SESSION_STATUS_PANEL_WIDTH,
+			maxHeight: "100%",
+			margin: 0,
+			reserveRight: true,
+			fullscreen: false,
+			visible: columns => this.#shouldShowSessionStatusPanel(columns),
+		});
+
 		this.ui.setFocus(this.editor);
 
 		this.#inputController.setupKeyHandlers();
@@ -1781,6 +1801,10 @@ export class InteractiveMode implements InteractiveModeContext {
 		}
 	}
 
+	#shouldShowSessionStatusPanel(columns = this.ui.terminal.columns): boolean {
+		return columns > 120 && this.focusedAgentId === undefined;
+	}
+
 	#computeEditorMaxHeight(): number {
 		return computeEditorMaxHeight(this.ui.terminal.rows);
 	}
@@ -1834,6 +1858,8 @@ export class InteractiveMode implements InteractiveModeContext {
 			const base = this.editor.borderColor;
 			this.editor.borderColor = (str: string) => `\x1b[2m${base(str)}\x1b[22m`;
 		}
+		this.#renderTodoList();
+		this.#renderSubagentList();
 		this.ui.requestRender();
 	}
 
@@ -2023,6 +2049,24 @@ export class InteractiveMode implements InteractiveModeContext {
 		return out;
 	}
 
+	#getActiveDetachedSubagentDescriptions(): string[] {
+		const out: string[] = [];
+		for (const session of this.#observerRegistry.getSessions()) {
+			if (session.kind !== "subagent" || session.status !== "active" || session.detached !== true) continue;
+			const candidate =
+				session.description?.trim() || session.progress?.description?.trim() || session.label?.trim();
+			if (candidate) out.push(candidate);
+		}
+		return out;
+	}
+
+	#getAgentHubHint(): string {
+		const hubKey = this.keybindings.getDisplayString("app.agents.hub");
+		const observeKey = this.keybindings.getDisplayString("app.session.observe");
+		const keys = [hubKey, observeKey].filter(Boolean).join(" / ");
+		return keys ? `${keys} · Enter/click in Agent Hub` : "Enter/click in Agent Hub";
+	}
+
 	/**
 	 * Auto-complete any open todo (pending/in_progress/blocked) whose content
 	 * matches a subagent that has finished successfully. Fires on every observer
@@ -2189,6 +2233,7 @@ export class InteractiveMode implements InteractiveModeContext {
 
 	#renderTodoList(): void {
 		this.todoContainer.clear();
+		if (this.#shouldShowSessionStatusPanel()) return;
 		const phases = this.todoPhases.filter(phase => phase.tasks.length > 0);
 		if (phases.length === 0) return;
 		const expanded = this.todoExpanded;
@@ -2278,6 +2323,7 @@ export class InteractiveMode implements InteractiveModeContext {
 	 */
 	#renderSubagentList(): void {
 		this.subagentContainer.clear();
+		if (this.#shouldShowSessionStatusPanel()) return;
 		const lines = renderSubagentHudLines(this.#observerRegistry.getSessions(), this.ui.terminal.columns);
 		if (lines.length === 0) return;
 		this.subagentContainer.addChild(new Text(lines.join("\n"), 1, 0));
@@ -4254,6 +4300,14 @@ export class InteractiveMode implements InteractiveModeContext {
 		this.#extensionUiController.initializeHookRunner(uiContext, hasUI);
 	}
 
+	#installEditorMetadata(editor: CustomEditor): void {
+		editor.setMetadataProvider(() => ({
+			model: this.session.model?.name,
+			provider: this.session.model?.provider,
+			thinking: this.session.thinkingLevel ?? ThinkingLevel.Off,
+		}));
+	}
+
 	setEditorComponent(
 		factory: ((tui: TUI, theme: EditorTheme, keybindings: KeybindingsManager) => CustomEditor) | undefined,
 	): void {
@@ -4262,6 +4316,7 @@ export class InteractiveMode implements InteractiveModeContext {
 		const nextEditor = factory
 			? factory(this.ui, getEditorTheme(), this.keybindings)
 			: new CustomEditor(getEditorTheme());
+		this.#installEditorMetadata(nextEditor);
 		if (!factory) this.ui.enableScopedInputRender(nextEditor);
 
 		nextEditor.setUseTerminalCursor(this.ui.getShowHardwareCursor());
@@ -4274,7 +4329,6 @@ export class InteractiveMode implements InteractiveModeContext {
 			this.ui.requestRender();
 		};
 		nextEditor.setShimmerRepaintHandler(() => this.ui.requestComponentRender(this.editor));
-		nextEditor.setTopBorderProvider(availableWidth => this.statusLine.getTopBorder(availableWidth));
 		nextEditor.setMaxHeight(this.#computeEditorMaxHeight());
 		if (this.historyStorage) {
 			nextEditor.setHistoryStorage(this.historyStorage);

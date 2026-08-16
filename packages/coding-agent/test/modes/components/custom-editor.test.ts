@@ -62,12 +62,67 @@ const editor = new CustomEditor({});
 editor.imageLinks = ${JSON.stringify(imageLinks)};
 process.stdout.write(editor.decorateText(${JSON.stringify(text)}));
 `;
-	const child = await $`bun -e ${script}`.quiet().nothrow();
+	const child = await $`${process.execPath} -e ${script}`.quiet().nothrow();
 	const stdout = child.stdout.toString();
 	const stderr = child.stderr.toString();
 	if (child.exitCode !== 0) throw new Error(stderr || stdout || `decorate subprocess exited with ${child.exitCode}`);
 	return stdout;
 }
+
+describe("CustomEditor prompt chrome", () => {
+	beforeAll(async () => {
+		await initTheme();
+	});
+
+	it("renders live metadata in a full-width railed card", () => {
+		const editor = new CustomEditor(getEditorTheme());
+		editor.setText("draft prompt");
+		editor.setMetadataProvider(() => ({ model: "model-x", provider: "provider-y", thinking: "high" }));
+
+		const rows = editor.render(40);
+		expect(rows.every(row => Bun.stringWidth(row, { countAnsiEscapeCodes: false }) === 40)).toBe(true);
+		expect(Bun.stripANSI(rows.join("\n"))).toContain("draft prompt");
+		expect(Bun.stripANSI(rows.join("\n"))).toContain("model-x · provider-y · high");
+		expect(rows[0]!).toBe(rows.at(-1)!);
+	});
+
+	it("falls back to the base editor when metadata is unavailable or the terminal is too narrow", () => {
+		const editor = new CustomEditor(getEditorTheme());
+		editor.setText("draft");
+		const base = editor.render(3);
+		editor.setMetadataProvider(() => {
+			throw new Error("metadata unavailable");
+		});
+		const expected = new CustomEditor(getEditorTheme());
+		expected.setText("draft");
+		expect(editor.render(40)).toEqual(expected.render(40));
+		expect(editor.render(3)).toEqual(base);
+		expect(editor.getText()).toBe("draft");
+	});
+
+	it("keeps autocomplete rows after the card", async () => {
+		const editor = new CustomEditor(getEditorTheme());
+		editor.setMetadataProvider(() => ({ model: "model-x", provider: "provider-y", thinking: "low" }));
+		const { promise: updated, resolve } = Promise.withResolvers<void>();
+		editor.onAutocompleteUpdate = resolve;
+		editor.setAutocompleteProvider({
+			async getSuggestions() {
+				return { items: [{ label: "/help", value: "/help" }], prefix: "/" };
+			},
+			applyCompletion(lines, cursorLine, cursorCol) {
+				return { lines, cursorLine, cursorCol };
+			},
+		});
+
+		editor.handleInput("/");
+		await updated;
+		const rows = editor.render(40);
+		const bottomRule = rows.findLastIndex(row => row === rows[0]);
+		const autocompleteRow = rows.findIndex(row => Bun.stripANSI(row).includes("/help"));
+		expect(bottomRule).toBeGreaterThan(0);
+		expect(autocompleteRow).toBeGreaterThan(bottomRule);
+	});
+});
 
 describe("CustomEditor placeholder decoration", () => {
 	it("renders paste placeholders before theme initialization", async () => {
