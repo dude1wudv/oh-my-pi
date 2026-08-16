@@ -86,6 +86,7 @@ describe("InteractiveMode session status panel", () => {
 		expect(panelEntry.options?.width).toBe(SESSION_STATUS_PANEL_WIDTH);
 		expect(panelEntry.options?.anchor).toBe("top-right");
 		expect(panelEntry.options?.reserveRight).toBe(true);
+		expect(panelEntry.options?.captureFocus).toBe(false);
 		expect(panelEntry.options?.fullscreen).toBe(false);
 		expect(panelEntry.options?.visible?.(121, 30)).toBe(true);
 		expect(panelEntry.options?.visible?.(120, 30)).toBe(false);

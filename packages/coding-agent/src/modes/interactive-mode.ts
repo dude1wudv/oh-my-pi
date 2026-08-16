@@ -1093,6 +1093,7 @@ export class InteractiveMode implements InteractiveModeContext {
 			maxHeight: "100%",
 			margin: 0,
 			reserveRight: true,
+			captureFocus: false,
 			fullscreen: false,
 			visible: columns => this.#shouldShowSessionStatusPanel(columns),
 		});

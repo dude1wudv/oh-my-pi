@@ -248,4 +248,52 @@ describe("TUI overlay focus", () => {
 			tui.stop();
 		}
 	});
+	it("restores editor input after a fullscreen Agent Hub closes beside a passive dock", () => {
+		const terminal = new MinimalTerminal();
+		const tui = new TUI(terminal);
+		const editor = new FocusRecorder("editor");
+		const dock = new FocusRecorder("status-dock");
+		let dockVisible = false;
+
+		tui.addChild(editor);
+		tui.setFocus(editor);
+
+		try {
+			tui.start();
+			expect(tui.getFocused()).toBe(editor);
+
+			tui.showOverlay(dock, {
+				anchor: "top-right",
+				width: 20,
+				reserveRight: true,
+				captureFocus: false,
+				visible: () => dockVisible,
+			});
+			expect(tui.getFocused()).toBe(editor);
+
+			// The responsive status panel becomes visible on a wide terminal
+			// without an explicit focus transition.
+			dockVisible = true;
+			terminal.columns = 121;
+			tui.requestRender();
+			expect(tui.getFocused()).toBe(editor);
+
+			const agentHub = new FocusRecorder("agent-hub");
+			const hubHandle = tui.showOverlay(agentHub, { fullscreen: true });
+			expect(tui.getFocused()).toBe(agentHub);
+
+			// SelectorController closes the Hub and explicitly restores the
+			// active editor area. The passive dock must not veto that request.
+			hubHandle.hide();
+			tui.setFocus(editor);
+			terminal.sendInput("typed");
+			terminal.sendInput("\x1b[B");
+
+			expect(tui.getFocused()).toBe(editor);
+			expect(editor.inputs).toEqual(["typed", "\x1b[B"]);
+			expect(dock.inputs).toEqual([]);
+		} finally {
+			tui.stop();
+		}
+	});
 });

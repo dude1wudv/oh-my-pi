@@ -471,6 +471,8 @@ export interface OverlayOptions {
 	// === Sizing ===
 	/** Width in columns, or percentage of terminal width (e.g., "50%") */
 	width?: SizeValue;
+	/** Capture keyboard focus when shown; defaults to true for modal overlays. */
+	captureFocus?: boolean;
 	/** Reserve the resolved width when this is a visible, non-fullscreen right dock. */
 	reserveRight?: boolean;
 	/** Minimum width in columns */
@@ -1897,7 +1899,7 @@ export class TUI extends Container {
 	}
 
 	setFocus(component: Component | null): void {
-		const topVisibleOverlay = this.#getTopmostVisibleOverlay();
+		const topVisibleOverlay = this.#getTopmostVisibleFocusOverlay();
 		if (topVisibleOverlay && !isOverlayFocusTarget(topVisibleOverlay.component, component)) {
 			const currentFocus = this.#focusedComponent;
 			component = isOverlayFocusTarget(topVisibleOverlay.component, currentFocus)
@@ -1934,15 +1936,15 @@ export class TUI extends Container {
 		component.setIgnoreTight?.(true);
 		const entry = { component, options, preFocus: this.#focusedComponent, hidden: false };
 		this.overlayStack.push(entry);
-		// Only focus if overlay is actually visible
-		if (this.#isOverlayVisible(entry)) {
+		// Presentation-only overlays opt out of keyboard focus capture.
+		if (this.#isFocusCapturingOverlay(entry)) {
 			this.setFocus(component);
 		}
 		this.terminal.hideCursor();
 		this.#recordHardwareCursorHidden();
 		this.requestRender();
 
-		// Return handle for controlling this overlay
+		// Return handle for controlling the overlay
 		return {
 			hide: () => {
 				const index = this.overlayStack.indexOf(entry);
@@ -1950,7 +1952,7 @@ export class TUI extends Container {
 					this.overlayStack.splice(index, 1);
 					// Restore focus if this overlay or one of its owned targets had focus
 					if (isOverlayFocusTarget(component, this.#focusedComponent)) {
-						const topVisible = this.#getTopmostVisibleOverlay();
+						const topVisible = this.#getTopmostVisibleFocusOverlay();
 						this.setFocus(topVisible?.component ?? entry.preFocus);
 					}
 					if (this.overlayStack.length === 0) {
@@ -1967,14 +1969,12 @@ export class TUI extends Container {
 				if (hidden) {
 					// If this overlay or one of its owned targets had focus, move focus to next visible or preFocus
 					if (isOverlayFocusTarget(component, this.#focusedComponent)) {
-						const topVisible = this.#getTopmostVisibleOverlay();
+						const topVisible = this.#getTopmostVisibleFocusOverlay();
 						this.setFocus(topVisible?.component ?? entry.preFocus);
 					}
-				} else {
-					// Restore focus to this overlay when showing (if it's actually visible)
-					if (this.#isOverlayVisible(entry)) {
-						this.setFocus(component);
-					}
+				} else if (this.#isFocusCapturingOverlay(entry)) {
+					// Restore focus to this overlay when showing (if it is actually visible)
+					this.setFocus(component);
 				}
 				this.requestRender();
 			},
@@ -1986,8 +1986,7 @@ export class TUI extends Container {
 	hideOverlay(): void {
 		const overlay = this.overlayStack.pop();
 		if (!overlay) return;
-		// Find topmost visible overlay, or fall back to preFocus
-		const topVisible = this.#getTopmostVisibleOverlay();
+		const topVisible = this.#getTopmostVisibleFocusOverlay();
 		this.setFocus(topVisible?.component ?? overlay.preFocus);
 		if (this.overlayStack.length === 0) {
 			this.terminal.hideCursor();
@@ -2014,6 +2013,20 @@ export class TUI extends Container {
 	#isRightAnchoredOverlay(options: OverlayOptions | undefined): boolean {
 		const anchor = options?.anchor;
 		return anchor === "top-right" || anchor === "right-center" || anchor === "bottom-right";
+	}
+
+	/** Whether a visible overlay captures keyboard focus. */
+	#isFocusCapturingOverlay(entry: (typeof this.overlayStack)[number]): boolean {
+		return this.#isOverlayVisible(entry) && entry.options?.captureFocus !== false;
+	}
+
+	/** Find the topmost visible overlay that captures keyboard focus. */
+	#getTopmostVisibleFocusOverlay(): (typeof this.overlayStack)[number] | undefined {
+		for (let i = this.overlayStack.length - 1; i >= 0; i--) {
+			const entry = this.overlayStack[i];
+			if (entry && this.#isFocusCapturingOverlay(entry)) return entry;
+		}
+		return undefined;
 	}
 
 	/** Resolve the topmost visible right dock's width for the root content area. */
