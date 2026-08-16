@@ -2,11 +2,12 @@
 
 ## [Unreleased]
 
+## [20.1.5] - 2026-08-16
+
 ### Changed
 
 - Made active asynchronous task batches use runtime-owned passive waiting with periodic aggregate wakeups, first-error wakeups, and final all-settled delivery.
 - Normalized legacy `outputSchema: false` task calls and hardened empty batch-gate cleanup.
-
 
 ## [20.1.3] - 2026-08-15
 
