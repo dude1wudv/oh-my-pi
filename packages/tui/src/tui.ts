@@ -471,6 +471,8 @@ export interface OverlayOptions {
 	// === Sizing ===
 	/** Width in columns, or percentage of terminal width (e.g., "50%") */
 	width?: SizeValue;
+	/** Reserve the resolved width when this is a visible, non-fullscreen right dock. */
+	reserveRight?: boolean;
 	/** Minimum width in columns */
 	minWidth?: number;
 	/** Maximum height in rows, or percentage of terminal height (e.g., "50%") */
@@ -2008,6 +2010,35 @@ export class TUI extends Container {
 		return true;
 	}
 
+	/** Whether an overlay is anchored to the terminal's right edge. */
+	#isRightAnchoredOverlay(options: OverlayOptions | undefined): boolean {
+		const anchor = options?.anchor;
+		return anchor === "top-right" || anchor === "right-center" || anchor === "bottom-right";
+	}
+
+	/** Resolve the topmost visible right dock's width for the root content area. */
+	#getReservedRightWidth(termWidth: number, termHeight: number): number {
+		for (let i = this.overlayStack.length - 1; i >= 0; i--) {
+			const entry = this.overlayStack[i]!;
+			const options = entry.options;
+			if (
+				options?.reserveRight !== true ||
+				options.fullscreen === true ||
+				!this.#isRightAnchoredOverlay(options) ||
+				!this.#isOverlayVisible(entry)
+			) {
+				continue;
+			}
+			return this.#resolveOverlayLayout(options, 0, termWidth, termHeight).width;
+		}
+		return 0;
+	}
+
+	/** Width passed to root components after reserving a visible right dock. */
+	#getContentWidth(termWidth: number, termHeight: number): number {
+		return Math.max(1, termWidth - this.#getReservedRightWidth(termWidth, termHeight));
+	}
+
 	/** Find the topmost visible overlay, if any */
 	#getTopmostVisibleOverlay(): (typeof this.overlayStack)[number] | undefined {
 		for (let i = this.overlayStack.length - 1; i >= 0; i--) {
@@ -2492,11 +2523,12 @@ export class TUI extends Container {
 
 		const width = this.terminal.columns;
 		const height = this.terminal.rows;
+		const contentWidth = this.#getContentWidth(width, height);
 		if (!this.#hasEverRendered || this.#resizeEventPending) {
 			this.requestComponentRender(component);
 			return;
 		}
-		if (width !== this.#previousWidth || height !== this.#previousHeight || width !== this.#composeWidth) {
+		if (width !== this.#previousWidth || height !== this.#previousHeight || contentWidth !== this.#composeWidth) {
 			this.requestComponentRender(component);
 			return;
 		}
@@ -2553,7 +2585,7 @@ export class TUI extends Container {
 			return;
 		}
 
-		const nextLines = root.render(width);
+		const nextLines = root.render(contentWidth);
 		if (nextLines.length !== segment.rowCount) {
 			this.requestComponentRender(component);
 			return;
@@ -2675,12 +2707,22 @@ export class TUI extends Container {
 	 * the partial compose would reuse, or when a requested component is not
 	 * reachable from the current root child list.
 	 */
-	#resolvePartialComposeRoots(width: number, height: number): Set<Component> | null {
+	#resolvePartialComposeRoots(contentWidth: number, terminalWidth: number, height: number): Set<Component> | null {
 		if (this.#componentRenderTargets.size === 0) return null;
 		if (!this.#hasEverRendered || this.#resizeEventPending) return null;
-		if (width !== this.#previousWidth || height !== this.#previousHeight || width !== this.#composeWidth) return null;
-		if (this.#clearScrollbackOnNextRender || this.#forceViewportRepaintOnNextRender) return null;
-		if (this.overlayStack.length > 0) return null;
+		if (
+			terminalWidth !== this.#previousWidth ||
+			height !== this.#previousHeight ||
+			contentWidth !== this.#composeWidth
+		) {
+			return null;
+		}
+		const hasUnsafeOverlay = this.overlayStack.some(entry => {
+			if (!this.#isOverlayVisible(entry)) return false;
+			const options = entry.options;
+			return options?.reserveRight !== true || options.fullscreen === true || !this.#isRightAnchoredOverlay(options);
+		});
+		if (hasUnsafeOverlay) return null;
 		// The image budget audits display order across the whole frame; a
 		// partial walk would under-count it. Engage only on image-free frames.
 		if (!this.#imageBudget.quiescent) return null;
@@ -3334,6 +3376,8 @@ export class TUI extends Container {
 		if (this.#stopped) return;
 		const width = this.terminal.columns;
 		const height = this.terminal.rows;
+		const contentWidth = this.#getContentWidth(width, height);
+		const contentWidthChanged = this.#composeWidth > 0 && this.#composeWidth !== contentWidth;
 
 		// Consume the component-scoped accumulation: it describes the render
 		// requests made up to this frame, whichever path the frame takes.
@@ -3435,7 +3479,7 @@ export class TUI extends Container {
 		// (overlay resizes are not on the drag-cost hot path).
 		if (this.#resizeViewportActive && this.#hasEverRendered && this.#getTopmostVisibleOverlay() === undefined) {
 			this.#componentRenderTargets.clear();
-			this.#renderResizeViewport(width, height);
+			this.#renderResizeViewport(contentWidth, width, height);
 			return;
 		}
 
@@ -3448,6 +3492,7 @@ export class TUI extends Container {
 			!this.#resizeRepaintsInPlace() &&
 			(this.#clearScrollbackOnNextRender ||
 				this.#resizeEventPending ||
+				contentWidthChanged ||
 				(this.#previousWidth > 0 && this.#previousWidth !== width) ||
 				(this.#previousHeight > 0 && this.#previousHeight !== height));
 		if (replayFullHistory) {
@@ -3460,19 +3505,19 @@ export class TUI extends Container {
 		// a quiescent budget, and a partial tree walk would under-count display
 		// order — and re-renders only the requested root subtrees, reusing the
 		// previous segment of every other root child.
-		const partialRoots = componentScopedOnly ? this.#resolvePartialComposeRoots(width, height) : null;
+		const partialRoots = componentScopedOnly ? this.#resolvePartialComposeRoots(contentWidth, width, height) : null;
 		this.#componentRenderTargets.clear();
 		let rawFrame: readonly string[];
 		if (partialRoots !== null) {
 			this.#partialComposeRoots = partialRoots;
 			try {
-				rawFrame = this.render(width);
+				rawFrame = this.render(contentWidth);
 			} finally {
 				this.#partialComposeRoots = null;
 			}
 		} else {
 			this.#imageBudget.beginPass();
-			rawFrame = this.render(width);
+			rawFrame = this.render(contentWidth);
 			this.#imageBudget.endPass();
 		}
 		// Ghostty initial-image deferral must run before any render state is
@@ -3507,7 +3552,8 @@ export class TUI extends Container {
 		this.#multiplexerResizeHasPendingRender = false;
 		if (resizeEventOccurred) this.#forgetHardwareCursorState();
 		const widthChanged = this.#previousWidth > 0 && this.#previousWidth !== width;
-		const widthEpochOccurred = widthChanged || (resizeEventOccurred && this.#multiplexerWidthEpochPending);
+		const widthEpochOccurred =
+			widthChanged || contentWidthChanged || (resizeEventOccurred && this.#multiplexerWidthEpochPending);
 		const capturedWidthEpochBoundary = this.#multiplexerWidthEpochBoundary;
 		const widthEpochBoundary = this.#widthEpochOverlayBoundary ?? capturedWidthEpochBoundary;
 		const widthEpochSourceBoundary = widthEpochOccurred
@@ -3529,7 +3575,7 @@ export class TUI extends Container {
 		const heightChanged =
 			(this.#previousHeight > 0 && this.#previousHeight !== height) ||
 			(resizeEventOccurred && this.#previousHeight > 0);
-		const geometryChanged = widthChanged || heightChanged;
+		const geometryChanged = widthChanged || contentWidthChanged || heightChanged;
 		const widthEpochReset = widthEpochOccurred && this.#resizeRepaintsInPlace();
 		// A later width reset cannot use the opaque native ledger against
 		// attachment rows from the current-width placement epoch. Capture that
@@ -4790,8 +4836,8 @@ export class TUI extends Container {
 	 * `#commit` nor `#emitFullPaint`, so the settle full paint reconciles against
 	 * the pre-drag screen state.
 	 */
-	#renderResizeViewport(width: number, height: number): void {
-		if (width <= 0 || height <= 0) return;
+	#renderResizeViewport(contentWidth: number, terminalWidth: number, height: number): void {
+		if (terminalWidth <= 0 || height <= 0) return;
 		// Tail renders call block.render(), which observes inline images on the
 		// budget. This is a STABLE (partial) pass: the tail walk is bottom-up and
 		// sees only the visible subset, so display-order-by-call-order is wrong
@@ -4802,8 +4848,8 @@ export class TUI extends Container {
 		// off a partial walk. The settle paint's own beginPass()/endPass() is the
 		// authoritative accounting, and its beginPass() wipes these frames.
 		this.#imageBudget.beginPass(true);
-		const { framed, viewportTop, contentRows } = this.#composeResizeViewport(width, height);
-		this.#emitResizeViewport(framed, viewportTop, height, contentRows, width);
+		const { framed, viewportTop, contentRows } = this.#composeResizeViewport(contentWidth, terminalWidth, height);
+		this.#emitResizeViewport(framed, viewportTop, height, contentRows, terminalWidth);
 		this.#resizeViewportPaintCount += 1;
 	}
 
@@ -4827,7 +4873,8 @@ export class TUI extends Container {
 	 * (issue #8318).
 	 */
 	#composeResizeViewport(
-		width: number,
+		contentWidth: number,
+		terminalWidth: number,
 		height: number,
 	): { framed: readonly string[]; viewportTop: number; contentRows: number } {
 		const maxRows = height + TUI.#OSC66_MAX_SPACER_ROWS;
@@ -4836,7 +4883,9 @@ export class TUI extends Container {
 		for (let i = children.length - 1; i >= 0 && tail.length < maxRows; i--) {
 			const child = children[i]!;
 			const provider = asViewportTailProvider(child);
-			const rows = provider ? provider.renderViewportTail(width, maxRows - tail.length) : child.render(width);
+			const rows = provider
+				? provider.renderViewportTail(contentWidth, maxRows - tail.length)
+				: child.render(contentWidth);
 			for (let r = rows.length - 1; r >= 0 && tail.length < maxRows; r--) {
 				tail.push(rows[r]!);
 			}
@@ -4854,7 +4903,7 @@ export class TUI extends Container {
 		const framed: string[] = new Array(extra + height);
 		for (let k = 0; k < extra; k++) framed[k] = tail[tail.length - 1 - k]!;
 		for (let screenRow = 0; screenRow < height; screenRow++) framed[extra + screenRow] = window[screenRow]!;
-		return { framed: this.#prepareLinesArray(framed, width), viewportTop: extra, contentRows };
+		return { framed: this.#prepareLinesArray(framed, terminalWidth), viewportTop: extra, contentRows };
 	}
 
 	/**

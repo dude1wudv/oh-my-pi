@@ -256,3 +256,15 @@ describe("passive async batch prompt contract", () => {
 		expect(rendered).not.toContain("elapsed time alone must trigger");
 	});
 });
+
+describe("deferred final reviewer prompt contract", () => {
+	it("renders one top-level non-blocking review after implementation integration", () => {
+		const rendered = renderOrchestrateNotice({ tools: ["task", "hub", "bash", "todo"] });
+
+		expect(rendered).toContain("exactly one non-blocking final reviewer");
+		expect(rendered).toContain("NEVER dispatch a reviewer for an individual task");
+		expect(rendered).toContain("Main immediately continues all independent integration");
+		expect(rendered).toContain("park Main and let the reviewer settlement wake resume work");
+		expect(rendered).toContain("Only the top-level Main may dispatch reviewers");
+	});
+});

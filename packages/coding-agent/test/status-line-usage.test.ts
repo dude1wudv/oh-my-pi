@@ -101,7 +101,7 @@ describe("usage status-line segment", () => {
 
 		component.refreshUsageInBackground();
 		await flushUsageRefresh();
-		const content = stripVTControlCharacters(component.getTopBorder(200).content);
+		const content = stripVTControlCharacters(component.render(200).join("\n"));
 
 		expect(content).toContain("prolite");
 		expect(content).toContain("5h");
@@ -123,7 +123,7 @@ describe("usage status-line segment", () => {
 
 		component.refreshUsageInBackground();
 		await flushUsageRefresh();
-		const content = stripVTControlCharacters(component.getTopBorder(200).content);
+		const content = stripVTControlCharacters(component.render(200).join("\n"));
 
 		expect(content).toContain("prolite");
 		expect(content).not.toContain("stale");
@@ -162,7 +162,7 @@ describe("usage status-line segment", () => {
 
 		component.refreshUsageInBackground();
 		await flushUsageRefresh();
-		const content = stripVTControlCharacters(component.getTopBorder(200).content);
+		const content = stripVTControlCharacters(component.render(200).join("\n"));
 
 		expect(content).toContain("prolite");
 		expect(content).toContain("24%");
@@ -226,15 +226,15 @@ describe("usage status-line segment", () => {
 
 		component.refreshUsageInBackground();
 		await flushUsageRefresh();
-		expect(stripVTControlCharacters(component.getTopBorder(200).content)).toContain("80%");
+		expect(stripVTControlCharacters(component.render(200).join("\n"))).toContain("80%");
 
 		provider = "anthropic";
 		model.provider = provider;
 
-		const immediate = stripVTControlCharacters(component.getTopBorder(200).content);
+		const immediate = stripVTControlCharacters(component.render(200).join("\n"));
 		expect(immediate).not.toContain("80%");
 		await flushUsageRefresh();
-		const refreshed = stripVTControlCharacters(component.getTopBorder(200).content);
+		const refreshed = stripVTControlCharacters(component.render(200).join("\n"));
 		expect(refreshed).toContain("24%");
 	});
 
@@ -260,7 +260,7 @@ describe("usage status-line segment", () => {
 
 		component.refreshUsageInBackground();
 		await flushUsageRefresh();
-		const content = stripVTControlCharacters(component.getTopBorder(200).content);
+		const content = stripVTControlCharacters(component.render(200).join("\n"));
 
 		expect(content).toContain("5h");
 		expect(content).toContain("24%");
@@ -363,7 +363,7 @@ describe("usage status-line segment", () => {
 
 		component.refreshUsageInBackground();
 		await flushUsageRefresh();
-		const content = stripVTControlCharacters(component.getTopBorder(200).content);
+		const content = stripVTControlCharacters(component.render(200).join("\n"));
 
 		expect(content).toContain("mo");
 		expect(content).toContain("13%");
@@ -393,7 +393,7 @@ describe("usage status-line segment", () => {
 
 		component.refreshUsageInBackground();
 		await flushUsageRefresh();
-		const content = stripVTControlCharacters(component.getTopBorder(200).content);
+		const content = stripVTControlCharacters(component.render(200).join("\n"));
 
 		expect(content).toContain("mo");
 		expect(content).toContain("1%");
@@ -433,7 +433,7 @@ describe("usage status-line segment", () => {
 
 		component.refreshUsageInBackground();
 		await flushUsageRefresh();
-		const content = stripVTControlCharacters(component.getTopBorder(200).content);
+		const content = stripVTControlCharacters(component.render(200).join("\n"));
 
 		expect(content).toContain("5h");
 		expect(content).toContain("12%");
@@ -456,7 +456,7 @@ describe("usage status-line segment", () => {
 
 		component.refreshUsageInBackground();
 		await flushUsageRefresh();
-		const content = stripVTControlCharacters(component.getTopBorder(200).content);
+		const content = stripVTControlCharacters(component.render(200).join("\n"));
 
 		expect(content).not.toContain("mo");
 		expect(content).not.toContain("42%");
@@ -498,7 +498,7 @@ describe("usage status-line segment", () => {
 
 		component.refreshUsageInBackground();
 		await flushUsageRefresh();
-		const content = stripVTControlCharacters(component.getTopBorder(200).content);
+		const content = stripVTControlCharacters(component.render(200).join("\n"));
 
 		expect(content).toContain("5h");
 		expect(content).toContain("24%");
@@ -522,7 +522,7 @@ describe("usage status-line segment", () => {
 
 		component.refreshUsageInBackground();
 		await flushUsageRefresh();
-		const content = stripVTControlCharacters(component.getTopBorder(200).content);
+		const content = stripVTControlCharacters(component.render(200).join("\n"));
 
 		expect(content).not.toContain("24%");
 		expect(content).not.toContain("50%");
@@ -543,7 +543,7 @@ describe("usage status-line segment", () => {
 
 		component.refreshUsageInBackground();
 		await flushUsageRefresh();
-		const content = stripVTControlCharacters(component.getTopBorder(200).content);
+		const content = stripVTControlCharacters(component.render(200).join("\n"));
 
 		expect(content).toContain("5h");
 		expect(content).toContain("24%");

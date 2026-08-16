@@ -25,6 +25,14 @@ const READ_TOOL = new Map<string, SystemPromptToolMetadata>([
 	],
 ]);
 
+const RESPONSE_LANGUAGE_BLOCK = `<response-language>
+本项目主要面向中文开发者。除非用户明确要求使用其他语言，所有面向用户的自然语言回复必须使用简洁、直接的中文。代码、命令、文件路径、API/协议/配置字段、工具参数、错误原文保持原样；结构化输出遵循既定 schema，不翻译字段名。
+</response-language>`;
+
+function expectResponseLanguageOnce(promptText: string): void {
+	expect(promptText.split(RESPONSE_LANGUAGE_BLOCK)).toHaveLength(2);
+}
+
 describe("SYSTEM.md prompt assembly", () => {
 	let tempDir = "";
 	let tempHomeDir = "";
@@ -61,6 +69,7 @@ describe("SYSTEM.md prompt assembly", () => {
 		const normalizedProjectDir = projectDir.replace(/\\/g, "/");
 		// cwd interpolation: the quoted absolute path appears in the footer line.
 		expect(promptText).toContain(`'${normalizedProjectDir}'`);
+	expectResponseLanguageOnce(promptText);
 	});
 
 	it("renders SYSTEM.md exactly once when it is used as the custom base prompt", async () => {
@@ -99,6 +108,7 @@ describe("SYSTEM.md prompt assembly", () => {
 		const matches = promptText.match(new RegExp(escapeRegExp(systemPrompt), "g")) ?? [];
 		expect(matches).toHaveLength(1);
 		expect(promptText).toContain('<skill name="focused-work">');
+		expectResponseLanguageOnce(promptText);
 	});
 
 	it("does not resolve already-loaded prompt text as a path", async () => {
@@ -163,6 +173,7 @@ describe("SYSTEM.md prompt assembly", () => {
 		expect(promptText).toContain("<workspace-tree>");
 		expect(promptText).toContain("<dir-context>");
 		expect(promptText).toContain(`'${normalizedProjectDir}'`);
+		expectResponseLanguageOnce(promptText);
 		expect(appendMatches).toHaveLength(1);
 		expect(promptText).not.toContain("Discovered project SYSTEM prompt");
 	});
@@ -185,8 +196,9 @@ describe("SYSTEM.md prompt assembly", () => {
 				agentsMdFiles: [],
 			},
 		});
-
 		const promptText = systemPrompt.join("\n\n");
+		expectResponseLanguageOnce(promptText);
+
 		expect(promptText).toContain("<active-repo-context>");
 		expect(promptText).toContain("`active-project`");
 		expect(promptText).toContain("`active-project/`");

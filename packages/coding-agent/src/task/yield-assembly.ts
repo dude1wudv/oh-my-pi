@@ -168,16 +168,21 @@ export function assembleYieldResult(
 		}
 	}
 
-	// An explicit terminal payload wins: an untyped final result or a
-	// `type: "result"` finalize that carries `data` is the complete result, used
-	// verbatim — never wrapped in a section.
+	// A terminal object supplies the final verdict fields. Preserve any
+	// incremental sections alongside it (review findings are intentionally
+	// streamed before the verdict); terminal keys win on an explicit collision.
 	if (terminalItem && terminalItem.data !== undefined) {
 		const resolved = resolveYieldPayload(terminalItem, lastAssistantText, []);
+		const terminalData = resolved.value;
+		const data =
+			hasSections && terminalData !== null && typeof terminalData === "object" && !Array.isArray(terminalData)
+				? { ...sections, ...(terminalData as Record<string, unknown>) }
+				: terminalData;
 		return {
-			data: resolved.value,
-			schemaOverridden: terminalItem.schemaOverridden === true,
-			rawText: resolved.fromLastAssistantText && typeof resolved.value === "string",
-			missingData: resolved.missingData,
+			data,
+			schemaOverridden: schemaOverridden || terminalItem.schemaOverridden === true,
+			rawText: resolved.fromLastAssistantText && typeof data === "string",
+			missingData: missingData || resolved.missingData,
 		};
 	}
 

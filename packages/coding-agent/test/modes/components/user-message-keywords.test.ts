@@ -8,7 +8,7 @@ import { UserMessageComponent } from "@dude1wudv/pi-coding-agent/modes/component
 import { getEditorTheme, initTheme } from "@dude1wudv/pi-coding-agent/modes/theme/theme";
 import type { InteractiveModeContext } from "@dude1wudv/pi-coding-agent/modes/types";
 import { UiHelpers } from "@dude1wudv/pi-coding-agent/modes/utils/ui-helpers";
-import { Container } from "@dude1wudv/pi-tui";
+import { Container, visibleWidth } from "@dude1wudv/pi-tui";
 
 beforeAll(async () => {
 	resetSettingsForTest();
@@ -53,6 +53,17 @@ describe("UserMessageComponent magic-keyword highlighting", () => {
 		expect(raw).toContain("orchestrate");
 	});
 
+	it("frames every row to the requested cell width and memoizes the result", () => {
+		const component = new UserMessageComponent("第一行🙂\nsecond line");
+		const first = component.render(24);
+		const second = component.render(24);
+		expect(second).toBe(first);
+		expect(first.every(line => visibleWidth(line) === 24)).toBe(true);
+		expect(Bun.stripANSI(first.join("\n"))).toContain("第一行🙂");
+		expect(first[0]).toContain("\x1b]133;A\x07");
+		expect(first.at(-1)?.endsWith("\x1b]133;B\x07\x1b]133;C\x07\x1b]133;D;0\x07")).toBe(true);
+	});
+
 	it("closes the OSC 133 prompt zone and leaves no command zone open", () => {
 		const raw = render("first line\nsecond line");
 		expect(raw).toContain("\x1b]133;A\x07");
@@ -66,6 +77,8 @@ describe("UserMessageComponent magic-keyword highlighting", () => {
 		// group later assistant/tool output under the submitted prompt.
 		expect(raw).toContain("\x1b]133;B\x07\x1b]133;C\x07\x1b]133;D;0\x07");
 		expect(raw.endsWith("\x1b]133;B\x07\x1b]133;C\x07\x1b]133;D;0\x07")).toBe(true);
+		expect(countOccurrences(raw, "\x1b]133;A\x07")).toBe(1);
+		expect(countOccurrences(raw, "\x1b]133;B\x07")).toBe(1);
 		// Exactly one balanced command zone per bubble.
 		expect(countOccurrences(raw, "\x1b]133;C\x07")).toBe(1);
 		expect(countOccurrences(raw, "\x1b]133;D;0\x07")).toBe(1);

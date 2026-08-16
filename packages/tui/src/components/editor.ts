@@ -470,6 +470,7 @@ export class Editor implements Component, Focusable {
 	#autocompletePrefix: string = "";
 	#autocompleteRequestId: number = 0;
 	#autocompleteMaxVisible: number = 5;
+	#lastAutocompleteRowCount = 0;
 	onAutocompleteUpdate?: () => void;
 
 	// Paste tracking for large pastes
@@ -626,6 +627,11 @@ export class Editor implements Component, Focusable {
 
 	setPaddingX(paddingX: number): void {
 		this.#paddingXOverride = Math.max(0, paddingX);
+	}
+
+	/** Rows appended by autocomplete during the most recent render. */
+	protected get lastAutocompleteRowCount(): number {
+		return this.#lastAutocompleteRowCount;
 	}
 
 	getAutocompleteMaxVisible(): number {
@@ -882,6 +888,7 @@ export class Editor implements Component, Focusable {
 	}
 
 	render(width: number): readonly string[] {
+		this.#lastAutocompleteRowCount = 0;
 		const paddingX = this.#getEditorPaddingX();
 		const borderVisible = this.#borderVisible;
 		const promptGutter = this.#getPromptGutter(width, paddingX);
@@ -1177,6 +1184,7 @@ export class Editor implements Component, Focusable {
 		// Add autocomplete list if active
 		if (this.#autocompleteState && this.#autocompleteList) {
 			const autocompleteResult = this.#autocompleteList.render(width);
+			this.#lastAutocompleteRowCount = autocompleteResult.length;
 			result.push(...autocompleteResult);
 		}
 

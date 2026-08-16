@@ -228,11 +228,7 @@ export class SelectorController {
 						});
 						this.ctx.ui.requestRender();
 					},
-					getStatusLinePreview: () => {
-						// Return the rendered status line for inline preview
-						const availableWidth = this.ctx.editor.getTopBorderAvailableWidth(this.ctx.ui.terminal.columns);
-						return this.ctx.statusLine.getTopBorder(availableWidth).content;
-					},
+					getStatusLinePreview: () => this.ctx.statusLine.render(this.ctx.ui.terminal.columns).join("\n"),
 					onPluginsChanged: async () => {
 						const projectPath = await resolveActiveProjectRegistryPath(this.ctx.sessionManager.getCwd());
 						clearPluginRootsAndCaches(projectPath ? [projectPath] : undefined);

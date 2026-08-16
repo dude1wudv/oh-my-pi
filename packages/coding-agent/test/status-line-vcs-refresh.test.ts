@@ -108,7 +108,7 @@ describe("StatusLineComponent repaints when an async VCS fetch resolves", () => 
 		component.updateSettings(gitSegment);
 		component.watchBranch(onBranchChange);
 
-		component.getTopBorder(80); // cold paint kicks off the git-status fetch
+		component.render(80); // cold paint kicks off the git-status fetch
 		expect(onBranchChange).not.toHaveBeenCalled();
 
 		status.resolve({ staged: 1, unstaged: 2, untracked: 3 });
@@ -132,7 +132,7 @@ describe("StatusLineComponent repaints when an async VCS fetch resolves", () => 
 		component.updateSettings(gitSegment);
 		component.watchBranch(onBranchChange);
 
-		component.getTopBorder(80); // cold paint kicks off the jj-label fetch
+		component.render(80); // cold paint kicks off the jj-label fetch
 		expect(onBranchChange).not.toHaveBeenCalled();
 
 		label.resolve("feature-x");
@@ -157,7 +157,7 @@ describe("StatusLineComponent repaints when an async VCS fetch resolves", () => 
 		component.updateSettings(gitSegment);
 		component.watchBranch(onBranchChange);
 
-		component.getTopBorder(80); // cold paint kicks off the jj-status fetch
+		component.render(80); // cold paint kicks off the jj-status fetch
 		expect(onBranchChange).not.toHaveBeenCalled();
 
 		status.resolve({ staged: 0, unstaged: 4, untracked: 1 });
@@ -205,7 +205,7 @@ describe("StatusLineComponent reftable branch resolve honors mid-flight invalida
 		component.watchBranch(onBranchChange);
 
 		// Cold paint kicks the stale resolve (R1).
-		component.getTopBorder(80);
+		component.render(80);
 		expect(git.head.resolve).toHaveBeenCalledTimes(1);
 
 		// A HEAD move fires the watcher: invalidateGitCaches bumps the
@@ -213,7 +213,7 @@ describe("StatusLineComponent reftable branch resolve honors mid-flight invalida
 		component.invalidateGitCaches();
 
 		// The repaint starts a fresh resolve (R2) for the same cwd.
-		component.getTopBorder(80);
+		component.render(80);
 		expect(git.head.resolve).toHaveBeenCalledTimes(2);
 
 		// R1 (stale) lands first. Pre-fix it passed the in-flight-cwd guard
@@ -234,9 +234,9 @@ describe("StatusLineComponent reftable branch resolve honors mid-flight invalida
 		// The committed value is the fresh branch, served from cache with no new
 		// resolve, and the stale name never reaches the rendered segment.
 		expect(git.head.resolve).toHaveBeenCalledTimes(2);
-		const border = component.getTopBorder(80);
-		expect(border.content).toContain("fresh-branch");
-		expect(border.content).not.toContain("stale-branch");
+		const footer = component.render(80).join("\n");
+		expect(footer).toContain("fresh-branch");
+		expect(footer).not.toContain("stale-branch");
 		expect(git.head.resolve).toHaveBeenCalledTimes(2);
 
 		component.dispose();
@@ -266,14 +266,14 @@ describe("StatusLineComponent reftable branch resolve honors mid-flight invalida
 
 		const component = new StatusLineComponent(makeSession());
 		component.updateSettings(gitSegment);
-		component.getTopBorder(80);
+		component.render(80);
 		expect(git.head.resolve).toHaveBeenCalledTimes(1);
 
 		component.invalidateGitCaches();
 		expect(signals[0]?.aborted).toBe(true);
 		component.invalidateGitCaches();
-		component.getTopBorder(80);
-		component.getTopBorder(80);
+		component.render(80);
+		component.render(80);
 		expect(git.head.resolve).toHaveBeenCalledTimes(2);
 
 		component.dispose();
@@ -309,7 +309,7 @@ describe("StatusLineComponent reftable branch resolve honors mid-flight invalida
 		const component = new StatusLineComponent(makeSession());
 		component.updateSettings(gitSegment);
 		component.watchBranch(vi.fn());
-		component.getTopBorder(80);
+		component.render(80);
 		expect(git.head.resolve).toHaveBeenCalledTimes(1);
 
 		// Many generic invalidations (message events, model switches, theme
@@ -319,8 +319,8 @@ describe("StatusLineComponent reftable branch resolve honors mid-flight invalida
 		for (let i = 0; i < 10; i++) {
 			component.invalidate();
 		}
-		component.getTopBorder(80);
-		component.getTopBorder(80);
+		component.render(80);
+		component.render(80);
 
 		expect(signals[0]?.aborted).toBe(false);
 		expect(git.head.resolve).toHaveBeenCalledTimes(1);
@@ -355,19 +355,19 @@ describe("StatusLineComponent reftable branch resolve honors mid-flight invalida
 		const component = new StatusLineComponent(makeSession());
 		component.updateSettings(gitSegment);
 		component.watchBranch(vi.fn());
-		component.getTopBorder(80);
+		component.render(80);
 		await Promise.resolve();
 		await Promise.resolve();
-		expect(component.getTopBorder(80).content).toContain("before-change");
+		expect(component.render(80).join("\n")).toContain("before-change");
 		expect(git.head.resolve).toHaveBeenCalledTimes(1);
 
 		// No filesystem event arrives, but the next bounded poll observes the new HEAD.
 		now += 5_001;
-		component.getTopBorder(80);
+		component.render(80);
 		expect(git.head.resolve).toHaveBeenCalledTimes(2);
 		await Promise.resolve();
 		await Promise.resolve();
-		expect(component.getTopBorder(80).content).toContain("after-change");
+		expect(component.render(80).join("\n")).toContain("after-change");
 		component.dispose();
 	});
 
@@ -396,7 +396,7 @@ describe("StatusLineComponent reftable branch resolve honors mid-flight invalida
 		try {
 			const component = new StatusLineComponent(makeSession());
 			component.updateSettings(gitSegment);
-			component.getTopBorder(80);
+			component.render(80);
 			expect(git.head.resolve).toHaveBeenCalledTimes(1);
 			expect(jjRoot).not.toHaveBeenCalled();
 			expect(jjLabel).not.toHaveBeenCalled();
@@ -424,10 +424,10 @@ describe("StatusLineComponent reftable branch resolve honors mid-flight invalida
 
 		const component = new StatusLineComponent(makeSession());
 		component.updateSettings(gitSegment);
-		component.getTopBorder(80);
+		component.render(80);
 		await Promise.resolve();
 		await Promise.resolve();
-		component.getTopBorder(80);
+		component.render(80);
 
 		expect(git.head.resolve).toHaveBeenCalledTimes(1);
 		expect(jjRoot).not.toHaveBeenCalled();
@@ -458,24 +458,24 @@ describe("StatusLineComponent VCS watcher and jj request lifecycle", () => {
 		const component = new StatusLineComponent(makeSession());
 		component.updateSettings(gitSegment);
 		component.watchBranch(vi.fn());
-		component.getTopBorder(80);
+		component.render(80);
 		expect(git.head.resolve).not.toHaveBeenCalled();
 
 		now += 1_000;
-		component.getTopBorder(80);
+		component.render(80);
 		expect(git.head.resolve).not.toHaveBeenCalled();
 
 		// The bounded discovery interval reaches the new repository. Repeated
 		// paints while its reftable resolve is hung must reuse the one request.
 		now += 4_001;
-		component.getTopBorder(80);
-		component.getTopBorder(80);
+		component.render(80);
+		component.render(80);
 		expect(git.head.resolve).toHaveBeenCalledTimes(1);
 
 		head.resolve({ ...fakeRefHead, branchName: "created-later", ref: "refs/heads/created-later" });
 		await Promise.resolve();
 		await Promise.resolve();
-		expect(component.getTopBorder(80).content).toContain("created-later");
+		expect(component.render(80).join("\n")).toContain("created-later");
 		component.dispose();
 	});
 
@@ -508,14 +508,14 @@ describe("StatusLineComponent VCS watcher and jj request lifecycle", () => {
 
 		const component = new StatusLineComponent(makeSession());
 		component.updateSettings(gitSegment);
-		component.getTopBorder(80);
+		component.render(80);
 		expect(labelRequests).toHaveLength(1);
 		expect(statusRequests).toHaveLength(1);
 
 		component.invalidateGitCaches();
 		expect(labelRequests[0]?.signal.aborted).toBe(true);
 		expect(statusRequests[0]?.signal.aborted).toBe(true);
-		component.getTopBorder(80);
+		component.render(80);
 		expect(labelRequests).toHaveLength(2);
 		expect(statusRequests).toHaveLength(2);
 
@@ -523,10 +523,10 @@ describe("StatusLineComponent VCS watcher and jj request lifecycle", () => {
 		statusRequests[1]?.resolve({ staged: 0, unstaged: 1, untracked: 0 });
 		await Promise.resolve();
 		await Promise.resolve();
-		expect(component.getTopBorder(80).content).toContain("fresh-bookmark");
+		expect(component.render(80).join("\n")).toContain("fresh-bookmark");
 
 		component.invalidateGitCaches();
-		component.getTopBorder(80);
+		component.render(80);
 		expect(labelRequests).toHaveLength(3);
 		expect(statusRequests).toHaveLength(3);
 		component.dispose();
@@ -615,7 +615,7 @@ describe("StatusLineComponent applyCwdChange re-points watcher ownership", () =>
 		const component = new StatusLineComponent(makeSession());
 		component.updateSettings(gitSegment);
 		component.watchBranch(onBranchChange);
-		expect(component.getTopBorder(80).content).toContain("branch-a");
+		expect(component.render(80).join("\n")).toContain("branch-a");
 		expect(watchFileSpy).toHaveBeenCalledWith(repoA.headPath, expect.anything(), expect.any(Function));
 
 		// Move cwd to repo B — the SessionManager's cwd has already moved.
@@ -638,7 +638,7 @@ describe("StatusLineComponent applyCwdChange re-points watcher ownership", () =>
 		// Fresh stat event from repo B's watch refreshes B.
 		statCall(watchFileSpy, 1).listener(statsOf(2), statsOf(1));
 		expect(onBranchChange).toHaveBeenCalledTimes(1);
-		expect(component.getTopBorder(80).content).toContain("branch-b");
+		expect(component.render(80).join("\n")).toContain("branch-b");
 
 		// No watch leak: dispose unwatches B's (path, listener) pair.
 		component.dispose();
@@ -663,7 +663,7 @@ describe("StatusLineComponent applyCwdChange re-points watcher ownership", () =>
 		const component = new StatusLineComponent(makeSession());
 		component.updateSettings(gitSegment);
 		component.watchBranch(onBranchChange);
-		component.getTopBorder(80);
+		component.render(80);
 
 		// Move to a directory with no git repo — watcher unavailable fallback.
 		setProjectDir(dirNoRepo);
@@ -677,9 +677,8 @@ describe("StatusLineComponent applyCwdChange re-points watcher ownership", () =>
 		expect(onBranchChange).toHaveBeenCalledTimes(1);
 
 		// Rendering does not crash and the git segment is blank for no-repo.
-		const border = component.getTopBorder(80);
-		expect(border).toBeDefined();
-		expect(border.content).not.toContain("branch-a");
+		const footer = component.render(80).join("\n");
+		expect(footer).not.toContain("branch-a");
 
 		component.dispose();
 	});
@@ -721,7 +720,7 @@ describe("StatusLineComponent git watcher survives atomic HEAD renames", () => {
 		let branchChanged = Promise.withResolvers<void>();
 		let expectedBranch: string | null = null;
 		component.watchBranch(() => {
-			if (expectedBranch && component.getTopBorder(80).content.includes(expectedBranch)) {
+			if (expectedBranch && component.render(80).join("\n").includes(expectedBranch)) {
 				branchChanged.resolve();
 			}
 		});
@@ -734,7 +733,7 @@ describe("StatusLineComponent git watcher survives atomic HEAD renames", () => {
 		);
 		// Prime the branch cache off the initial HEAD. The status/default mocks
 		// never resolve, so this cold paint cannot fire #onBranchChange itself.
-		component.getTopBorder(80);
+		component.render(80);
 
 		const switchTo = async (branchName: string) => {
 			const gitDir = path.join(repoDir, ".git");
@@ -752,11 +751,11 @@ describe("StatusLineComponent git watcher survives atomic HEAD renames", () => {
 		};
 
 		await switchTo("first");
-		expect(component.getTopBorder(80).content).toContain("first");
+		expect(component.render(80).join("\n")).toContain("first");
 
 		// Regression: the second switch must still reach the display.
 		await switchTo("second");
-		expect(component.getTopBorder(80).content).toContain("second");
+		expect(component.render(80).join("\n")).toContain("second");
 
 		component.dispose();
 	});

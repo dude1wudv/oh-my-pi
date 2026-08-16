@@ -6,11 +6,10 @@
  * anchors on the last assistant's real provider prompt-token count — so the bar
  * matches the provider and the `/context` panel instead of an independent
  * estimate that drifted past 100%.
- *
- * `getTopBorder()` runs on every agent event (event-controller.ts), so the
- * breakdown is memoized: it re-queries `getContextUsage()` only when an input
- * it depends on changes (a new/grown message, a replaced message array, or the
- * model's context window). A stable conversation must not re-query on every
+ * `render()` runs on every painted frame, so the breakdown is memoized: it
+ * re-queries `getContextUsage()` only when an input it depends on changes (a
+ * new/grown message, a replaced message array, or the model's context window).
+ * A stable conversation must not re-query on every render.
  * redraw — that per-event recompute is what previously froze large sessions.
  */
 import { afterAll, beforeAll, describe, expect, it } from "bun:test";
@@ -213,8 +212,8 @@ describe("StatusLineComponent context breakdown", () => {
 			separator: "powerline-thin",
 		});
 
-		const border = comp.getTopBorder(80);
-		expect(border.content.length).toBeGreaterThan(0);
+		const rows = comp.render(80);
+		expect(rows.length).toBeGreaterThan(0);
 		expect(usageCalls()).toBe(0);
 	});
 
@@ -232,7 +231,10 @@ describe("StatusLineComponent context breakdown", () => {
 		});
 
 		// 5000 / 272000 → 1.8%, window formatted as 272K (matches the footer gauge).
-		const plain = comp.getTopBorder(80).content.replaceAll(/\x1b\[[0-9;]*m/g, "");
+		const plain = comp
+			.render(80)
+			.join("\n")
+			.replaceAll(/\x1b\[[0-9;]*m/g, "");
 		expect(plain).toContain("1.8%/272K");
 	});
 
@@ -249,7 +251,10 @@ describe("StatusLineComponent context breakdown", () => {
 			separator: "powerline-thin",
 		});
 
-		const plain = comp.getTopBorder(80).content.replaceAll(/\x1b\[[0-9;]*m/g, "");
+		const plain = comp
+			.render(80)
+			.join("\n")
+			.replaceAll(/\x1b\[[0-9;]*m/g, "");
 		expect(plain).toContain("0.5%/272K");
 	});
 
@@ -267,7 +272,10 @@ describe("StatusLineComponent context breakdown", () => {
 			separator: "powerline-thin",
 		});
 
-		const plain = comp.getTopBorder(80).content.replaceAll(/\x1b\[[0-9;]*m/g, "");
+		const plain = comp
+			.render(80)
+			.join("\n")
+			.replaceAll(/\x1b\[[0-9;]*m/g, "");
 		expect(plain).toContain("5K/?");
 		expect(plain).not.toContain("0.0%/0");
 	});

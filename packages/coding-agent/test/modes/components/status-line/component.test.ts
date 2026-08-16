@@ -88,9 +88,9 @@ describe("StatusLineComponent", () => {
 
 		// By default preset, 'mode' segment is included in left/right segments.
 		// Let's get the border and see if Prewalk is rendered.
-		const border = statusLine.getTopBorder(100);
+		const footer = statusLine.render(100).join("\n");
 		// SGR codes might be included, so we check if the stripped content contains "Prewalk"
-		const stripped = border.content.replace(/\x1b\[[0-9;]*m/g, "");
+		const stripped = footer.replace(/\x1b\[[0-9;]*m/g, "");
 		expect(stripped).toContain("Prewalk");
 	});
 	it("renders primary and advisor costs separately", () => {
@@ -102,7 +102,10 @@ describe("StatusLineComponent", () => {
 			}) as unknown as AgentSession,
 		);
 
-		const stripped = statusLine.getTopBorder(120).content.replace(/\x1b\[[0-9;]*m/g, "");
+		const stripped = statusLine
+			.render(120)
+			.join("\n")
+			.replace(/\x1b\[[0-9;]*m/g, "");
 		expect(stripped).toContain("$2.67 (sub) + $0.41 (adv)");
 	});
 
@@ -114,7 +117,10 @@ describe("StatusLineComponent", () => {
 			}) as unknown as AgentSession,
 		);
 
-		const stripped = statusLine.getTopBorder(120).content.replace(/\x1b\[[0-9;]*m/g, "");
+		const stripped = statusLine
+			.render(120)
+			.join("\n")
+			.replace(/\x1b\[[0-9;]*m/g, "");
 		expect(stripped).toContain("$2.67 (sub)");
 		expect(stripped).not.toContain("(adv)");
 	});

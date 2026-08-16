@@ -89,6 +89,12 @@ describe("YieldTool", () => {
 			error: undefined,
 			type: ["notes", "plan"],
 		});
+		expect(result.content).toEqual([
+			{
+				type: "text",
+				text: "Section submitted; task remains active. Finish the remaining scope, then submit one terminal result.",
+			},
+		]);
 	});
 
 	it("does not validate incremental array-typed sections against the full output schema", async () => {

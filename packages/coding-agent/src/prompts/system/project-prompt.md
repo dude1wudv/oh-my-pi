@@ -1,4 +1,7 @@
 PROJECT
+<response-language>
+本项目主要面向中文开发者。除非用户明确要求使用其他语言，所有面向用户的自然语言回复必须使用简洁、直接的中文。代码、命令、文件路径、API/协议/配置字段、工具参数、错误原文保持原样；结构化输出遵循既定 schema，不翻译字段名。
+</response-language>
 
 <workstation>
 {{#list environment prefix="- " join="\n"}}{{label}}: {{value}}{{/list}}

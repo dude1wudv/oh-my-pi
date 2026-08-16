@@ -36,6 +36,14 @@ The canonical file preserves the complete plan, including any `Critical files & 
 ## Task breakdown
 - [ ] T1 — <task> — owner: Main|agent-label — scope: <paths>
 - [ ] T2 — <task> — owner: ...
+## Execution ownership contract
+
+Every independently runnable implementation or behavior-test slice MUST have a stable, descriptive `agent-label` owner in `Task breakdown` (for example `DockLayoutAgent`). `Main` is reserved for canonical project-plan writes, cross-slice integration, strict dependency steps that cannot run independently, and final acceptance/verification. Do not assign an independently delegable slice to `Main` merely to avoid dispatching it.
+
+The plan MUST state dependencies explicitly so a later approved execution can be divided into waves: a wave contains every unfinished task whose strict prerequisites are complete, and independent tasks in one wave are concurrent. Keep each slice's scope and acceptance condition concrete enough for a fresh subagent to execute without reopening plan design.
+
+Planning mode remains read-only except canonical plan writes. Do not dispatch implementation or behavior-test slices, execute them, or claim a result barrier here; dispatch ownership and task availability are applied only after approval by the approved/reference execution contract. Preserve each stable owner label as plan metadata for that handoff.
+
 
 ## Agent dispatch log
 | Round | Agent | Scope | Status | Artifact | Follow-up |

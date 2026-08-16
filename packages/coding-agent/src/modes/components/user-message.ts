@@ -1,4 +1,4 @@
-import { type Component, Container, Markdown } from "@dude1wudv/pi-tui";
+import { type Component, Container, Markdown, padding, visibleWidth } from "@dude1wudv/pi-tui";
 import { formatBytes } from "@dude1wudv/pi-utils";
 import { getMarkdownTheme, theme } from "../../modes/theme/theme";
 import { imageReferenceHyperlink, renderPlaceholders } from "../image-references";
@@ -36,6 +36,7 @@ export class UserMessageComponent extends Container {
 	// never mutates the container's cached array.
 	#zoneSource: readonly string[] | undefined;
 	#zoneLines: string[] | undefined;
+	#zoneWidth: number | undefined;
 
 	constructor(text: string, synthetic = false, imageLinks?: readonly (string | undefined)[]) {
 		super();
@@ -67,19 +68,25 @@ export class UserMessageComponent extends Container {
 	}
 
 	override render(width: number): readonly string[] {
-		const lines = super.render(width);
-		if (lines.length === 0) {
-			return lines;
-		}
-		if (this.#zoneSource === lines && this.#zoneLines !== undefined) {
+		if (width <= 0) return [];
+		const innerWidth = Math.max(1, width - 2);
+		const lines = super.render(innerWidth);
+		if (lines.length === 0) return lines;
+		if (this.#zoneSource === lines && this.#zoneWidth === width && this.#zoneLines !== undefined) {
 			return this.#zoneLines;
 		}
-		const wrapped = lines.slice();
-		wrapped[0] = OSC133_ZONE_START + wrapped[0];
-		wrapped[wrapped.length - 1] = wrapped[wrapped.length - 1] + OSC133_ZONE_CLOSE;
+
+		const horizontal = theme.fg("accent", theme.boxRound.horizontal.repeat(width));
+		const rail = theme.fg("accent", theme.boxRound.vertical);
+		const framed = [
+			OSC133_ZONE_START + horizontal,
+			...lines.map(line => `${rail} ${line}${padding(Math.max(0, innerWidth - visibleWidth(line)))}`),
+			horizontal + OSC133_ZONE_CLOSE,
+		];
 		this.#zoneSource = lines;
-		this.#zoneLines = wrapped;
-		return wrapped;
+		this.#zoneWidth = width;
+		this.#zoneLines = framed;
+		return framed;
 	}
 }
 
