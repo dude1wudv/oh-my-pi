@@ -3,7 +3,6 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 import { resetSettingsForTest, Settings } from "@dude1wudv/pi-coding-agent/config/settings";
-import type { StatusLineSegmentId } from "@dude1wudv/pi-coding-agent/config/settings-schema";
 import { StatusLineComponent } from "@dude1wudv/pi-coding-agent/modes/components/status-line";
 import type { SegmentContext } from "@dude1wudv/pi-coding-agent/modes/components/status-line/segments";
 import { renderSegment } from "@dude1wudv/pi-coding-agent/modes/components/status-line/segments";

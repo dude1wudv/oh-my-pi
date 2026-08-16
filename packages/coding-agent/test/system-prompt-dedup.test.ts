@@ -69,7 +69,7 @@ describe("SYSTEM.md prompt assembly", () => {
 		const normalizedProjectDir = projectDir.replace(/\\/g, "/");
 		// cwd interpolation: the quoted absolute path appears in the footer line.
 		expect(promptText).toContain(`'${normalizedProjectDir}'`);
-	expectResponseLanguageOnce(promptText);
+		expectResponseLanguageOnce(promptText);
 	});
 
 	it("renders SYSTEM.md exactly once when it is used as the custom base prompt", async () => {

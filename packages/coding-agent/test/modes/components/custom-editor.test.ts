@@ -117,7 +117,7 @@ describe("CustomEditor prompt chrome", () => {
 		editor.handleInput("/");
 		await updated;
 		const rows = editor.render(40);
-		const bottomRule = rows.findLastIndex(row => row === rows[0]);
+		const bottomRule = rows.lastIndexOf(rows[0]);
 		const autocompleteRow = rows.findIndex(row => Bun.stripANSI(row).includes("/help"));
 		expect(bottomRule).toBeGreaterThan(0);
 		expect(autocompleteRow).toBeGreaterThan(bottomRule);

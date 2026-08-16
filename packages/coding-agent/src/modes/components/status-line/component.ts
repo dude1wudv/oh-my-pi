@@ -291,7 +291,6 @@ function hasGitBackedSegment(segments: readonly StatusLineSegmentId[]): boolean 
 // ═══════════════════════════════════════════════════════════════════════════
 
 export class StatusLineComponent implements Component {
-	#widthEpochRevision = 0;
 	#settings: StatusLineSettings = {};
 	#effectiveSettings: EffectiveStatusLineSettings | undefined;
 	#cachedBranch: string | null | undefined = undefined;
@@ -747,7 +746,6 @@ export class StatusLineComponent implements Component {
 	}
 
 	invalidate(): void {
-		this.#widthEpochRevision++;
 		// Generic repaint invalidation (theme change, message event, model
 		// switch, …). Must NOT abort or restart a live reftable HEAD/PR resolve:
 		// the render path self-invalidates via cwd/context cache-miss checks, so
@@ -1836,7 +1834,7 @@ export class StatusLineComponent implements Component {
 					? getSessionAccentHex(sessionName, theme.getMajorThemeColorHexes(), theme.accentSurfaceLuminance)
 					: undefined;
 				const gapColor = getSessionAccentAnsi(accentHex) ?? theme.getFgAnsi("border");
-				rows = [leftGroup + `${gapColor}${theme.boxRound.horizontal.repeat(gapWidth)}\x1b[39m` + rightGroup];
+				rows = [`${leftGroup}${gapColor}${theme.boxRound.horizontal.repeat(gapWidth)}\x1b[39m${rightGroup}`];
 			} else {
 				rows = [leftGroup || rightGroup];
 			}

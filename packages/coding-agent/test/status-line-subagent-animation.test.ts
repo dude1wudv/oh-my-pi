@@ -1,8 +1,8 @@
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "bun:test";
 import { resetSettingsForTest, Settings } from "@dude1wudv/pi-coding-agent/config/settings";
+import type { StatusLineSettings } from "@dude1wudv/pi-coding-agent/modes/components/status-line";
 import { StatusLineComponent } from "@dude1wudv/pi-coding-agent/modes/components/status-line";
 import { initTheme } from "@dude1wudv/pi-coding-agent/modes/theme/theme";
-import type { StatusLineSettings } from "@dude1wudv/pi-coding-agent/modes/components/status-line";
 import type { Component } from "@dude1wudv/pi-tui";
 
 beforeAll(async () => {
