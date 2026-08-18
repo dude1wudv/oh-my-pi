@@ -82,7 +82,7 @@ function makeSession(options: SessionOptions = {}): ToolSession {
 			? () =>
 					({
 						enabled: true,
-						planFilePath: path.join(options.cwd ?? process.cwd(), "plan.md"),
+						planFilePath: ".omp/plans/2026-08-18-plan.md",
 					}) satisfies PlanModeState
 			: undefined,
 	};

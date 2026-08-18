@@ -330,7 +330,7 @@ describe("AgentSession eager prelude re-injection after compaction", () => {
 	});
 	it("does not re-inject the eager task reminder in plan mode", async () => {
 		const { session, waitForCall } = await createHarness();
-		session.setPlanModeState({ enabled: true, planFilePath: path.join(tempDir.path(), "plan.md") });
+		session.setPlanModeState({ enabled: true, planFilePath: ".omp/plans/2026-08-18-plan.md" });
 		stubCompaction();
 
 		const continuation = await runToContinuation(session, waitForCall);

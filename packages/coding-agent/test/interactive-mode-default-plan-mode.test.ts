@@ -138,7 +138,8 @@ describe("InteractiveMode plan.defaultOnStartup", () => {
 		await created.init({ suppressWelcomeIntro: true });
 
 		expect(created.planModeEnabled).toBe(true);
-		expect(session?.getPlanModeState()).toMatchObject({ enabled: true, planFilePath: "local://PLAN.md" });
+		expect(session?.getPlanModeState()).toMatchObject({ enabled: true });
+		expect(session?.getPlanModeState()?.planFilePath).toMatch(/^\.omp\/plans\/\d{4}-\d{2}-\d{2}-plan\.md$/);
 		expect(session?.getActiveToolNames()).toContain("read");
 	});
 

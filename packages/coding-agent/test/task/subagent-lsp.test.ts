@@ -274,7 +274,7 @@ describe("subagent LSP availability", () => {
 			tools: ["bash", "ast_grep", "memory_edit", "retain", "todo"],
 		});
 		const { getOptions } = mockCreateAgentSession();
-		const planMode = { enabled: true, planFilePath: "local://PLAN.md" };
+		const planMode = { enabled: true, planFilePath: ".omp/plans/2026-08-18-plan.md" };
 
 		const tool = await TaskTool.create(createSession({ planMode, taskEnableLsp: true }));
 		await tool.execute("tool-call", TEST_TASK);

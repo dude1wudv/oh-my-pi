@@ -11,13 +11,14 @@
  *      user), and either decision tool resets the counter.
  */
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "bun:test";
+import * as fs from "node:fs/promises";
+import * as path from "node:path";
 import { type } from "@dude1wudv/omptype";
 import { Agent, type AgentMessage, type AgentTool, type StreamFn } from "@dude1wudv/pi-agent-core";
 import { createMockModel, type MockModel, type MockResponse } from "@dude1wudv/pi-ai/providers/mock";
 import { getBundledModel } from "@dude1wudv/pi-catalog/models";
 import { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry";
 import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
-import { resolveLocalUrlToPath } from "@dude1wudv/pi-coding-agent/internal-urls";
 import { IrcBus, type IrcMessage } from "@dude1wudv/pi-coding-agent/irc/bus";
 import { AgentRegistry } from "@dude1wudv/pi-coding-agent/registry/agent-registry";
 import { AgentSession } from "@dude1wudv/pi-coding-agent/session/agent-session";
@@ -72,6 +73,16 @@ interface PlanHarness {
 	mock: MockModel;
 	advisorMock?: MockModel;
 	sideMock?: MockModel;
+}
+
+async function writeActiveProjectPlan(session: AgentSession, content: string): Promise<void> {
+	const planFilePath = session.getPlanModeState()?.planFilePath;
+	if (!planFilePath || planFilePath.startsWith("local:")) {
+		throw new Error("Expected an active project plan path.");
+	}
+	const planPath = path.resolve(session.sessionManager.getCwd(), planFilePath);
+	await fs.mkdir(path.dirname(planPath), { recursive: true });
+	await Bun.write(planPath, content);
 }
 
 describe("AgentSession plan-mode convergence", () => {
@@ -334,11 +345,7 @@ describe("AgentSession plan-mode convergence", () => {
 		expect(harness.session.getPlanModeState()?.enabled).toBe(true);
 		expect(harness.session.getActiveToolNames()).toContain("write");
 
-		const planPath = resolveLocalUrlToPath("local://demo-plan.md", {
-			getArtifactsDir: () => harness.session.sessionManager.getArtifactsDir(),
-			getSessionId: () => harness.session.sessionManager.getSessionId(),
-		});
-		await Bun.write(planPath, "# Demo plan\n\nImplement it.\n");
+		await writeActiveProjectPlan(harness.session, "# Demo plan\n\nImplement it.\n");
 		const handler = harness.session.peekPlanProposalHandler();
 		expect(handler).toBeDefined();
 		await handler!("demo");
@@ -352,11 +359,7 @@ describe("AgentSession plan-mode convergence", () => {
 		const harness = await createPlanSession([{ content: ["planning"] }], { planYolo: true, rebuildGate });
 		await harness.session.prompt("make a plan");
 		await harness.session.waitForIdle();
-		const planPath = resolveLocalUrlToPath("local://retry-plan.md", {
-			getArtifactsDir: () => harness.session.sessionManager.getArtifactsDir(),
-			getSessionId: () => harness.session.sessionManager.getSessionId(),
-		});
-		await Bun.write(planPath, "# Retry plan\n\nImplement it.\n");
+		await writeActiveProjectPlan(harness.session, "# Retry plan\n\nImplement it.\n");
 		const handler = harness.session.peekPlanProposalHandler();
 		expect(handler).toBeDefined();
 		const activeBefore = harness.session.getActiveToolNames();
