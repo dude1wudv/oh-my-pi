@@ -1815,6 +1815,7 @@ pub fn root_device_id(path: &Path, follow_links: FollowLinks) -> Option<u64> {
 ///
 /// Non-Unix platforms return `None`, making same-filesystem filtering a no-op.
 #[cfg(not(unix))]
+#[allow(clippy::missing_const_for_fn, reason = "keep platform variants API-compatible")]
 pub fn root_device_id(_path: &Path, _follow_links: FollowLinks) -> Option<u64> {
 	None
 }
@@ -1846,6 +1847,7 @@ pub fn is_path_on_root_file_system(
 /// When `root_device` is `None`, this returns true. On non-Unix platforms this
 /// is always true, matching the existing no-op same-filesystem behavior there.
 #[cfg(not(unix))]
+#[allow(clippy::missing_const_for_fn, reason = "keep platform variants API-compatible")]
 pub fn is_path_on_root_file_system(
 	_path: &Path,
 	_depth: usize,
@@ -1876,6 +1878,7 @@ fn is_effective_path_on_root_file_system(
 }
 
 #[cfg(not(unix))]
+#[allow(clippy::missing_const_for_fn, reason = "keep platform variants structurally aligned")]
 fn is_effective_path_on_root_file_system(
 	_path: &Path,
 	_depth: usize,
@@ -2312,6 +2315,10 @@ impl DirScratch {
 	}
 
 	#[cfg(not(unix))]
+	#[allow(
+		clippy::unused_self,
+		reason = "the Unix variant reads names from shared scratch storage"
+	)]
 	fn name<'a>(&'a self, entry: &'a DirEntryRecord) -> &'a OsStr {
 		&entry.name
 	}
@@ -4018,6 +4025,11 @@ mod platform {
 		}
 	}
 
+	#[allow(
+		clippy::chunks_exact_to_as_chunks,
+		clippy::manual_is_multiple_of,
+		reason = "retain compatibility with the workspace minimum Rust version"
+	)]
 	pub fn read_dir_entries<F, E>(
 		path: &Path,
 		detail: WalkDetail,
@@ -4132,6 +4144,11 @@ mod platform {
 		}
 	}
 
+	#[allow(
+		clippy::missing_const_for_fn,
+		clippy::unnecessary_wraps,
+		reason = "match the fallible platform helper contract used by other backends"
+	)]
 	fn file_type_from_attributes(attributes: u32) -> Option<FileType> {
 		if attributes & FILE_ATTRIBUTE_REPARSE_POINT != 0 {
 			Some(FileType::Symlink)

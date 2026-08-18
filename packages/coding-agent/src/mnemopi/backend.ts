@@ -1,11 +1,12 @@
 import { rm } from "node:fs/promises";
 import * as path from "node:path";
-import { type ApiKeyResolver, completeSimple } from "@dude1wudv/pi-ai";
+import { type ApiKeyResolver, completeSimple, retryTransientCompletion } from "@dude1wudv/pi-ai";
 import { hostMatchesUrl } from "@dude1wudv/pi-catalog/hosts";
 import type { Mnemopi } from "@dude1wudv/pi-mnemopi";
 import type * as MnemopiDiagnoseNs from "@dude1wudv/pi-mnemopi/diagnose";
 import type { DiagnosticSummary } from "@dude1wudv/pi-mnemopi/diagnose";
 import { logger } from "@dude1wudv/pi-utils";
+
 import type { ModelRegistry } from "../config/model-registry";
 import { resolveRoleSelection } from "../config/model-resolver";
 import type {
@@ -545,16 +546,18 @@ async function resolveMnemopiProviderOptions(
 					});
 					return null;
 				}
-				const message = await completeSimple(
-					model,
-					{
-						messages: [{ role: "user", content: prompt, timestamp: Date.now() }],
-					},
-					{
-						apiKey: modelRegistry.resolver(model, sessionId),
-						maxTokens: opts?.maxTokens,
-						temperature: opts?.temperature,
-					},
+				const message = await retryTransientCompletion(() =>
+					completeSimple(
+						model,
+						{
+							messages: [{ role: "user", content: prompt, timestamp: Date.now() }],
+						},
+						{
+							apiKey: modelRegistry.resolver(model, sessionId),
+							maxTokens: opts?.maxTokens,
+							temperature: opts?.temperature,
+						},
+					),
 				);
 				return message.content
 					.filter(

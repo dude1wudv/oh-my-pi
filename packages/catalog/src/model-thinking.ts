@@ -26,7 +26,9 @@ import {
 	isDeepseekModelIdOrName,
 	isDeepseekV4FlashModelId,
 	isGlm52ReasoningEffortModelId,
+	isGlm53ReasoningEffortModelId,
 	isGrokReasoningEffortCapable,
+	isGrokXHighEffortCapable,
 	isKimiK3ModelId,
 	isMimoModelIdOrName,
 	isMinimaxM2FamilyModelId,
@@ -179,14 +181,16 @@ function fillThinkingWireDefaults<TApi extends Api>(
 		(spec.api === "anthropic-messages" || spec.api === "bedrock-converse-stream") &&
 		supportsAdaptiveThinkingDisplay(spec.id);
 	const needsRequiresEffort = thinking.requiresEffort === undefined && impliesMandatoryReasoning(parsed, spec.id);
-	const needsKimiDefaultLevel = thinking.defaultLevel === undefined && isKimiK3ModelId(spec.id);
-	const needsGrokDefaultLevel = thinking.defaultLevel === undefined && isGrokReasoningEffortCapable(spec.id);
+	const needsMaxDefaultLevel =
+		thinking.defaultLevel === undefined && (isKimiK3ModelId(spec.id) || isGlm53ReasoningEffortModelId(spec.id));
+	const needsGrokDefaultLevel =
+		thinking.defaultLevel === undefined && isGrokReasoningEffortCapable(spec.id) && !isFirstPartyXaiResponses(spec);
 	if (
 		!effortsChanged &&
 		!shouldReplaceEffortMap &&
 		!needsDisplay &&
 		!needsRequiresEffort &&
-		!needsKimiDefaultLevel &&
+		!needsMaxDefaultLevel &&
 		!needsGrokDefaultLevel
 	) {
 		return thinking;
@@ -205,7 +209,7 @@ function fillThinkingWireDefaults<TApi extends Api>(
 	if (needsDisplay) {
 		filled.supportsDisplay = true;
 	}
-	if (needsKimiDefaultLevel) {
+	if (needsMaxDefaultLevel) {
 		filled.defaultLevel = Effort.Max;
 	}
 	if (needsGrokDefaultLevel) {
@@ -228,10 +232,10 @@ export function deriveThinking<TApi extends Api>(spec: ModelSpec<TApi>, compat: 
 		mode: inferThinkingControlMode(spec, parsed),
 		efforts,
 	};
-	if (isKimiK3ModelId(spec.id)) {
+	if (isKimiK3ModelId(spec.id) || isGlm53ReasoningEffortModelId(spec.id)) {
 		config.defaultLevel = Effort.Max;
 	}
-	if (isGrokReasoningEffortCapable(spec.id)) {
+	if (isGrokReasoningEffortCapable(spec.id) && !isFirstPartyXaiResponses(spec)) {
 		config.defaultLevel = Effort.High;
 	}
 	const effortMap = inferEffortMap(spec, compat, config.mode, config.efforts);
@@ -302,6 +306,13 @@ function isOpenAICompatReasoningApi(api: Api): boolean {
 	return api === "openai-completions" || api === "openrouter";
 }
 
+function isFirstPartyXaiResponses<TApi extends Api>(spec: ModelSpec<TApi>): boolean {
+	return (
+		spec.api === "openai-responses" &&
+		modelMatchesHost({ provider: spec.provider, baseUrl: spec.baseUrl ?? "" }, "xai")
+	);
+}
+
 /**
  * GPT-5.6+ addressed through a wire `reasoning.effort`/`reasoning_effort`
  * field, where the five-tier `low..max` wire scale applies. Devin
@@ -327,6 +338,13 @@ function getModelDefinedEfforts<TApi extends Api>(
 	spec: ModelSpec<TApi>,
 	compat: CompatOf<TApi>,
 ): readonly Effort[] | undefined {
+	if (isGlm53ReasoningEffortModelId(spec.id)) {
+		// GLM-5.3+ exposes a uniform wire-exact low/high/max ladder on every
+		// host — unlike GLM-5.2, whose reasoning_effort dialect is
+		// host-specific. Thinking can no longer be disabled (handled by
+		// impliesMandatoryReasoning), and the default effort is `max`.
+		return LOW_HIGH_MAX_REASONING_EFFORTS;
+	}
 	if (isGlm52ReasoningEffortModelId(spec.id)) {
 		// GLM-5.2's reasoning_effort dialect is host-specific (verified against
 		// live endpoints):
@@ -365,9 +383,13 @@ function getModelDefinedEfforts<TApi extends Api>(
 		// wire-exact five-tier `low..max` ladder.
 		return FIVE_TIER_EFFORTS_LOW_TO_MAX;
 	}
+	// First-party Grok: `grok-4.6*` and `grok-4.20-multi-agent*` advertise
+	// `xhigh`. Other effort-capable SKUs stay on `minimal/low/medium/high`.
+	if (isFirstPartyXaiResponses(spec)) {
+		return isGrokXHighEffortCapable(spec.id) ? DEFAULT_REASONING_EFFORTS_WITH_XHIGH : DEFAULT_REASONING_EFFORTS;
+	}
 	if (isGrokReasoningEffortCapable(spec.id)) {
-		// xAI's effort-capable Grok endpoints expose low/medium/high; `minimal`
-		// is a synthetic default tier and must not be sent on the wire.
+		// Non-first-party Grok routes retain the fork's low/medium/high wire ladder.
 		return LOW_MEDIUM_HIGH_REASONING_EFFORTS;
 	}
 	const anthropicAdaptive = getAnthropicAdaptiveEfforts(spec);
@@ -599,6 +621,9 @@ function impliesMandatoryReasoning(parsed: ParsedModel, modelId: string): boolea
 		if (parsed.kind === "pro" && semverGte(parsed.version, "2.5")) return true;
 	}
 	if (isKimiK3ModelId(modelId)) return true;
+	// GLM-5.3+ no longer supports disabling thinking — thinking.type must
+	// always be "enabled". Floor thinking-off requests to the lowest effort.
+	if (isGlm53ReasoningEffortModelId(modelId)) return true;
 	if (isMinimaxM2FamilyModelId(modelId)) return true;
 	if (OPENAI_O_SERIES_RE.test(bareModelId(modelId))) return true;
 	return findThinkingVariantToken(modelId) !== undefined;

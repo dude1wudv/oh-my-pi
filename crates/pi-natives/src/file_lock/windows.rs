@@ -27,6 +27,8 @@ pub fn try_acquire(path: &str) -> io::Result<Option<PlatformFileLock>> {
 	// SAFETY: the attributes pointer is null, and `wide_name` is a live,
 	// NUL-terminated UTF-16 string for the duration of the call.
 	unsafe { SetLastError(0) };
+	// SAFETY: the attributes pointer is null and `wide_name` remains live and
+	// NUL-terminated.
 	let raw_handle = unsafe { CreateMutexW(ptr::null(), 1, wide_name.as_ptr()) };
 	if raw_handle.is_null() {
 		return Err(io::Error::last_os_error());
