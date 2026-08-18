@@ -1,0 +1,22 @@
+# Project-local model identity routing.
+modelRoles:
+  task: subgpt/gpt-5.6-terra:high
+  vision: subgpt/gpt-5.6-luna:xhigh
+  plan: subgpt/gpt-5.6-sol:xhigh
+  designer: subgpt/gpt-5.6-sol:xhigh
+  slow: subgpt/gpt-5.6-sol:xhigh
+  default: subgpt/gpt-5.6-sol:medium
+  advisor: subgpt/gpt-5.6-terra:high
+  tiny: subgpt/gpt-5.6-luna:medium
+  smol: subgpt/gpt-5.6-luna:high
+  commit: subgpt/gpt-5.6-luna:medium
+task:
+  showResolvedModelBadge: true
+  agentModelOverrides:
+    scout: "@smol:high"
+    librarian: "@smol:high"
+    planner: "@plan"
+    reviewer: "@slow"
+    security-reviewer: "@advisor"
+    worker: "@task"
+    task: "@task"
