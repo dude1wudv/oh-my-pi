@@ -8,7 +8,7 @@
 
 ## Conflict and metadata policy
 
-- Fork package names (`@dude1wudv/*`), version `20.1.6`, release tooling, and Windows publishing behavior are authoritative.
+- Fork package names (`@dude1wudv/*`), the fork release line (bumped from `20.1.6` to `20.1.7` after integration), release tooling, and Windows publishing behavior are authoritative.
 - Functional source, tests, prompts, model catalog data, setup support, and required dependency declarations are integrated.
 - Pure release/version, package-scope migration, documentation/changelog, formatting, and release-only CI content are excluded.
 - “Manual conflict reconciliation” means the commit touched a path that required semantic reconciliation; otherwise Git applied it through the snapshot merge.

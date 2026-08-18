@@ -8,11 +8,11 @@ Date: 2026-08-18
 - Fork baseline: `35e16aee87` plus local project configuration baseline `9a8742f491`
 - Common ancestor: `ffd53ff92a6f575d499730475a73460dd7cc2eea`
 - Fixed upstream snapshot: `8500092296621a6826b7136e840f8a59ea338958`
-- Main branch was not advanced and no tag, package, release, or remote branch was published.
+- Main branch was not advanced. This report was prepared on the isolated integration branch before the user-authorized `v20.1.7` publication.
 
 ## Policy audit
 
-- Preserved `@dude1wudv/*` package names and workspace version `20.1.6`.
+- Preserved `@dude1wudv/*` package names and bumped the fork release line from `20.1.6` to `20.1.7` only after the functional integration was complete.
 - Preserved fork release scripts/workflows and Windows publishing behavior.
 - Restored pure upstream documentation, changelog, and release-CI changes to the fork baseline.
 - Kept `release.md` outside the integration worktree and commits.
@@ -26,13 +26,16 @@ Date: 2026-08-18
 - Coding agent / TUI: retained upstream extension, browser, LSP, MCP, launcher, stats, and UI fixes while preserving the fork status-line/task orchestration architecture.
 - Rust/native: retained functional upstream native/text/xargs changes, refreshed locks without version rollback, and made current Windows Clippy checks clean.
 
-## Passing gates
+## Windows release-candidate gates
+
+The user explicitly authorized a Windows-only `v20.1.7` release and requested that Linux-only failures be skipped.
+
 
 - `bun install --frozen-lockfile --ignore-scripts`
 - `bun run ci:check:full`
 - `bun run lint`
 - `bun run build`
-- `bun run ci:test:smoke`
+- `bun run ci:test:smoke` previously passed before the version bump; the release-candidate rerun reached the smoke path but hit the known Windows temporary Bun executable lookup (`ENOENT`), unrelated to the integrated source.
 - `bun test --parallel=2 --timeout=30000` in `packages/agent`: 487 passed.
 - `bun test --parallel=2 --timeout=30000` in `packages/catalog`: 590 passed.
 - Focused xAI/catalog conflict suite: 65 passed.
@@ -74,3 +77,9 @@ Additional focused package evidence:
 ## Review recommendation
 
 The branch is ready for code review and Linux CI. Required static, lint, build, smoke, catalog, agent, and native compile checks are green. The remaining non-green commands are documented host/baseline prerequisites or failures reproduced unchanged on `main`; they should be re-run in the repository's Linux CI image with `cargo-nextest`, Python 3.11+, and Bash available.
+## v20.1.7 release preparation
+
+- Updated all public `@dude1wudv/*` workspace packages, root catalog entries, Rust workspace metadata, lockfile workspace versions, and the native version sentinel to `20.1.7`.
+- Re-ran `bun run ci:check:full`, `bun run lint`, `bun run build`, and focused Windows release/publish script tests successfully.
+- The full release-script suite has one Linux musl-host selection test failure when executed on Windows; the Windows release binary and npm publish topology tests pass.
+- `release.md` remained outside the integration worktree and is not included in the release commit.
