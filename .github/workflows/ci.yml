@@ -126,9 +126,11 @@ jobs:
                   fi
                   ;;
               esac
-              if [ -n "$release_tag" ]; then
-                echo "HEAD carries release tag $release_tag; this run builds and publishes the release."
+              if [ -n "$release_tag" ] && [ "${{ github.repository }}" = "can1357/oh-my-pi" ]; then
+                echo "HEAD carries release tag $release_tag; this run builds and publishes the full release."
                 is_release=true
+              elif [ -n "$release_tag" ]; then
+                echo "Fork release tag $release_tag is handled by the Windows Release workflow."
               fi
               {
                 echo "is-release=$is_release"

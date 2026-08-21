@@ -8,15 +8,13 @@ on:
 
 permissions:
   contents: write
-  packages: write
-  id-token: write
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
   CARGO_TERM_COLOR: always
 
 jobs:
   build-windows:
-    name: Build Windows binary and source
+    name: Build and publish Windows release
     runs-on: windows-2022
     steps:
       - name: Check out source
@@ -44,36 +42,6 @@ jobs:
       - name: Build OMP Windows binary
         run: bun --cwd=packages/coding-agent run build
 
-      - name: Set up Node for npm publishing
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          registry-url: https://registry.npmjs.org
-
-      - name: Publish npm packages
-        if: startsWith(github.ref, 'refs/tags/v')
-        shell: bash
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          test -n "$NODE_AUTH_TOKEN" || { echo "NPM_TOKEN repository secret is required"; exit 1; }
-          bun run ci:release:publish
-          bun run ci:release:publish-native-leaf -- win32-x64
-      - name: Publish GitHub Packages
-        if: startsWith(github.ref, 'refs/tags/v')
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          registry-url: https://npm.pkg.github.com
-      - name: Publish GitHub npm packages
-        if: startsWith(github.ref, 'refs/tags/v')
-        shell: bash
-        env:
-          NODE_AUTH_TOKEN: ${{ github.token }}
-        run: |
-          bun run ci:release:publish
-          bun run ci:release:publish-native-leaf -- win32-x64
 
       - name: Package Windows binary
         shell: pwsh
@@ -103,4 +71,12 @@ jobs:
         shell: bash
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release upload "${GITHUB_REF_NAME}" dist/* --clobber
+        run: |
+          if gh release view "${GITHUB_REF_NAME}" >/dev/null 2>&1; then
+            gh release upload "${GITHUB_REF_NAME}" dist/* --clobber
+          else
+            gh release create "${GITHUB_REF_NAME}" dist/* \
+              --title "${GITHUB_REF_NAME}" \
+              --generate-notes \
+              --latest
+          fi
