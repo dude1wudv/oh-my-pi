@@ -202,15 +202,15 @@ jobs:
            run: bazelisk --bazelrc="${{ steps.cache.outputs.rc }}" build --config=rustfmt //crates/...
 
    # Provides the native addons every downstream TS job installs. PRs fetch the
-   # latest release's Linux x64 pair from npm. Non-PR fork builds compile only
-   # the two Linux x64 addons consumed by hosted test jobs; cross-platform
-   # targets remain the upstream main/release responsibility. This keeps fork
-   # CI bounded without mixing current TypeScript with an older native ABI.
-   # Upstream main still builds every Linux-hosted target on omp-kata.
+   # latest release's Linux x64 pair from npm. Ordinary fork builds compile only
+   # the two Linux x64 addons consumed by hosted test jobs; release runs still
+   # build every target required by the release matrix. This keeps fork CI
+   # bounded without mixing current TypeScript with an older native ABI.
    native_addons:
       name: Build native addons (bazel)
       runs-on: ${{ github.repository == 'can1357/oh-my-pi' && github.event_name != 'pull_request' && 'omp-kata' || 'ubuntu-22.04' }}
       timeout-minutes: 45
+      needs: [release_metadata]
       steps:
          - uses: actions/checkout@v4
 
@@ -270,8 +270,8 @@ jobs:
            uses: ./.github/actions/bazel-cache
            with:
               scope: linux
-         - name: Build all upstream native addons
-           if: github.event_name != 'pull_request' && github.repository == 'can1357/oh-my-pi'
+         - name: Build all release and upstream native addons
+           if: github.event_name != 'pull_request' && (github.repository == 'can1357/oh-my-pi' || needs.release_metadata.outputs.is-release == 'true')
            run: |
               set -eo pipefail
               if [ "$(ulimit -Sn)" != unlimited ] && [ "$(ulimit -Sn)" -lt 65536 ]; then ulimit -Sn 65536 || true; fi
@@ -296,7 +296,7 @@ jobs:
               done
               bazelisk --bazelrc="${{ steps.cache.outputs.rc }}" build //:natives-linux-all 2>&1 | tee -a "$RUNNER_TEMP/bazel-build.log"
          - name: Build fork Linux x64 native addons
-           if: github.event_name != 'pull_request' && github.repository != 'can1357/oh-my-pi'
+           if: github.event_name != 'pull_request' && github.repository != 'can1357/oh-my-pi' && needs.release_metadata.outputs.is-release != 'true'
            run: |
               set -eo pipefail
               : > "$RUNNER_TEMP/bazel-build.log"
