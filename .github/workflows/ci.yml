@@ -201,27 +201,28 @@ jobs:
          - name: Rustfmt
            run: bazelisk --bazelrc="${{ steps.cache.outputs.rc }}" build --config=rustfmt //crates/...
 
-   # Provides the native addons every downstream TS job installs. PRs never
-   # build: they fetch the latest release's Linux x64 pair from the
-   # /pi-natives-linux-x64 npm leaf instead. The workspace loader
-   # skips its version sentinel for workspace loads, so release addons load
-   # fine under a newer checkout; a PR whose TS tests depend on changed
-   # native behavior fails visibly and the native side lands via main.
-   # Main (kata, cluster remote cache) builds all Linux-hosted targets with
-   # bazel. Job name says "bazel" for continuity with required checks.
+   # Provides the native addons every downstream TS job installs. PRs and
+   # forks fetch the latest release's Linux x64 pair from the
+   # @dude1wudv/pi-natives-linux-x64 npm leaf instead. Forks do not have the
+   # upstream repository's remote Bazel cache, so compiling every native target
+   # on a hosted runner is both redundant and unboundedly slow. The workspace
+   # loader skips its version sentinel for workspace loads, so release addons
+   # load fine under a newer checkout. Upstream main still builds all
+   # Linux-hosted targets with Bazel on omp-kata.
    native_addons:
       name: Build native addons (bazel)
       runs-on: ${{ github.repository == 'can1357/oh-my-pi' && github.event_name != 'pull_request' && 'omp-kata' || 'ubuntu-22.04' }}
+      timeout-minutes: 45
       steps:
          - uses: actions/checkout@v4
 
-         # ---- PR path: latest release addons from npm ----
+         # ---- PR/fork path: latest release addons from npm ----
          - name: Fetch release native addons (npm)
-           if: github.event_name == 'pull_request'
+           if: github.event_name == 'pull_request' || github.repository != 'can1357/oh-my-pi'
            shell: bash
            run: |
               set -euo pipefail
-              tarball="$(npm view /pi-natives-linux-x64@latest dist.tarball)"
+              tarball="$(npm view @dude1wudv/pi-natives-linux-x64@latest dist.tarball)"
               echo "Fetching $tarball"
               curl -fsSL --retry 3 "$tarball" | tar -xz -C "$RUNNER_TEMP"
               mkdir -p bazel-bin/natives-linux-x64-baseline bazel-bin/natives-linux-x64-modern
@@ -230,7 +231,7 @@ jobs:
          # A corrupt download must fail here, not as a confusing dlopen error
          # in every downstream test shard.
          - name: Smoke release addons
-           if: github.event_name == 'pull_request'
+           if: github.event_name == 'pull_request' || github.repository != 'can1357/oh-my-pi'
            shell: bash
            run: |
               set -euo pipefail
@@ -265,14 +266,14 @@ jobs:
                 echo "::notice title=Native sources changed::PR CI tests against the latest release addons by design; native changes are validated post-merge on main and at release."
               fi
 
-         # ---- main path: bazel build of all Linux-hosted targets ----
+         # ---- upstream main path: bazel build of all Linux-hosted targets ----
          - id: cache
-           if: github.event_name != 'pull_request'
+           if: github.event_name != 'pull_request' && github.repository == 'can1357/oh-my-pi'
            uses: ./.github/actions/bazel-cache
            with:
               scope: linux
          - name: Build native addons once
-           if: github.event_name != 'pull_request'
+           if: github.event_name != 'pull_request' && github.repository == 'can1357/oh-my-pi'
            run: |
               set -eo pipefail
               if [ "$(ulimit -Sn)" != unlimited ] && [ "$(ulimit -Sn)" -lt 65536 ]; then ulimit -Sn 65536 || true; fi
@@ -300,7 +301,7 @@ jobs:
          # thousands of actions is the failure mode that made CI slow — make
          # it visible in the run summary instead of discovering it weeks in.
          - name: Report bazel cache stats
-           if: github.event_name != 'pull_request'
+           if: github.event_name != 'pull_request' && github.repository == 'can1357/oh-my-pi'
            shell: bash
            run: |
               # Bazel runs with --color=yes (config=ci); strip ANSI before
