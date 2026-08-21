@@ -1,5 +1,5 @@
 import type { Clipboard, InMemorySnapshotStore } from "@dude1wudv/hashline";
-import type { AgentOptions, AgentTelemetryConfig, AgentTool } from "@dude1wudv/pi-agent-core";
+import type { AgentOptions, AgentTelemetryConfig, AgentTool, AgentToolContext } from "@dude1wudv/pi-agent-core";
 import type { FetchImpl, ImageContent, Model, ServiceTierByFamily, ToolChoice } from "@dude1wudv/pi-ai";
 import { logger } from "@dude1wudv/pi-utils";
 import type { AsyncJobManager } from "../async/job-manager";
@@ -87,6 +87,7 @@ export * from "./debug";
 export * from "./essential-tools";
 export * from "./eval";
 export * from "./eval-backends";
+export * from "./file-write-fallback";
 export * from "./gh";
 export * from "./glob";
 export * from "./grep";
@@ -166,6 +167,8 @@ export interface ToolSession {
 	additionalDirectories?: string[];
 	/** Whether UI is available */
 	hasUI: boolean;
+	/** Whether `ask` can reach a human. Defaults to `hasUI`. */
+	canPromptUser?: boolean;
 	/** Whether this session has begun disposal. */
 	isDisposed?: () => boolean;
 	/**
@@ -259,6 +262,12 @@ export interface ToolSession {
 	getAgentId?: () => string | null;
 	/** Look up a registered tool by name (used by the eval js backend's tool bridge). */
 	getToolByName?: (name: string) => AgentTool | undefined;
+	/** Look up an enabled tool through the eval bridge's normal permission pipeline. */
+	getToolForEvalBridge?: (name: string) => AgentTool | undefined;
+	/** Current session context for eval-bridged tool execution. */
+	getToolContext?: () => AgentToolContext | undefined;
+	/** Names currently authorized for invocation through the eval bridge. */
+	getEvalBridgeToolNames?: () => readonly string[];
 	/** Return whether a built-in tool is active in this turn's tool set. */
 	isToolActive?: (name: string) => boolean;
 	/** Update the active built-in tool predicate when a session changes tools mid-run. */

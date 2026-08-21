@@ -1,6 +1,5 @@
 import { afterEach, describe, expect, it } from "bun:test";
 import * as http2 from "node:http2";
-import { create, toBinary } from "@bufbuild/protobuf";
 import { streamCursor } from "@dude1wudv/pi-ai/providers/cursor";
 import type { Context, CursorToolResultHandler, Model, ToolResultMessage } from "@dude1wudv/pi-ai/types";
 import { buildModel } from "@dude1wudv/pi-catalog/build";
@@ -15,7 +14,8 @@ import {
 	TurnEndedUpdateSchema,
 	UpdateTodosArgsSchema,
 	UpdateTodosToolCallSchema,
-} from "@dude1wudv/pi-catalog/discovery/cursor-gen/agent_pb";
+} from "@dude1wudv/pi-catalog/discovery/cursor-proto";
+import { create, toBinary } from "@dude1wudv/pi-catalog/discovery/protobuf";
 
 const CONNECT_END_STREAM_FLAG = 0b00000010;
 

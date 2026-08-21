@@ -5,7 +5,7 @@ import {
 	ASIDE_MESSAGE_DISCARD,
 	type CommittableAsideMessage,
 } from "@dude1wudv/pi-agent-core";
-import { type AsyncJob, AsyncJobManager } from "@dude1wudv/pi-coding-agent/async";
+import { type AsyncJob, AsyncJobManager, type AsyncJobType } from "@dude1wudv/pi-coding-agent/async";
 import type { CustomMessage } from "@dude1wudv/pi-coding-agent/session/messages";
 import { YieldQueue } from "@dude1wudv/pi-coding-agent/session/yield-queue";
 import type { ToolSession } from "@dude1wudv/pi-coding-agent/tools";
@@ -21,7 +21,7 @@ type AsyncEntry = {
 type AsyncDetails = {
 	jobs: Array<{
 		jobId: string;
-		type?: "bash" | "task";
+		type?: AsyncJobType;
 		label?: string;
 		durationMs?: number;
 	}>;

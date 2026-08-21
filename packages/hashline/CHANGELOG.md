@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [17.4.0] - 2026-08-20
+
+### Added
+
+- Added an opener-escape landing correction for insertions anchored on a construct's opening line to place shallower sibling constructs after the enclosing block rather than splitting the opener from its body.
+
+### Fixed
+
+- Fixed an issue where single-line replacements echoing attributes or decorators (such as `#[napi]` or `@Injectable()`) could lead to silently duplicated annotations.
+- Increased the default snapshot-store path capacity from 30 to 256 to prevent early tags in wide sessions from aging out and triggering misleading "hash is not from this session" errors.
+
+## [17.3.3] - 2026-08-14
+
+### Fixed
+
+- Recovered dangling range separators in hunk headers (`PUT 244.=:`, `CUT 5.=`) as single-line ranges (`N.=N`) instead of rejecting the header as an orphan payload line.
+
 ## [17.3.3] - 2026-08-14
 
 ### Fixed
@@ -56,7 +73,7 @@
 
 ### Changed
 
-- Updated internal caching dependency to use `@oh-my-pi/pi-utils/lru`.
+- Updated internal caching dependency to use `@dude1wudv/pi-utils/lru`.
 
 ## [17.2.2] - 2026-07-31
 
@@ -491,7 +508,7 @@ All notable changes to this package will be documented in this file.
 - Added automatic line-ending and BOM normalization on read, with original encoding shape restored on write
 - Added follow-up helpers `buildCompactDiffPreview` and `streamHashLines` for compact diff previews and chunked streaming of numbered lines
 - Added stale-file-hash recovery that replays edits against snapshots and merges results onto current file content when direct hash validation fails
-- Initial standalone release. Extracted from `@oh-my-pi/pi-coding-agent`.
+- Initial standalone release. Extracted from `@dude1wudv/pi-coding-agent`.
 
 ### Fixed
 

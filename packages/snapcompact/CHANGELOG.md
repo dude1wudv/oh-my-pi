@@ -2,6 +2,20 @@
 
 ## [Unreleased]
 
+### Added
+
+- Restored `providerFrameBudget()` to allow callers to size archives according to the maximum frame budget the provider will send.
+
+### Fixed
+
+- Fixed an issue where character-based truncation could split inline base64 data URLs into corrupted payloads that were rejected by OpenAI-compatible providers. Data URLs are now replaced atomically with placeholders before truncation, and previously affected archives are healed during re-compaction.
+
+## [17.3.8] - 2026-08-19
+
+### Fixed
+
+- Fixed image-based compaction confusing digit `0` with letter `O` and corrupting compacted identifiers (e.g. Slack IDs): the default frame fonts (X.org `8x13`, `6x12`, `5x8`) drew zero as a bare oval indistinguishable from `O`. Zero now carries a disambiguating interior slash (`8x13`) or bar (`6x12`/`5x8`); unscii-8 already shipped a slashed zero ([#8713](https://github.com/can1357/oh-my-pi/issues/8713)).
+
 ## [17.2.15] - 2026-08-12
 
 ### Fixed
@@ -167,7 +181,7 @@
 
 ### Breaking Changes
 
-- Renamed every export to drop the `snapcompact`/`Snapcompact`/`SNAPCOMPACT_` qualifier — the package is meant to be consumed via `import * as snapcompact from "@oh-my-pi/snapcompact"`. Functions: `snapcompactCompact` → `compact`, `renderSnapcompactFrame` → `render`, `snapcompactGeometry` → `geometry`, `normalizeForSnapcompact` → `normalize`, `serializeSnapcompactConversation` → `serializeConversation`, `snapcompactImages` → `images`, `getPreservedSnapcompactArchive` → `getPreservedArchive`, `isSnapcompactShape` → `isShape`, `resolveSnapcompactShape` → `resolveShape`, `createSnapcompactFileOps` → `createFileOps`, `computeSnapcompactFileLists` → `computeFileLists`, `upsertSnapcompactFileOperations` → `upsertFileOperations`. Types: `SnapcompactShape` → `Shape`, `SnapcompactFrame` → `Frame`, `SnapcompactArchive` → `Archive`, `SnapcompactGeometry` → `Geometry`, `SnapcompactOptions` → `Options`, `SnapcompactSerializeOptions` → `SerializeOptions`, `SnapcompactFileOperations` → `FileOperations`, `SnapcompactCompactionDetails`/`Preparation`/`Result` → `CompactionDetails`/`CompactionPreparation`/`CompactionResult`, `SnapcompactConvertToLlm` → `ConvertToLlm`. Constants: `SNAPCOMPACT_X` → `X` (`SHAPES`, `FRAME_SIZE`, `MAX_FRAMES`, `FRAME_TOKEN_ESTIMATE`, `PRESERVE_KEY`, `TOOL_RESULT_MAX_CHARS`, `TOOL_ARG_MAX_CHARS`, `TOOL_CALL_MAX_CHARS`, `TRUNCATE_HEAD_RATIO`, `DIM_ON`, `DIM_OFF`).
+- Renamed every export to drop the `snapcompact`/`Snapcompact`/`SNAPCOMPACT_` qualifier — the package is meant to be consumed via `import * as snapcompact from "@dude1wudv/snapcompact"`. Functions: `snapcompactCompact` → `compact`, `renderSnapcompactFrame` → `render`, `snapcompactGeometry` → `geometry`, `normalizeForSnapcompact` → `normalize`, `serializeSnapcompactConversation` → `serializeConversation`, `snapcompactImages` → `images`, `getPreservedSnapcompactArchive` → `getPreservedArchive`, `isSnapcompactShape` → `isShape`, `resolveSnapcompactShape` → `resolveShape`, `createSnapcompactFileOps` → `createFileOps`, `computeSnapcompactFileLists` → `computeFileLists`, `upsertSnapcompactFileOperations` → `upsertFileOperations`. Types: `SnapcompactShape` → `Shape`, `SnapcompactFrame` → `Frame`, `SnapcompactArchive` → `Archive`, `SnapcompactGeometry` → `Geometry`, `SnapcompactOptions` → `Options`, `SnapcompactSerializeOptions` → `SerializeOptions`, `SnapcompactFileOperations` → `FileOperations`, `SnapcompactCompactionDetails`/`Preparation`/`Result` → `CompactionDetails`/`CompactionPreparation`/`CompactionResult`, `SnapcompactConvertToLlm` → `ConvertToLlm`. Constants: `SNAPCOMPACT_X` → `X` (`SHAPES`, `FRAME_SIZE`, `MAX_FRAMES`, `FRAME_TOKEN_ESTIMATE`, `PRESERVE_KEY`, `TOOL_RESULT_MAX_CHARS`, `TOOL_ARG_MAX_CHARS`, `TOOL_CALL_MAX_CHARS`, `TRUNCATE_HEAD_RATIO`, `DIM_ON`, `DIM_OFF`).
 
 ### Added
 
@@ -186,8 +200,8 @@
 - Added provider-specific snapcompact frame-shape presets and shape helpers (`SNAPCOMPACT_SHAPES`, `resolveSnapcompactShape`, `isSnapcompactShape`) so callers can consistently select validated image-frame geometry for archive renders
 - Added `file-operations.md` and `snapcompact-summary.md` prompts to preserve file-read/write context and frame metadata in the compaction prompt flow
 - Added a full `packages/snapcompact/research` experiment and visualization suite for running snapcompact SQuAD studies, provider probes, and activation-style analyses
-- Added package-level TypeScript exports and publication config so consumers can import `@oh-my-pi/snapcompact` with typed access to snapcompact APIs
-- Published `@oh-my-pi/snapcompact` as the reusable snapcompact compaction package, including bitmap-frame rendering helpers, archive helpers, and the local `snapcompactCompact()` strategy.
+- Added package-level TypeScript exports and publication config so consumers can import `@dude1wudv/snapcompact` with typed access to snapcompact APIs
+- Published `@dude1wudv/snapcompact` as the reusable snapcompact compaction package, including bitmap-frame rendering helpers, archive helpers, and the local `snapcompactCompact()` strategy.
 
 ### Changed
 

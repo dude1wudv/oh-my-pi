@@ -1,11 +1,11 @@
 {
 	"type": "module",
 	"name": "@dude1wudv/browser-relay",
-	"version": "0.1.0",
+	"version": "20.1.6",
 	"private": true,
 	"description": "Chrome extension that lets the omp browser tool drive your existing tabs (relay server lives in the omp CLI: `omp browser-relay`)",
 	"homepage": "https://omp.sh",
-	"author": "Can Boluk",
+	"author": "Stencil Labs, Inc.",
 	"license": "MIT",
 	"repository": {
 		"type": "git",

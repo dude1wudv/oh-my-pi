@@ -1,7 +1,7 @@
 import { type } from "@dude1wudv/omptype";
 import type { ThinkingLevel } from "@dude1wudv/pi-agent-core";
 import type { Api, ApiKey, AssistantMessage, Model } from "@dude1wudv/pi-ai";
-import { completeSimple, validateToolCall } from "@dude1wudv/pi-ai";
+import { completeSimple, retryTransientCompletion, validateToolCall } from "@dude1wudv/pi-ai";
 import { prompt } from "@dude1wudv/pi-utils";
 import changelogSystemPrompt from "../../commit/prompts/changelog-system.md" with { type: "text" };
 import changelogUserPrompt from "../../commit/prompts/changelog-user.md" with { type: "text" };
@@ -55,15 +55,21 @@ export async function generateChangelogEntries({
 		stat,
 		diff,
 	});
-	const response = await completeSimple(
-		model,
-		{
-			systemPrompt: [prompt.render(changelogSystemPrompt)],
-			messages: [{ role: "user", content: userContent, timestamp: Date.now() }],
-			tools: [changelogTool],
-		},
-		{ apiKey, maxTokens: 1200, reasoning: toReasoningEffort(thinkingLevel) },
+	const response = await retryTransientCompletion(() =>
+		completeSimple(
+			model,
+			{
+				systemPrompt: [prompt.render(changelogSystemPrompt)],
+				messages: [{ role: "user", content: userContent, timestamp: Date.now() }],
+				tools: [changelogTool],
+			},
+			{ apiKey, maxTokens: 1200, reasoning: toReasoningEffort(thinkingLevel) },
+		),
 	);
+
+	if (response.stopReason === "error") {
+		throw new Error(response.errorMessage ?? "provider error");
+	}
 
 	const parsed = parseChangelogResponse(response);
 	return { entries: dedupeEntries(parsed.entries) };

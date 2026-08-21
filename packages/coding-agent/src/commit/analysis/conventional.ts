@@ -1,6 +1,6 @@
 import type { ThinkingLevel } from "@dude1wudv/pi-agent-core";
 import type { Api, ApiKey, Model } from "@dude1wudv/pi-ai";
-import { completeSimple } from "@dude1wudv/pi-ai";
+import { completeSimple, retryTransientCompletion } from "@dude1wudv/pi-ai";
 import { prompt } from "@dude1wudv/pi-utils";
 import analysisSystemPrompt from "../../commit/prompts/analysis-system.md" with { type: "text" };
 import analysisUserPrompt from "../../commit/prompts/analysis-user.md" with { type: "text" };
@@ -50,15 +50,21 @@ export async function generateConventionalAnalysis({
 		diff,
 	});
 
-	const response = await completeSimple(
-		model,
-		{
-			systemPrompt: [prompt.render(analysisSystemPrompt)],
-			messages: [{ role: "user", content: userContent, timestamp: Date.now() }],
-			tools: [ConventionalAnalysisTool],
-		},
-		{ apiKey, maxTokens: 2400, reasoning: toReasoningEffort(thinkingLevel) },
+	const response = await retryTransientCompletion(() =>
+		completeSimple(
+			model,
+			{
+				systemPrompt: [prompt.render(analysisSystemPrompt)],
+				messages: [{ role: "user", content: userContent, timestamp: Date.now() }],
+				tools: [ConventionalAnalysisTool],
+			},
+			{ apiKey, maxTokens: 2400, reasoning: toReasoningEffort(thinkingLevel) },
+		),
 	);
+
+	if (response.stopReason === "error") {
+		throw new Error(response.errorMessage ?? "provider error");
+	}
 
 	return parseConventionalAnalysisResponse(response, ConventionalAnalysisTool);
 }

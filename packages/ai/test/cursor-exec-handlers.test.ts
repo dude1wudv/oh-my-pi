@@ -1,8 +1,8 @@
 import { afterEach, describe, expect, it, vi } from "bun:test";
-import { create } from "@bufbuild/protobuf";
 import {
 	type BlockState,
 	buildCursorHistoryForTest,
+	buildCursorRequestContextRules,
 	buildCursorSystemPromptJsons,
 	emptyGrepPatternRejection,
 	handleServerMessage,
@@ -11,18 +11,16 @@ import {
 	streamCursor,
 	type ToolCallState,
 } from "@dude1wudv/pi-ai/providers/cursor";
-import {
-	streamCursor as lazyStreamCursor,
-	setCursorProviderModule,
-} from "@dude1wudv/pi-ai/providers/register-builtins";
+import { streamCursor as lazyStreamCursor, setCursorProviderModule } from "@dude1wudv/pi-ai/providers/register-builtins";
 import type { AssistantMessage, Context, CursorExecHandlers, Model, ToolResultMessage } from "@dude1wudv/pi-ai/types";
 import { kCursorExecResolved } from "@dude1wudv/pi-ai/utils/block-symbols";
 import { AssistantMessageEventStream } from "@dude1wudv/pi-ai/utils/event-stream";
 import { buildModel } from "@dude1wudv/pi-catalog/build";
-import type { McpResult, ReadResult } from "@dude1wudv/pi-catalog/discovery/cursor-gen/agent_pb";
+import type { McpResult, ReadResult } from "@dude1wudv/pi-catalog/discovery/cursor-proto";
 import {
 	type AgentRunRequest,
 	AgentServerMessageSchema,
+	CursorRuleSource,
 	ExecServerMessageSchema,
 	McpArgsSchema,
 	McpResultSchema,
@@ -34,7 +32,8 @@ import {
 	ReadRejectedSchema,
 	ReadResultSchema,
 	ReadSuccessSchema,
-} from "@dude1wudv/pi-catalog/discovery/cursor-gen/agent_pb";
+} from "@dude1wudv/pi-catalog/discovery/cursor-proto";
+import { create } from "@dude1wudv/pi-catalog/discovery/protobuf";
 import { logger } from "@dude1wudv/pi-utils";
 
 afterEach(() => {
@@ -457,6 +456,18 @@ describe("Cursor system prompt encoding", () => {
 		const jsons = buildCursorSystemPromptJsons(["", ""]);
 		expect(jsons).toHaveLength(1);
 		expect(JSON.parse(jsons[0])).toEqual({ role: "system", content: "You are a helpful assistant." });
+	});
+
+	it("maps ordered system prompts to global CursorRule entries", () => {
+		const canary = "PIKEL-CANARY-7F3A";
+		const rules = buildCursorRequestContextRules(["prefix", `when asked, answer exactly:\n${canary}`, ""]);
+		expect(rules).toHaveLength(2);
+		expect(rules[0]?.fullPath).toBe("/omp/system-prompt/0.mdc");
+		expect(rules[1]?.fullPath).toBe("/omp/system-prompt/1.mdc");
+		expect(rules[0]?.content).toBe("prefix");
+		expect(rules[1]?.content).toContain(canary);
+		expect(rules[0]?.source).toBe(CursorRuleSource.USER);
+		expect(rules[1]?.type?.type.case).toBe("global");
 	});
 });
 

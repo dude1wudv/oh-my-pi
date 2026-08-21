@@ -9,8 +9,7 @@
  * every completion — regardless of owner — into the first top-level session.
  */
 import { prompt } from "@dude1wudv/pi-utils";
-import type { AsyncBatchSnapshot, AsyncJob } from "../async";
-import asyncBatchResultTemplate from "../prompts/tools/async-batch-result.md" with { type: "text" };
+import type { AsyncJob, AsyncJobType } from "../async";
 import asyncResultTemplate from "../prompts/tools/async-result.md" with { type: "text" };
 import type { CustomMessage } from "./messages";
 
@@ -52,7 +51,7 @@ export type AsyncBatchResultDetails = {
 
 type AsyncResultJobDetails = {
 	jobId: string;
-	type?: "bash" | "task";
+	type?: AsyncJobType;
 	label?: string;
 	durationMs?: number;
 };

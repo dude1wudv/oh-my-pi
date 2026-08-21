@@ -2,6 +2,22 @@
 
 ## [Unreleased]
 
+## [17.4.0] - 2026-08-20
+
+### Changed
+
+- Window token estimates now incorporate broker-reported fleet token burn when an auth broker is configured, accurately tracking fleet-wide usage instead of undercounting with local-only statistics.
+
+### Fixed
+
+- Fixed an issue in subscription-window insights where distinct limits sharing a duration label (such as Anthropic overall vs. model-scoped 7-day windows) were incorrectly merged, which inflated window-equivalents and skewed tokens-per-window estimates. Windows are now grouped by provider limit ID.
+
+## [17.3.6] - 2026-08-17
+
+### Fixed
+
+- Fixed the stats dashboard being unreachable from container hosts by accepting an explicit `--host` bind address while preserving loopback-only binding and same-origin API access by default.
+
 ## [17.3.0] - 2026-08-13
 
 ### Added
@@ -16,7 +32,7 @@
 
 ### Changed
 
-- Optimized package dependencies by replacing `date-fns` with `@oh-my-pi/pi-utils/dates` and removing unused test dependencies.
+- Optimized package dependencies by replacing `date-fns` with `@dude1wudv/pi-utils/dates` and removing unused test dependencies.
 
 ## [17.2.9] - 2026-08-05
 
@@ -188,7 +204,7 @@
 
 ### Changed
 
-- Bundled-model lookups (`getBundledModel`, `GeneratedProvider`) now import from the new `@oh-my-pi/pi-catalog` package instead of the `@oh-my-pi/pi-ai` barrel, which no longer re-exports catalog values
+- Bundled-model lookups (`getBundledModel`, `GeneratedProvider`) now import from the new `@dude1wudv/pi-catalog` package instead of the `@dude1wudv/pi-ai` barrel, which no longer re-exports catalog values
 - The session-sync worker re-enters the host CLI entry (`workerHostEntry()` + `__omp_stats_sync_worker` argv selector) when running inside omp — source, npm bundle, or compiled binary — and keeps loading its own `sync-worker.ts` module directly for standalone `omp-stats`, bun test, and SDK hosts
 
 ## [15.1.6] - 2026-05-19

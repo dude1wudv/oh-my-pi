@@ -11,6 +11,7 @@ import {
 } from "@dude1wudv/pi-ai";
 import { ProviderHttpError } from "@dude1wudv/pi-ai/error";
 import {
+	applyCodexResidencyHeader,
 	CODEX_BASE_URL,
 	getCodexAccountId,
 	OPENAI_HEADER_VALUES,
@@ -902,6 +903,8 @@ function buildOpenAIImageHeaders(model: Model, apiKey: string, sessionId: string
 		if (accountId) {
 			headers.set(OPENAI_HEADERS.ACCOUNT_ID, accountId);
 		}
+		// Same region gate as the chat transport; the token carries the value.
+		applyCodexResidencyHeader(headers, apiKey);
 		headers.set(OPENAI_HEADERS.BETA, OPENAI_HEADER_VALUES.BETA_RESPONSES);
 		headers.set(OPENAI_HEADERS.ORIGINATOR, OPENAI_HEADER_VALUES.ORIGINATOR_CODEX);
 		headers.set("User-Agent", USER_AGENT);

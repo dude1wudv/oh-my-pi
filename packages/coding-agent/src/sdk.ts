@@ -137,6 +137,7 @@ import {
 import { AgentSession, type InitialRetryFallbackState, type PlanYolo, type Prewalk } from "./session/agent-session";
 import { discoverAuthStorage as discoverAuthStorageFromConfig } from "./session/auth-broker-config";
 import type { AuthStorage } from "./session/auth-storage";
+import { withDateCwdReminder } from "./session/date-cwd-reminder";
 import { createInterruptedTurnAbortMessage } from "./session/exit-diagnostics";
 import {
 	type CustomMessage,
@@ -223,6 +224,8 @@ import { ttsTool } from "./tools/tts";
 import { resolveActiveRepoContext } from "./utils/active-repo-context";
 import { EventBus } from "./utils/event-bus";
 import { normalizeProviderContextImagesForModel } from "./utils/image-loading";
+import { formatLocalCalendarDate } from "./utils/local-date";
+import { normalizePromptPath } from "./utils/prompt-path";
 import { buildNamedToolChoice } from "./utils/tool-choice";
 import { VibeSessionRegistry } from "./vibe/runtime";
 import { buildWorkspaceTree, type WorkspaceTree } from "./workspace-tree";
@@ -559,6 +562,12 @@ export interface CreateAgentSessionOptions {
 
 	/** Whether UI is available (enables interactive tools like ask). Default: false */
 	hasUI?: boolean;
+	/**
+	 * A human can answer synchronous prompts even without a terminal UI (e.g. an
+	 * ACP client rendering elicitation forms). Enables `ask` without enabling
+	 * TUI-only session behavior such as eager LSP warmup. Default: `hasUI`.
+	 */
+	interactivePrompts?: boolean;
 	/**
 	 * Defer `confirm` reserve-policy fallback until AgentSession prompt-time UI is configured.
 	 * ACP uses this while capabilities are negotiated without enabling UI-only tools.
@@ -1239,12 +1248,23 @@ async function createAgentSessionScoped(options: CreateAgentSessionOptions): Pro
 	registerSshCleanup();
 	registerEvalCleanup();
 
+	const settings = await (options.settings ??
+		options.settingsManager ??
+		logger.time("settings", Settings.init, { cwd, agentDir }));
+	logger.time("initializeWithSettings", initializeWithSettings, settings);
+
 	// Pin authStorage to modelRegistry.authStorage: ModelRegistry.getApiKey() routes refresh
 	// failures through that instance, so any divergent storage handed to the bridge / mcpManager
 	// / session would silently miss credential_disabled events.
 	const modelRegistry =
 		options.modelRegistry ??
-		new ModelRegistry(options.authStorage ?? (await logger.time("discoverModels", discoverAuthStorage, agentDir)));
+		new ModelRegistry(
+			options.authStorage ?? (await logger.time("discoverModels", discoverAuthStorage, agentDir)),
+			undefined,
+			{
+				settings,
+			},
+		);
 	// Track whether we internally created the authStorage so we can close it
 	// if construction fails before the session takes ownership.
 	const ownsAuthStorage = !options.authStorage && !options.modelRegistry;
@@ -1268,10 +1288,6 @@ async function createAgentSessionScoped(options: CreateAgentSessionOptions): Pro
 			startupCredentialDisabledEvents.push(event);
 		}
 	});
-	const settings = await (options.settings ??
-		options.settingsManager ??
-		logger.time("settings", Settings.init, { cwd, agentDir }));
-	logger.time("initializeWithSettings", initializeWithSettings, settings);
 	if (!options.modelRegistry) {
 		modelRegistry.refreshInBackground();
 	}
@@ -1692,6 +1708,7 @@ async function createAgentSessionScoped(options: CreateAgentSessionOptions): Pro
 			setActiveToolNames,
 			toolRegistry,
 			hasUI: options.hasUI ?? false,
+			canPromptUser: options.interactivePrompts ?? options.hasUI ?? false,
 			getApiKey: options.getApiKey,
 			get additionalDirectories() {
 				return sessionManager.getAdditionalDirectories();
@@ -1734,6 +1751,8 @@ async function createAgentSessionScoped(options: CreateAgentSessionOptions): Pro
 			getMnemopiSessionState: () => session?.getMnemopiSessionState(),
 			getAgentId: () => resolvedAgentId,
 			getToolByName: name => session?.getToolByName(name),
+			getToolForEvalBridge: name => session?.getToolForEvalBridge(name),
+			getEvalBridgeToolNames: () => session?.getEvalBridgeToolNames() ?? [],
 			agentRegistry,
 			// The global lifecycle releases through AgentRegistry.global(); wiring it
 			// onto a caller-supplied registry would report a cancel while releasing an
@@ -2161,9 +2180,13 @@ async function createAgentSessionScoped(options: CreateAgentSessionOptions): Pro
 						settings,
 						preferences: matchPreferences,
 					});
-					return Boolean(
-						resolved.model || (resolved.configuredPatterns && resolved.configuredPatterns.length > 0),
-					);
+					// Only a concretely resolved model counts as a runtime match. A role
+					// alias that expanded to `configuredPatterns` but resolved no model
+					// (its discoverable provider hasn't been fetched yet) must NOT
+					// short-circuit the fallback refresh below — otherwise `@role`
+					// selectors pointing at discovery-backed models never trigger the
+					// fetch and fail with `Model "@role" not found`.
+					return Boolean(resolved.model);
 				}),
 			);
 			if (!runtimeResolved && modelRegistry.getDiscoverableProviders().length > 0) {
@@ -2608,6 +2631,7 @@ async function createAgentSessionScoped(options: CreateAgentSessionOptions): Pro
 			autoApprove: options.autoApprove ?? false,
 		});
 		const toolContextStore = new ToolContextStore(getSessionContext);
+		toolSession.getToolContext = () => toolContextStore.getContext();
 		const setSessionActiveToolNames = (names: Iterable<string>): void => {
 			const snapshot = Array.from(names);
 			setActiveToolNames(snapshot);
@@ -2697,23 +2721,18 @@ async function createAgentSessionScoped(options: CreateAgentSessionOptions): Pro
 		for (const tool of toolRegistry.values()) {
 			toolRegistry.set(tool.name, new ExtensionToolWrapper(tool, extensionRunner));
 		}
-		// Cursor's own client owns file edits, so `edit` is not advertised to the
-		// model (commit 8ba0498eb: full-file `write` is used instead). The exec
-		// bridge is a different consumer: the server sends native `pi_edit`
-		// frames regardless of the advertised catalog, and answering them needs
-		// a real tool.
+		// Hashline `edit` stays in the registry so Cursor can call it as MCP.
+		// Native StrReplace arrives as `editToolCall` and materializes through
+		// exec `readArgs`/`writeArgs`; `pi_edit` still needs a `replace`-mode
+		// instance because `PiEditExecArgs` carries `old_string`/`new_string`,
+		// which is exactly `replace`'s schema and nothing else's. The registry
+		// instance follows the session's configured mode, so the bridge builds
+		// its own and serves it through `getEditReplaceTool` — not `getTool`,
+		// which doubles as the agent loop's fallback for unadvertised calls.
 		//
-		// It must be a `replace`-mode instance. `PiEditExecArgs` carries
-		// `old_string`/`new_string` replacements, which is exactly `replace`'s schema and
-		// nothing else's — under the default `hashline` mode the frame's args do
-		// not match the tool's parameters at all. The registry instance follows
-		// the session's configured mode, so the bridge builds its own.
-		//
-		// The grant is captured HERE, before the Cursor branch below deletes
-		// `edit` from the registry, and independently of the session's provider:
+		// The grant is captured here, independently of the session's provider:
 		// a session that starts on another provider can switch to Cursor later,
-		// and the roster is built once, at session creation. Reading the registry
-		// at frame time would see the switched-to state, not the grant.
+		// and the roster is built once, at session creation.
 		const editWasGranted = toolRegistry.has("edit");
 		// Built on first use rather than eagerly: a session that never reaches
 		// Cursor never constructs it.
@@ -2734,10 +2753,6 @@ async function createAgentSessionScoped(options: CreateAgentSessionOptions): Pro
 		// resource-download frames that mutate files without running a registry
 		// tool, so it needs the grant as the session actually made it.
 		const cursorCanMutateFiles = editWasGranted || toolRegistry.has("write");
-		if (model?.provider === "cursor") {
-			toolRegistry.delete("edit");
-			builtInRegistryToolNames.delete("edit");
-		}
 
 		let writeRegistration: Promise<boolean> | undefined;
 		const ensureWriteRegistered = (): Promise<boolean> => {
@@ -2836,6 +2851,7 @@ async function createAgentSessionScoped(options: CreateAgentSessionOptions): Pro
 		const rebuildSystemPrompt = async (
 			toolNames: string[],
 			tools: Map<string, AgentTool>,
+			rebuildOptions?: { directToolNames?: readonly string[] },
 		): Promise<BuildSystemPromptResult> => {
 			const promptCwd = sessionManager.getCwd();
 			const activeRepoContext = hasSession
@@ -2928,6 +2944,7 @@ async function createAgentSessionScoped(options: CreateAgentSessionOptions): Pro
 				contextFiles,
 				tools: promptTools,
 				toolNames,
+				directToolNames: rebuildOptions?.directToolNames,
 				rules: rulebookRules,
 				alwaysApplyRules,
 				resolvedAppendSystemPrompt: appendPrompt,
@@ -3061,6 +3078,20 @@ async function createAgentSessionScoped(options: CreateAgentSessionOptions): Pro
 			options.expectedAgentRef === undefined
 				? agentRegistry.register(registrationInput)
 				: agentRegistry.registerIfAvailable(registrationInput, options.expectedAgentRef);
+		if (!registeredAgentRef && options.expectedAgentRef === null) {
+			// A fresh spawn collided with an existing id. If that id is held by a
+			// provably-dead parked corpse — no live session, no reviver — reclaim it
+			// so this new generation can take the id instead of failing forever at
+			// construction. Without this, one such corpse (isolated-run park,
+			// interrupted construction) poisons the id for the whole process (#8490).
+			// The reclaim is gated by the lifecycle owner and only touches the
+			// registry it manages; the corpse's transcript stays at history://.
+			const stale = agentRegistry.get(resolvedAgentId);
+			const lifecycle = AgentLifecycleManager.global();
+			if (stale && lifecycle.manages(agentRegistry) && (await lifecycle.reclaimDeadCorpse(resolvedAgentId, stale))) {
+				registeredAgentRef = agentRegistry.registerIfAvailable(registrationInput, null);
+			}
+		}
 		if (!registeredAgentRef) {
 			throw new Error(`Agent "${resolvedAgentId}" is already owned by another session generation.`);
 		}
@@ -3157,7 +3188,15 @@ async function createAgentSessionScoped(options: CreateAgentSessionOptions): Pro
 			let transformed = obfuscator ? obfuscateProviderContext(obfuscator, context) : context;
 			if (snapcompactInline) transformed = await snapcompactInline.transform(transformed, transformModel);
 			transformed = clampProviderContextImages(transformed, transformModel);
-			return await normalizeProviderContextImagesForModel(transformed, transformModel);
+			transformed = await normalizeProviderContextImagesForModel(transformed, transformModel);
+			// Keep per-request volatility out of the system prompt: the date/cwd
+			// reminder rides on the first user turn so open-weight providers keep
+			// their tool-schema prefix cache (#7404).
+			return withDateCwdReminder(
+				transformed,
+				formatLocalCalendarDate(),
+				normalizePromptPath(sessionManager.getCwd()),
+			);
 		};
 		const onPayload = async (payload: unknown, model?: Model) => {
 			return await extensionRunner.emitBeforeProviderRequest(payload, model);
@@ -3206,6 +3245,7 @@ async function createAgentSessionScoped(options: CreateAgentSessionOptions): Pro
 			settings,
 			createSettingsAwareStreamFn(settings),
 		);
+		const codeModeState: { namespacesInfo?: unknown } = {};
 		const transformToolCallArguments = (args: Record<string, unknown>): Record<string, unknown> => {
 			let result = args;
 			const maxTimeout = settings.get("tools.maxTimeout");
@@ -3276,6 +3316,9 @@ async function createAgentSessionScoped(options: CreateAgentSessionOptions): Pro
 					...streamOptions,
 					anthropicCacheRefresh: true,
 					forceReasoningOff: externalThinking || streamOptions?.forceReasoningOff,
+					...(codeModeState.namespacesInfo === undefined
+						? {}
+						: { toolNamespacesInfo: codeModeState.namespacesInfo }),
 				});
 			},
 			cursorExecHandlers,
@@ -3383,10 +3426,11 @@ async function createAgentSessionScoped(options: CreateAgentSessionOptions): Pro
 		// Owned only when this session created the manager; subagents receive a
 		// parent's manager via `options.mcpManager` and MUST NOT disconnect it.
 		const ownedMcpManager = options.mcpManager ? undefined : mcpManager;
-		// A resumed session already has advisor turns on disk; without this the status
-		// line would restart its `(adv)` total at zero for the rest of the session.
+		// A resumed session already has advisor turns on disk; without this its
+		// status-line cost total would restart at zero for the rest of the session.
 		const initialAdvisorCosts = await loadAdvisorTranscriptCosts(sessionManager.getSessionFile());
 		session = new AgentSession({
+			codeModeState,
 			advisorWatchdogPrompt,
 			advisorContextPrompt,
 			advisorSharedInstructions: discoveredAdvisors.sharedInstructions,
@@ -3802,7 +3846,12 @@ async function createAgentSessionScoped(options: CreateAgentSessionOptions): Pro
 					transformProviderContext: async (context, transformModel) => {
 						let transformed = obfuscator ? obfuscateProviderContext(obfuscator, context) : context;
 						transformed = clampProviderContextImages(transformed, transformModel);
-						return await normalizeProviderContextImagesForModel(transformed, transformModel);
+						transformed = await normalizeProviderContextImagesForModel(transformed, transformModel);
+						return withDateCwdReminder(
+							transformed,
+							formatLocalCalendarDate(),
+							normalizePromptPath(sessionManager.getCwd()),
+						);
 					},
 					thinkingBudgets: agent.thinkingBudgets,
 					temperature: agent.temperature,
@@ -3935,6 +3984,19 @@ async function createAgentSessionScoped(options: CreateAgentSessionOptions): Pro
 		}
 
 		startDeferredMCPDiscovery?.(session);
+
+		// Route the initial tool surface through the Code Mode-aware path when the
+		// session starts directly on a Codex Code Mode model (`codeMode` `on`, or
+		// `auto` matching the model's `code_mode_only` flag): the Agent above was
+		// handed the unrestricted `initialTools`, so without this the first and all
+		// subsequent turns would expose the full direct tool surface and omit
+		// `tool_namespaces_info` until an unrelated model/setting/tool-selection
+		// change reconciled.
+		try {
+			await session.initializeCodeMode();
+		} catch (error) {
+			logger.warn("Code Mode initialization at session startup failed", { error: String(error) });
+		}
 
 		return {
 			session,

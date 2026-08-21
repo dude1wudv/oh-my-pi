@@ -5,7 +5,7 @@ import * as path from "node:path";
 import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
 import type { ToolSession } from "@dude1wudv/pi-coding-agent/tools";
 import { WriteTool } from "@dude1wudv/pi-coding-agent/tools/write";
-import { readArchiveEntries, writeArchive } from "@dude1wudv/pi-coding-agent/utils/zip";
+import { readArchiveEntries, writeArchive } from "@dude1wudv/pi-utils/ar";
 
 // A read-only step that mis-dispatches `read` as `write` passes the full read
 // expression (`src/foo.tsx:1-260:raw`) as the target. Because a literal colon

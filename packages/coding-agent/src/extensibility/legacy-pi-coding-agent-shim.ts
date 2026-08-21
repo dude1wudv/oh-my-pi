@@ -15,7 +15,13 @@
 import { Database } from "bun:sqlite";
 import * as fs from "node:fs";
 import * as path from "node:path";
-import type { AgentToolResult, AgentToolUpdateCallback } from "@dude1wudv/pi-agent-core";
+import {
+	type AgentMessage,
+	type AgentToolResult,
+	type AgentToolUpdateCallback,
+	type MessageCountOptions,
+	Tokenizer,
+} from "@dude1wudv/pi-agent-core";
 import { type AuthCredential, SqliteAuthCredentialStore, type TSchema } from "@dude1wudv/pi-ai";
 import { piEscapeRegexLiteral, piJoinPath } from "@dude1wudv/pi-ai/providers/cursor-pi-args";
 import { getKeybindings, type Keybinding, Text } from "@dude1wudv/pi-tui";
@@ -1449,11 +1455,24 @@ export function getPackageDir(): string {
 
 // Legacy pi's `@earendil-works/pi-coding-agent` re-exported `estimateTokens`,
 // `compact`, and `serializeConversation` from its package root (via
-// `./core/compaction/index.ts`). In omp they live in
-// `/pi-agent-core/compaction`, and the coding-agent barrel below does
-// not forward them, so legacy extensions importing them fail Bun's static
-// export check during validation (issues #6583, #7174, #7403).
-export { compact, estimateTokens, serializeConversation } from "@dude1wudv/pi-agent-core/compaction";
+// `./core/compaction/index.ts`). In omp `compact` and `serializeConversation`
+// live in `@dude1wudv/pi-agent-core/compaction`, and the coding-agent barrel
+// below does not forward them, so legacy extensions importing them fail Bun's
+// static export check during validation (issues #6583, #7174, #7403).
+export { compact, serializeConversation } from "@dude1wudv/pi-agent-core/compaction";
+
+const legacyTokenizer = new Tokenizer();
+
+/**
+ * Legacy `estimateTokens(message, tokenizer?, options?)` export. The core API
+ * became `Tokenizer.countMessage`, but legacy pi extensions still import this
+ * free function by name (issues #6583, #7174, #7403), so the export surface
+ * must survive; a shared model-agnostic Tokenizer backs the tokenizer-less
+ * legacy call shape.
+ */
+export function estimateTokens(message: AgentMessage, tokenizer?: Tokenizer, options?: MessageCountOptions): number {
+	return (tokenizer ?? legacyTokenizer).countMessage(message, options);
+}
 
 // Same barrel gap for two more legacy package-root exports: pi re-exported the
 // `CONFIG_DIR_NAME` constant and the CLI parser `parseArgs`. In omp

@@ -1,8 +1,13 @@
 import type { AgentToolResult } from "@dude1wudv/pi-agent-core";
 import type { TextContent } from "@dude1wudv/pi-ai";
+import {
+	type ArchiveReader,
+	formatArchiveEntryLines,
+	openArchive,
+	parseArchivePathCandidates,
+} from "@dude1wudv/pi-utils/ar";
 import type { ToolSession } from "../sdk";
 import { truncateHead } from "../session/streaming-output";
-import { type ArchiveReader, formatArchiveEntryLines, openArchive, parseArchivePathCandidates } from "../utils/zip";
 import { applyListLimit } from "./list-limit";
 import { resolveReadPath } from "./path-utils";
 import type { ReadToolDetails } from "./read";

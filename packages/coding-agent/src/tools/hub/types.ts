@@ -5,6 +5,7 @@
  */
 
 import type { AgentToolResult } from "@dude1wudv/pi-agent-core";
+import type { AsyncJobType } from "../../async";
 import type { IrcDeliveryReceipt, IrcMessage } from "../../irc/bus";
 import type { LaunchParams, LaunchToolDetails } from "./launch";
 
@@ -42,7 +43,7 @@ export interface HubPeerInfo {
 /** Background-job row surfaced by `wait`/`cancel`/`jobs` results. */
 export interface JobSnapshot {
 	id: string;
-	type: "bash" | "task";
+	type: AsyncJobType;
 	status: "running" | "completed" | "failed" | "cancelled";
 	label: string;
 	durationMs: number;
@@ -74,6 +75,12 @@ export interface AgentActivitySnapshot {
 	activity?: string;
 	/** Time since the agent was registered. */
 	ageMs: number;
+	/**
+	 * Whether an attached session corroborates the `running` claim. False marks
+	 * a ref that says `running` with no turn in flight — either a spawn still
+	 * wiring up or a stale registration that `hub cancel <id>` clears (#8634).
+	 */
+	live: boolean;
 }
 
 /** Result details for messaging and job ops; fields are disjoint per op. */

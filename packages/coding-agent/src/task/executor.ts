@@ -35,6 +35,7 @@ import type { HindsightSessionState } from "../hindsight/state";
 import type { LocalProtocolOptions } from "../internal-urls";
 import type { MCPManager } from "../mcp/manager";
 import type { MnemopiSessionState } from "../mnemopi/state";
+import { initializeExtensions } from "../modes/runtime-init";
 import subagentAsyncPendingTemplate from "../prompts/system/subagent-async-pending.md" with { type: "text" };
 import subagentSystemPromptTemplate from "../prompts/system/subagent-system-prompt.md" with { type: "text" };
 import submitReminderTemplate from "../prompts/system/subagent-yield-reminder.md" with { type: "text" };
@@ -887,7 +888,7 @@ export function createSubagentSettings(
 	return Settings.isolated(
 		{
 			...snapshot,
-			// Async jobs and bash auto-backgrounding are inherited from the parent:
+			// Async jobs and bash/eval auto-backgrounding are inherited from the parent:
 			// background jobs are owner-routed to the subagent's own session, and
 			// the run driver's quiescence barrier + teardown reap guarantee no
 			// owner job outlives the run, so worktree capture/cleanup stays
@@ -2811,19 +2812,6 @@ export async function runSubprocess(options: ExecutorOptions): Promise<SingleRes
 	const progress = monitor.progress;
 	let unsubscribe: (() => void) | null = null;
 	let reviveSession: AgentReviver | null = null;
-	// Adopted (kept-alive) subagents flip registry status from session events on
-	// later turns: revive/wake → running, turn drained → idle. The subscription
-	// intentionally survives this run; a disposed session emits nothing, so it
-	// needs no teardown.
-	const installRegistryStatusSync = (target: AgentSession): void => {
-		target.subscribe(event => {
-			if (event.type === "agent_start") {
-				AgentRegistry.global().setStatus(id, "running", target);
-			} else if (event.type === "agent_end") {
-				AgentRegistry.global().setStatus(id, "idle", target);
-			}
-		});
-	};
 	const installIrcWakeTurnMonitor = (target: AgentSession): void => {
 		attachIrcWakeTurnMonitor(target, {
 			id,
@@ -3170,7 +3158,9 @@ export async function runSubprocess(options: ExecutorOptions): Promise<SingleRes
 			sessionCreatedAt = performance.now();
 
 			monitor.setActiveSession(session);
-			installRegistryStatusSync(session);
+			// Run-state notifications precede deferrable wire-level `agent_end`,
+			// so adopted keep-alive lifecycle cannot get stuck during prompt unwind.
+			AgentRegistry.global().syncSessionStatus(id, session);
 			if (sessionFile !== null && worktree === undefined) {
 				// Lifecycle reviver: park closed the JSONL writer, so reopening takes
 				// the single-writer lock cleanly and restores the full message history
@@ -3186,7 +3176,17 @@ export async function runSubprocess(options: ExecutorOptions): Promise<SingleRes
 					const { session: revived } = await createAgentSession(
 						buildSubagentSessionOptions(reopened, expectedAgentRef),
 					);
-					installRegistryStatusSync(revived);
+					// Re-run the executor's extension wiring on the rebuilt session.
+					// Skipping it leaves the runner pre-init, so a `tool_call` handler
+					// touching a runtime action trips the fail-closed gate and blocks
+					// every tool (including `yield`) in the revived agent (issue #8824).
+					await initializeExtensions(revived, {
+						reportSendError: (action, err) =>
+							logger.error("Extension send failed", { action, error: err.message }),
+						reportRuntimeError: err =>
+							logger.error("Extension error", { path: err.extensionPath, error: err.error }),
+					});
+					AgentRegistry.global().syncSessionStatus(id, revived);
 					installIrcWakeTurnMonitor(revived);
 					return revived;
 				};
@@ -3220,7 +3220,7 @@ export async function runSubprocess(options: ExecutorOptions): Promise<SingleRes
 			session.sessionManager.appendSessionInit({
 				systemPrompt: session.agent.state.systemPrompt.join("\n\n"),
 				task,
-				tools: session.getActiveToolNames(),
+				tools: session.getEnabledToolNames(),
 				agent: agent.name,
 				modelRole: modelRole ?? resolveExplicitModelRole(modelOverride ?? agent.model, subagentSettings),
 				resolvedModel: progress.resolvedModel,

@@ -4,7 +4,7 @@
  */
 import type { ThinkingLevel } from "@dude1wudv/pi-agent-core";
 import type { Api, Model } from "@dude1wudv/pi-ai";
-import { completeSimple } from "@dude1wudv/pi-ai";
+import { completeSimple, retryTransientCompletion } from "@dude1wudv/pi-ai";
 import { logger, prompt } from "@dude1wudv/pi-utils";
 
 import type { ModelRegistry } from "../config/model-registry";
@@ -106,17 +106,19 @@ export async function generateCommitMessage(
 
 		try {
 			const maxTokens = COMMIT_MAX_TOKENS;
-			const response = await completeSimple(
-				candidate.model,
-				{
-					systemPrompt: [COMMIT_SYSTEM_PROMPT],
-					messages: [{ role: "user", content: userMessage, timestamp: Date.now() }],
-				},
-				{
-					apiKey: registry.resolver(candidate.model, sessionId),
-					maxTokens,
-					reasoning: toReasoningEffort(candidate.thinkingLevel),
-				},
+			const response = await retryTransientCompletion(() =>
+				completeSimple(
+					candidate.model,
+					{
+						systemPrompt: [COMMIT_SYSTEM_PROMPT],
+						messages: [{ role: "user", content: userMessage, timestamp: Date.now() }],
+					},
+					{
+						apiKey: registry.resolver(candidate.model, sessionId),
+						maxTokens,
+						reasoning: toReasoningEffort(candidate.thinkingLevel),
+					},
+				),
 			);
 
 			if (response.stopReason === "error") {

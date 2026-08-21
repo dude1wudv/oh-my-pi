@@ -16,10 +16,10 @@
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
 		"paths": {
-			"@oh-my-pi/pi-coding-agent": ["./packages/coding-agent/src/index.ts"],
-			"@oh-my-pi/pi-coding-agent/*": ["./packages/coding-agent/src/*"],
-			"@oh-my-pi/pi-utils": ["./packages/utils/src/index.ts"],
-			"@oh-my-pi/pi-utils/*": ["./packages/utils/src/*"]
+			"@dude1wudv/pi-coding-agent": ["./packages/coding-agent/src/index.ts"],
+			"@dude1wudv/pi-coding-agent/*": ["./packages/coding-agent/src/*"],
+			"@dude1wudv/pi-utils": ["./packages/utils/src/index.ts"],
+			"@dude1wudv/pi-utils/*": ["./packages/utils/src/*"]
 		},
 		"types": ["bun", "assets"],
 		"typeRoots": ["./types", "./node_modules/@types"]

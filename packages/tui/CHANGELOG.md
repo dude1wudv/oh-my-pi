@@ -2,6 +2,31 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added optional `getNativeScrollbackLiveRegionPinnedStart()` hook to allow nested transcripts to pin a later dashboard without shifting the earliest live seam.
+
+## [17.4.0] - 2026-08-20
+
+### Added
+
+- Added composer border styles (`box`, `claude`, `pi`, `borderless`) via `ComposerStyle` objects and `getComposerStyle`, unifying chrome geometry and rendering across the editor and previews.
+- Added support for warning risk notes and row markers in settings lists.
+
+## [17.3.8] - 2026-08-19
+
+### Fixed
+
+- Fixed images rendering as the `[Image: …]` text card on SIXEL terminals that expose no identifying environment variable (foot, xterm, contour): the graphics probe no longer requires Windows Terminal, and no longer reads an XTSMGRAPHICS success reply as a failure.
+- Fixed the multiline editor ignoring a `tui.input.submit` remap onto Ctrl+Enter: the hardcoded Ctrl/Shift+Enter → newline fallbacks now yield to an explicit submit binding, so Ctrl+Enter can be used to submit ([#8906](https://github.com/can1357/oh-my-pi/issues/8906)).
+
+## [17.3.5] - 2026-08-16
+
+### Fixed
+
+- Fixed long CPU-bound event-loop stalls being misclassified as system sleep and omitted from loop-blocked diagnostics.
+- Fixed focused components with markers falling back to full-screen redraws instead of direct row updates, preserving cursor position and native scrollback across marker changes.
+
 ## [17.3.4] - 2026-08-14
 
 ### Fixed
@@ -1214,7 +1239,7 @@
 
 ### Added
 
-- Restored the `Key` runtime helper on `@oh-my-pi/pi-tui` to mirror upstream `@mariozechner/pi-tui`'s surface. `Key.enter`, `Key.escape`, `Key.tab`, … return the canonical key-name strings; modifier methods (`Key.ctrl(k)`, `Key.shift(k)`, `Key.ctrlShift(k)`, etc.) build precisely-typed `KeyId` literals like `"ctrl+c"`. Pure runtime convenience for typed key-id construction — plugins built against the upstream package surface that import `Key` (e.g. `@plannotator/pi-extension`, `@juicesharp/rpiv-ask-user-question`) load again now that the specifier shim remaps them onto this package.
+- Restored the `Key` runtime helper on `@dude1wudv/pi-tui` to mirror upstream `@mariozechner/pi-tui`'s surface. `Key.enter`, `Key.escape`, `Key.tab`, … return the canonical key-name strings; modifier methods (`Key.ctrl(k)`, `Key.shift(k)`, `Key.ctrlShift(k)`, etc.) build precisely-typed `KeyId` literals like `"ctrl+c"`. Pure runtime convenience for typed key-id construction — plugins built against the upstream package surface that import `Key` (e.g. `@plannotator/pi-extension`, `@juicesharp/rpiv-ask-user-question`) load again now that the specifier shim remaps them onto this package.
 
 ## [15.0.1] - 2026-05-14
 
@@ -1295,7 +1320,7 @@
 - Simplified cache key computation in Box component by removing intermediate hash updates and consolidating hash operations
 - Wrapped native text utility functions (`sliceWithWidth`, `truncateToWidth`, `wrapTextWithAnsi`, `extractSegments`) to automatically pass the current default tab width, simplifying the API for consumers
 - Added `getIndentationNoescape` wrapper that uses `process.cwd()` as the project root for relative file paths
-- Re-export `getDefaultTabWidth`, `getIndentation`, and `setDefaultTabWidth` from `@oh-my-pi/pi-utils`; native text helpers still receive tab width via wrappers that read the JS default
+- Re-export `getDefaultTabWidth`, `getIndentation`, and `setDefaultTabWidth` from `@dude1wudv/pi-utils`; native text helpers still receive tab width via wrappers that read the JS default
 
 ## [13.16.1] - 2026-03-27
 
@@ -1602,7 +1627,7 @@
 - Changed notification suppression environment variable from `OMP_NOTIFICATIONS` to `PI_NOTIFICATIONS`
 - Changed TUI write log environment variable from `OMP_TUI_WRITE_LOG` to `PI_TUI_WRITE_LOG`
 - Changed hardware cursor environment variable from `OMP_HARDWARE_CURSOR` to `PI_HARDWARE_CURSOR`
-- Updated environment variable access to use `getEnv()` utility function from `@oh-my-pi/pi-utils` for consistent handling
+- Updated environment variable access to use `getEnv()` utility function from `@dude1wudv/pi-utils` for consistent handling
 - Renamed `TERMINAL_INFO` export to `TERMINAL` for clearer API semantics
 - Reorganized terminal image exports from `terminal-image` to `terminal-capabilities` module
 - Updated all internal references to use `TERMINAL` instead of `TERMINAL_INFO`
@@ -1621,7 +1646,7 @@
 
 ### Changed
 
-- Moved `wrapTextWithAnsi` export to `@oh-my-pi/pi-natives` package
+- Moved `wrapTextWithAnsi` export to `@dude1wudv/pi-natives` package
 
 ### Fixed
 
@@ -1650,7 +1675,7 @@
 
 ### Removed
 
-- Removed `truncateToWidth`, `sliceWithWidth`, and `extractSegments` functions from public API (now re-exported directly from @oh-my-pi/pi-natives)
+- Removed `truncateToWidth`, `sliceWithWidth`, and `extractSegments` functions from public API (now re-exported directly from @dude1wudv/pi-natives)
 - Removed `ellipsis` property from `SymbolTheme` interface
 - Removed `extractAnsiCode` function from public API
 

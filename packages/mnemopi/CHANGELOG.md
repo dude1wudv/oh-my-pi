@@ -2,6 +2,18 @@
 
 ## [Unreleased]
 
+## [17.3.8] - 2026-08-19
+
+### Added
+
+- Added optional task metadata to the runtime LLM completion interface so hosts can tell an extraction call from a consolidation call and choose the matching prompt
+
+## [17.3.5] - 2026-08-16
+
+### Fixed
+
+- Fixed an issue where transient provider failures (such as Anthropic overload or rate limit errors) were incorrectly treated as empty responses; these failures are now retried automatically before falling back.
+
 ## [17.3.4] - 2026-08-14
 
 ### Fixed
@@ -235,8 +247,8 @@
 
 - Added `llm.extractionPrompt` runtime option to override the fact-extraction prompt template using `{text}` and `{lang}` placeholders
 - Added `llm.consolidationPrompt` runtime option to override the consolidation sleep prompt template using `{memories}`, `{source}`, and `{memory_count}` placeholders
-- Published `@oh-my-pi/pi-mnemopi` to npm: the local SQLite memory engine is now built, checked, tested, and released through the monorepo CI pipeline alongside the other workspace packages.
-- Exported the diagnostic inspector as the `@oh-my-pi/pi-mnemopi/diagnose` subpath for coding-agent memory maintenance commands.
+- Published `@dude1wudv/pi-mnemopi` to npm: the local SQLite memory engine is now built, checked, tested, and released through the monorepo CI pipeline alongside the other workspace packages.
+- Exported the diagnostic inspector as the `@dude1wudv/pi-mnemopi/diagnose` subpath for coding-agent memory maintenance commands.
 - Added `flushExtractions()` (on `Mnemopi`, `BeamMemory`, and as a module-level export) to drain in-flight background fact extraction; used by tests and graceful shutdown so facts are persisted before the database closes.
 
 ### Changed

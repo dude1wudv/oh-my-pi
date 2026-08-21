@@ -4,8 +4,8 @@ import * as nodeFs from "node:fs";
 import * as fs from "node:fs/promises";
 import * as os from "node:os";
 import * as path from "node:path";
-import * as pluginCli from "@oh-my-pi/pi-coding-agent/cli/plugin-cli";
-import * as updateCli from "@oh-my-pi/pi-coding-agent/cli/update-cli";
+import * as pluginCli from "@dude1wudv/pi-coding-agent/cli/plugin-cli";
+import * as updateCli from "@dude1wudv/pi-coding-agent/cli/update-cli";
 import {
 	buildBunInstallArgs,
 	buildHomebrewUpdateArgs,
@@ -31,10 +31,10 @@ import {
 	sweepStaleUpdateArtifacts,
 	updateViaBinaryAt,
 	updateViaShimTakeover,
-} from "@oh-my-pi/pi-coding-agent/cli/update-cli";
-import Update from "@oh-my-pi/pi-coding-agent/commands/update";
-import { removeWithRetries } from "@oh-my-pi/pi-utils";
-import type { CliConfig } from "@oh-my-pi/pi-utils/cli";
+} from "@dude1wudv/pi-coding-agent/cli/update-cli";
+import Update from "@dude1wudv/pi-coding-agent/commands/update";
+import { removeWithRetries } from "@dude1wudv/pi-utils";
+import type { CliConfig } from "@dude1wudv/pi-utils/cli";
 import { getThemeByName, setThemeInstance } from "../src/modes/theme/theme";
 
 const tempDirs: string[] = [];
@@ -247,6 +247,52 @@ describe("update-cli install target detection", () => {
 		expect(target).toEqual({ method: "binary", path: standalonePath, replacesSymlink: false });
 	});
 
+	it("resolves a foreign symlink to its real binary on a binary-only release instead of clobbering the launcher", async () => {
+		// Admin shared-install layout: a non-manager symlink in PATH points into
+		// a shared install dir. On a binary-only release the target must still be
+		// the resolved binary, not the launcher — otherwise the update writes
+		// beside a root-owned symlink (EACCES) or replaces it with a split-brain
+		// copy that shadows the shared install (#8732).
+		const dir = await makeTempDir();
+		const sharedBinDir = path.join(dir, "opt", "omp", "bin");
+		const standalonePath = path.join(sharedBinDir, "omp");
+		const launcherDir = path.join(dir, "usr", "local", "bin");
+		const launcherPath = path.join(launcherDir, "omp");
+		await fs.mkdir(sharedBinDir, { recursive: true });
+		await fs.mkdir(launcherDir, { recursive: true });
+		await Bun.write(standalonePath, "binary");
+		await fs.symlink(standalonePath, launcherPath);
+
+		const target = resolveUpdateTargetFromPath(launcherPath, undefined, {
+			allowPackageManagers: false,
+		});
+
+		expect(target).toEqual({ method: "binary", path: standalonePath, replacesSymlink: false });
+		expect(await fs.readlink(launcherPath)).toBe(standalonePath);
+	});
+
+	it("takes over a package-manager launcher in place on a binary-only release", async () => {
+		// A bun/npm-managed launcher symlinks into the manager's node_modules.
+		// A forced binary release cannot route through the manager, so the
+		// launcher is deliberately replaced in place, keeping the PATH entry live.
+		const dir = await makeTempDir();
+		const npmPrefix = path.join(dir, ".npm-global");
+		const npmBinDir = path.join(npmPrefix, "bin");
+		const managedBinary = path.join(npmPrefix, "lib", "node_modules", "@oh-my-pi", "pi-coding-agent", "omp");
+		const aliasPath = path.join(npmBinDir, "omp");
+		await fs.mkdir(npmBinDir, { recursive: true });
+		await fs.mkdir(path.dirname(managedBinary), { recursive: true });
+		await Bun.write(managedBinary, "binary");
+		await fs.symlink(managedBinary, aliasPath);
+
+		const target = resolveUpdateTargetFromPath(aliasPath, undefined, {
+			allowPackageManagers: false,
+			npmBinDir,
+		});
+
+		expect(target).toEqual({ method: "binary", path: aliasPath, replacesSymlink: true });
+	});
+
 	it("keeps a split-root Bun-linked checkout under Bun management instead of overwriting its script", async () => {
 		const dir = await makeTempDir();
 		const bunBinDir = path.join(dir, "bun-bin");
@@ -336,9 +382,9 @@ describe("update-cli package manager commands", () => {
 
 		expect(args.slice(0, 2)).toEqual(["install", "-g"]);
 		expect(args).toContain("--registry=https://registry.npmjs.org/");
-		expect(args).toContain("@oh-my-pi/pi-coding-agent@16.3.15");
-		expect(args).toContain("@oh-my-pi/pi-natives@16.3.15");
-		expect(args).toContain("@oh-my-pi/pi-natives-win32-x64@16.3.15");
+		expect(args).toContain("@dude1wudv/pi-coding-agent@16.3.15");
+		expect(args).toContain("@dude1wudv/pi-natives@16.3.15");
+		expect(args).toContain("@dude1wudv/pi-natives-win32-x64@16.3.15");
 	});
 });
 
@@ -365,7 +411,7 @@ describe("update-cli npm rename contract", () => {
 		expect(bunArgs).toContain("@new/omp@17.0.0");
 		expect(bunArgs).toContain("@new/natives@17.0.0");
 		expect(bunArgs).toContain("@new/natives-linux-x64@17.0.0");
-		expect(bunArgs.some(arg => arg.startsWith("@oh-my-pi/"))).toBe(false);
+		expect(bunArgs.some(arg => arg.startsWith("@dude1wudv/"))).toBe(false);
 
 		expect(buildNpmInstallArgs("17.0.0", "linux-x64", packages)).toContain("@new/omp@17.0.0");
 	});
@@ -379,20 +425,20 @@ describe("update-cli npm rename contract", () => {
 	it("removes the old agent package and its natives companions when both names moved", () => {
 		const packages = { pkg: "@new/omp", natives: "@new/natives" };
 		expect(buildRenameCleanupPackages(packages, "darwin-arm64")).toEqual([
-			"@oh-my-pi/pi-coding-agent",
-			"@oh-my-pi/pi-natives",
-			"@oh-my-pi/pi-natives-darwin-arm64",
+			"@dude1wudv/pi-coding-agent",
+			"@dude1wudv/pi-natives",
+			"@dude1wudv/pi-natives-darwin-arm64",
 		]);
 		expect(buildRenameCleanupPackages(packages, "linux-arm")).toEqual([
-			"@oh-my-pi/pi-coding-agent",
-			"@oh-my-pi/pi-natives",
+			"@dude1wudv/pi-coding-agent",
+			"@dude1wudv/pi-natives",
 		]);
 	});
 
 	it("keeps the natives packages on an agent-only rename so cleanup cannot strip the addon the new install pinned", () => {
-		const packages = { pkg: "@new/omp", natives: "@oh-my-pi/pi-natives" };
-		expect(buildRenameCleanupPackages(packages, "darwin-arm64")).toEqual(["@oh-my-pi/pi-coding-agent"]);
-		expect(buildRenameCleanupPackages(packages, "linux-arm")).toEqual(["@oh-my-pi/pi-coding-agent"]);
+		const packages = { pkg: "@new/omp", natives: "@dude1wudv/pi-natives" };
+		expect(buildRenameCleanupPackages(packages, "darwin-arm64")).toEqual(["@dude1wudv/pi-coding-agent"]);
+		expect(buildRenameCleanupPackages(packages, "linux-arm")).toEqual(["@dude1wudv/pi-coding-agent"]);
 	});
 });
 
@@ -492,21 +538,21 @@ describe("update-cli bun install command", () => {
 			"-g",
 			"--no-cache",
 			"--registry=https://registry.npmjs.org/",
-			"@oh-my-pi/pi-coding-agent@15.7.6",
+			"@dude1wudv/pi-coding-agent@15.7.6",
 		]);
 	});
 
 	it("pins the native addon core and the platform-specific leaf to the same version so the loader sentinel cannot drift on supported tags", () => {
 		// Regression: bun install -g <pkg>@<v> would update only the top-level
-		// package, leaving @oh-my-pi/pi-natives and @oh-my-pi/pi-natives-<tag>
+		// package, leaving @dude1wudv/pi-natives and @dude1wudv/pi-natives-<tag>
 		// at their previous version. The next launch then loaded a stale .node
 		// file and aborted at validateLoadedBindings with `The .node file on
 		// disk is from a different release than this loader`. See
 		// https://github.com/can1357/oh-my-pi/issues/1824.
 		for (const tag of ["linux-x64", "linux-arm64", "darwin-x64", "darwin-arm64", "win32-x64"]) {
 			const args = buildBunInstallArgs("15.9.0", tag);
-			expect(args).toContain("@oh-my-pi/pi-natives@15.9.0");
-			expect(args).toContain(`@oh-my-pi/pi-natives-${tag}@15.9.0`);
+			expect(args).toContain("@dude1wudv/pi-natives@15.9.0");
+			expect(args).toContain(`@dude1wudv/pi-natives-${tag}@15.9.0`);
 		}
 	});
 
@@ -517,8 +563,8 @@ describe("update-cli bun install command", () => {
 		// pipeline doesn't publish, otherwise bun aborts with EBADPLATFORM
 		// and hides the real diagnostic from `loadNative`'s aggregated error.
 		const args = buildBunInstallArgs("15.9.0", "linux-arm");
-		expect(args).toContain("@oh-my-pi/pi-natives@15.9.0");
-		expect(args.some(arg => arg.startsWith("@oh-my-pi/pi-natives-"))).toBe(false);
+		expect(args).toContain("@dude1wudv/pi-natives@15.9.0");
+		expect(args.some(arg => arg.startsWith("@dude1wudv/pi-natives-"))).toBe(false);
 	});
 
 	it("derives global node_modules from supported Bun locations with the explicit global directory taking precedence", () => {
@@ -558,11 +604,11 @@ describe("update-cli bun cache pruning", () => {
 		await Bun.write(path.join(dir, "@oh-my-pi", "pi-utils", "15.8.0@@@1"), "");
 		await Bun.write(
 			path.join(dir, "@oh-my-pi", "pi-utils@15.7.6@@@1", "package.json"),
-			JSON.stringify({ name: "@oh-my-pi/pi-utils", version: "15.7.6" }),
+			JSON.stringify({ name: "@dude1wudv/pi-utils", version: "15.7.6" }),
 		);
 		await Bun.write(
 			path.join(dir, "@oh-my-pi", "pi-utils@15.8.0@@@1", "package.json"),
-			JSON.stringify({ name: "@oh-my-pi/pi-utils", version: "15.8.0" }),
+			JSON.stringify({ name: "@dude1wudv/pi-utils", version: "15.8.0" }),
 		);
 		await Bun.write(path.join(dir, "chalk", "4.1.2@@@1"), "");
 		await Bun.write(path.join(dir, "chalk", "5.6.2@@@1"), "");
@@ -575,7 +621,7 @@ describe("update-cli bun cache pruning", () => {
 			JSON.stringify({ name: "chalk", version: "5.6.2" }),
 		);
 
-		const result = await pruneBunInstallCache(dir, new Set(["react", "@oh-my-pi/pi-utils"]));
+		const result = await pruneBunInstallCache(dir, new Set(["react", "@dude1wudv/pi-utils"]));
 
 		expect(result).toEqual({ scannedPackages: 2, removedEntries: 4 });
 		expect(await Bun.file(path.join(dir, "react", "18.3.1@@@1")).exists()).toBe(false);

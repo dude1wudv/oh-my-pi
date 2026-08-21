@@ -2,11 +2,17 @@
 
 ## [Unreleased]
 
+## [17.3.8] - 2026-08-19
+
+### Fixed
+
+- The ask tool card now renders the note the user attached to their answer; previously it was dropped from HTML exports and the collab guest view.
+
 ## [17.2.10] - 2026-08-06
 
 ### Changed
 
-- Updated the Markdown parsing implementation to use @oh-my-pi/pi-utils.
+- Updated the Markdown parsing implementation to use @dude1wudv/pi-utils.
 
 ## [17.2.2] - 2026-07-31
 
@@ -221,7 +227,7 @@
 
 - Changed relay socket behavior to retry transient disconnections with exponential backoff while treating terminal relay-close conditions and decryption failures as non-retriable
 - Changed subagent transcript decoding to handle streamed JSONL payload chunks incrementally by preserving carry-over data across chunks
-- Replaced the vendored collab wire type mirror with shared `@oh-my-pi/pi-wire` protocol contracts.
+- Replaced the vendored collab wire type mirror with shared `@dude1wudv/pi-wire` protocol contracts.
 
 ### Security
 

@@ -2,6 +2,87 @@
 
 ## [Unreleased]
 
+### Added
+
+- Added Codex Responses support for Code Mode, preserving tool modes and passing tool namespace metadata during sessions.
+
+### Fixed
+
+- Fixed OpenAI Codex requests failing with HTTP 401 data residency errors on enterprise ChatGPT workspaces when connecting from a different region via VPN or proxy.
+- Fixed concurrent xAI OAuth token refreshes revoking shared credentials across multiple processes.
+- Fixed Amazon Bedrock Converse multi-turn conversations failing on models like Amazon Nova due to unsigned reasoning content in replayed turns.
+- Fixed Antigravity OAuth login handling for project discovery and free-tier onboarding against Cloud Code Assist endpoints.
+- Fixed provider-detected OAuth access token expiration terminating active turns instead of automatically refreshing credentials and replaying the request.
+- Fixed compatibility issues with OpenAI-compatible servers (such as NInfer and vLLM) rejecting `reasoning_effort` inside `chat_template_kwargs`.
+- Fixed Google Cloud Code Assist and Antigravity rejecting MCP tool schemas with unsupported annotations (`x-mcp-header`, `deprecated`, `readOnly`, `writeOnly`, `$comment`).
+- Fixed Cursor provider issues with native file edit streaming (`editToolCall`) and ensuring always-apply system rules are properly preserved.
+- Fixed Cursor HTTP/2 requests ignoring standard proxy environment variables (`HTTP_PROXY`, `HTTPS_PROXY`, `ALL_PROXY`, `NO_PROXY`).
+
+## [17.4.0] - 2026-08-20
+
+### Added
+
+- Added model metadata fields (`context_length`, `max_output_tokens`, `input_modalities`, etc.) to auth gateway model listing responses
+
+### Fixed
+
+- Fixed tool-argument repair applying lossy transformations (such as stringifying objects or stripping unrecognized keys) when validating union schemas (`anyOf`/`oneOf`), preventing corrupted tool call and subagent payloads
+- Fixed 400 errors when communicating with local OpenAI-compatible inference servers that reject `chat_template_kwargs.reasoning_effort` by improving reasoning effort parameter fallback and compatibility handling
+- Fixed DeepSeek-family models on hosts like Fireworks losing reasoning whenever tools were offered: a redundant `tool_choice: "auto"` is now omitted so the provider keeps thinking enabled; forced and `"none"` selectors still take priority ([#1207](https://github.com/can1357/oh-my-pi/issues/1207))
+
+## [17.3.8] - 2026-08-19
+
+### Changed
+
+- Fixed Gemini thought summaries occasionally leaking a raw `` ```thinking `` / `` ``````thinking `` fence delimiter into the reasoning block, so it no longer shows up as fence spam in the thinking display or persisted transcripts ([#8719](https://github.com/can1357/oh-my-pi/issues/8719)).
+- Fixed the OpenCode Go login prompting for an "OpenCode Zen API key": the shared login flow now names the provider you selected, so connecting OpenCode Go asks for an OpenCode Go key (the `opencode.ai/auth` console is still shared, as documented upstream) ([#8738](https://github.com/can1357/oh-my-pi/issues/8738)).
+- Fixed Anthropic-compatible endpoints with strict prompt validation (e.g. Z.AI GLM `api.z.ai/api/anthropic`, which rejects the whole request with `400 code 1213 "The prompt parameter was not received normally"`) failing sessions once a tool returned empty output on a vision-capable model: empty successful `tool_result` blocks now encode as `content: ""` instead of `content: []`, which both the official API and strict compatible endpoints accept.
+- Fixed `retry.usageReservePct` (Reserve Margin) ignoring Claude Fable/Mythos weekly tier usage until it hit 100%, so a Fable model kept serving turns past the configured reserve; reserve health now honors the mapped tier row while credential-wide hard blocks still require confirmed exhaustion ([#8773](https://github.com/can1357/oh-my-pi/issues/8773)).
+- Fixed `cursor-agent` streams stalling with "Provider stream stalled while waiting for the next event" when Cursor asked the client to approve a hosted WebFetch / web search (reproduced on `cursor-grok-4.6-xhigh` after "I'll fetch the page…"). Those `interaction_query` frames — including the newer WebFetch field 9 this proto did not name — were dropped, so the server waited forever and the idle watchdog aborted a live connection. Permission queries are now answered; hosted search/fetch is approved, unnamed permission fields get an `approved` reply on the same field number, and prompts this client cannot serve are rejected so the turn can continue.
+
+### Fixed
+
+- Fixed thinking effort selections being ignored for local Qwen 3.8+ models on llama.cpp and vLLM: the Qwen chat-completions dialects only toggled `enable_thinking`, so the chat template always reasoned at its `xhigh` default no matter which level was selected. The encoder now routes the requested effort onto the template's `reasoning_effort` kwarg (`chat_template_kwargs` for both Qwen dialects, plus the top-level field newer llama.cpp builds map natively).
+- Fixed OpenAI Completions, Amazon Bedrock, and Cursor providers ignoring `onPayload` replacement payloads. The hook now transforms the actual request body sent upstream on these providers, matching the Anthropic/Gemini/OpenAI Responses replacement contract. `devin-agent` still does not fire the hook (its payload is a protobuf object).
+- Fixed Codex requests failing outright when the signed-in ChatGPT account is not entitled to the requested model; the exact model denial is now classified as an account-policy error so credential rotation can reach an entitled sibling account
+- Fixed Perplexity email-OTP login after its verification response renamed the encrypted session token from `token` to `challenge_token`.
+- Cloud Code Assist Gemini 3.6/3.7 Flash requests at `minimal` now send `thinkingLevel: LOW` on the aliased `-low` SKU instead of `MINIMAL`, which the API rejects with HTTP 400.
+- Answer Cursor `interaction_query` permission gates (hosted web search, Exa, unnamed field-9 WebFetch) so the Run RPC continues instead of sitting silent until the 300s idle watchdog.
+- Fixed provider tool calls arriving with flattened array argument paths (e.g. Gemini's `questions[0].id`) being stripped and rejected by argument validation; well-formed flattened paths are now rebuilt into the nested arrays the tool schema expects ([#8886](https://github.com/can1357/oh-my-pi/issues/8886)).
+- Fixed opencode-go (Console Go) rejecting Responses turns with `400 No tool output found for tool call …` (naming a random call of the batch on each retry) when a model streamed a trailing text/thinking block after its tool calls: `buildResponsesInput` emitted that block as an assistant `message` item wedged between the `function_call` batch and its `function_call_output` items. Such interleaved messages are now hoisted ahead of their call batch (canonical `message(s) → calls → outputs`), which the strict gateway validator accepts; content is unchanged ([#8789](https://github.com/can1357/oh-my-pi/issues/8789)).
+- Fixed the OpenAI-wire transport sleeping on a LiteLLM concurrency-admission 429 (`rate_limit_type: max_parallel_requests`, `Retry-After: 60`) and retrying it up to 6 times (~300s) before session recovery saw the error. Because a 60s hint equals the transport's `maxDelayMs` cap, `fetchWithRetry` kept sleeping and retrying; the request now surfaces on the first attempt so `TurnRecovery`'s concurrency backoff/model fallback runs promptly. Genuine RPM/quota 429s (no such marker) still honor `Retry-After` ([#8854](https://github.com/can1357/oh-my-pi/issues/8854)).
+- Fixed OAuth login (Codex `localhost:1455`, and any `localhost` callback flow) failing on hosts with IPv6 disabled at the kernel (`ipv6.disable=1`). The `::1` companion listener added in #8081 fails there with Bun's generic "Is port X in use?" message (oven-sh/bun#7187), which the in-use check misread as a real collision — tearing down the healthy IPv4 listener and surfacing a bogus "port 1455 is in use" error. The dual-bind path now detects the missing IPv6 loopback up front and serves IPv4 alone ([#8814](https://github.com/can1357/oh-my-pi/issues/8814)).
+
+## [17.3.7] - 2026-08-17
+
+### Changed
+
+- Send the `omp/<version>` User-Agent on xAI chat (`xai` and `xai-oauth`) unless the request already set its own.
+
+## [17.3.5] - 2026-08-16
+
+### Added
+
+- Added retryable oneshot completion support (`retryTransientCompletion`) so non-agent LLM calls correctly retry on transient provider failures (Anthropic overload/rate-limit errors, HTTP 429/500/502/503/529), honoring provider-supplied retry-after timing before giving up.
+
+### Fixed
+
+- Fixed xAI availability detection so paid-key-only setups correctly default to `xai/grok-4.5` instead of the free SuperGrok catalog; explicit `xai-oauth/…` selectors still work as before.
+- Fixed xAI Responses requests sending unsupported parameters (reasoning summary, presence/frequency penalties) that some models rejected.
+- Fixed Umans usage reporting incorrectly marking quota as exhausted based on raw request counts instead of actual weighted usage, and improved the usage display to show both a soft-cap warning and a hard exhaustion limit with an accurate countdown to reset.
+- Fixed `omp usage invalidate` to fully clear stale usage data and force a fresh refresh, so upgraded subscriptions no longer show outdated quota information.
+- Improved session recovery to correctly treat certain Cursor HTTP/2 connection errors as transient instead of ending the session.
+- Fixed OpenAI-compatible streams (e.g. DeepSeek) that are cut off mid-generation being silently treated as a completed response instead of being retried.
+- Fixed DeepSeek resource-exhaustion interruptions not being automatically retried.
+- Fixed tool-call IDs being lost during same-model replay, which could break correlation with custom gateways.
+- Fixed Kimi Code multi-account routing to prefer accounts with more available quota, respect usage-limit cooldowns, and keep consistent usage history across token refreshes.
+- Fixed Anthropic custom signing-proxy conversations losing tool-search results and thinking content during replay.
+- Fixed rare runaway response loops across model providers so they now fail gracefully instead of repeating indefinitely.
+- Fixed xAI rejecting entire turns due to certain MCP tool schema shapes, restoring compatibility while isolating any remaining incompatible tools rather than failing the whole request.
+- Fixed Alibaba DashScope/Bailian transient per-minute rate limits being misclassified as full quota exhaustion, causing unnecessary long backoffs instead of quick retries.
+- Fixed Anthropic-compatible streams dropping thinking content, which broke replay of prior reasoning.
+- Updated the Alibaba Coding Plan China login flow to point to the current Bailian API-key management console.
+
 ## [17.3.4] - 2026-08-14
 
 ### Fixed
@@ -115,7 +196,7 @@
 
 ### Breaking Changes
 
-- Removed the `zod` dependency and `z`/`ZodType` re-exports. Tool schemas now use `omptype` `type()` schemas, with Zod-style authoring still available via `@oh-my-pi/omptype/zod`.
+- Removed the `zod` dependency and `z`/`ZodType` re-exports. Tool schemas now use `omptype` `type()` schemas, with Zod-style authoring still available via `@dude1wudv/omptype/zod`.
 
 ## [17.2.9] - 2026-08-05
 
@@ -132,7 +213,7 @@
 
 ### Changed
 
-- Replaced `arktype` with `@oh-my-pi/omptype` for schema validation, delivering up to 100x faster schema construction and 60-100x faster validation while maintaining full compatibility with existing `type`/`Type` exports and the `isArkSchema` contract.
+- Replaced `arktype` with `@dude1wudv/omptype` for schema validation, delivering up to 100x faster schema construction and 60-100x faster validation while maintaining full compatibility with existing `type`/`Type` exports and the `isArkSchema` contract.
 
 ### Fixed
 
@@ -190,7 +271,7 @@
 
 ### Added
 
-- Added support for the `gmi-cloud` provider registry, including API-key paste login validation and integration with `@oh-my-pi/pi-catalog`.
+- Added support for the `gmi-cloud` provider registry, including API-key paste login validation and integration with `@dude1wudv/pi-catalog`.
 
 ### Changed
 
@@ -968,7 +1049,7 @@
 
 ### Breaking Changes
 
-- Removed the `@oh-my-pi/pi-ai/utils/json-parse` module. The JSON repair and parsing helpers (`repairJson`, `parseJsonWithRepair`, `parseStreamingJson`, `parseStreamingJsonThrottled`) have been moved to `@oh-my-pi/pi-utils` to be shared across utilities.
+- Removed the `@dude1wudv/pi-ai/utils/json-parse` module. The JSON repair and parsing helpers (`repairJson`, `parseJsonWithRepair`, `parseStreamingJson`, `parseStreamingJsonThrottled`) have been moved to `@dude1wudv/pi-utils` to be shared across utilities.
 
 ### Added
 
@@ -1026,7 +1107,7 @@
 
 ### Fixed
 
-- Restored the `pollOAuthDeviceCodeFlow` export from `@oh-my-pi/pi-ai/oauth` so legacy provider extensions can reuse the host OAuth device-code poller. ([#3508](https://github.com/can1357/oh-my-pi/issues/3508))
+- Restored the `pollOAuthDeviceCodeFlow` export from `@dude1wudv/pi-ai/oauth` so legacy provider extensions can reuse the host OAuth device-code poller. ([#3508](https://github.com/can1357/oh-my-pi/issues/3508))
 
 ## [16.1.20] - 2026-06-25
 
@@ -1365,7 +1446,7 @@
 
 ### Added
 
-- Exported `renderDelimitedThinking` from the `@oh-my-pi/pi-ai/dialect` barrel so consumers can reuse the dialect's `<thinking>` envelope unwrap-and-rewrap logic (the only `./dialect/rendering` primitive re-exported; the rest stay dialect-internal).
+- Exported `renderDelimitedThinking` from the `@dude1wudv/pi-ai/dialect` barrel so consumers can reuse the dialect's `<thinking>` envelope unwrap-and-rewrap logic (the only `./dialect/rendering` primitive re-exported; the rest stay dialect-internal).
 
 ### Fixed
 
@@ -1380,7 +1461,7 @@
 
 ### Fixed
 
-- A single MCP tool whose input schema can't be emitted as a valid strict tool schema for the active provider no longer fails the whole turn with HTTP 400. `convertTools` (openai-responses) now validates each tool's emitted parameter schema for `enum`/`const`-vs-`type` contradictions that pass structural JSON-Schema validation but the provider rejects — e.g. a non-null `enum` on a `type: "null"` node, or an `enum` on an `array` node — and quarantines just the offending tool with a `logger.warn` naming the tool and schema path, keeping every other tool usable. Adds `findStrictToolSchemaViolation` to `@oh-my-pi/pi-ai/utils/schema` ([#2652](https://github.com/can1357/oh-my-pi/issues/2652))
+- A single MCP tool whose input schema can't be emitted as a valid strict tool schema for the active provider no longer fails the whole turn with HTTP 400. `convertTools` (openai-responses) now validates each tool's emitted parameter schema for `enum`/`const`-vs-`type` contradictions that pass structural JSON-Schema validation but the provider rejects — e.g. a non-null `enum` on a `type: "null"` node, or an `enum` on an `array` node — and quarantines just the offending tool with a `logger.warn` naming the tool and schema path, keeping every other tool usable. Adds `findStrictToolSchemaViolation` to `@dude1wudv/pi-ai/utils/schema` ([#2652](https://github.com/can1357/oh-my-pi/issues/2652))
 - Fixed OpenAI Responses-compatible streams from Ollama/local hosts dropping arguments for parallel tool calls whose deltas use `fc_<call_id>` item ids, which left earlier `ast_grep` calls with `{}` and failed validation. ([#2715](https://github.com/can1357/oh-my-pi/issues/2715))
 - Fixed dialect transcript rendering so literal thinking envelopes are unwrapped before adding the dialect's own thinking tags, preventing nested `<thinking>` output in advisor raw dumps ([#2700](https://github.com/can1357/oh-my-pi/issues/2700)).
 - Fixed Anthropic-compatible Umans requests escaping client tool names and forwarding gateway web search headers so Kimi answers normally instead of returning raw gateway search results.
@@ -1407,7 +1488,7 @@
 
 ### Breaking Changes
 
-- Renamed the public dialect entrypoint from `@oh-my-pi/pi-ai/grammar` to `@oh-my-pi/pi-ai/dialect`.
+- Renamed the public dialect entrypoint from `@dude1wudv/pi-ai/grammar` to `@dude1wudv/pi-ai/dialect`.
 - Renamed grammar dialect identifiers from `ToolCallSyntax` to `Dialect`, renamed the `Grammar` interface to `DialectDefinition`, and renamed `Grammar.syntax` to `DialectDefinition.dialect`.
 - Added `DialectDefinition.renderThinking` and `DialectDefinition.renderTranscript` so dialect implementations serialize complete native chat transcripts, not just tool call/result blocks.
 
@@ -1429,7 +1510,7 @@
 
 ### Changed
 
-- Moved public dialect entrypoint from `@oh-my-pi/pi-ai/grammar` to `@oh-my-pi/pi-ai/dialect` in package exports
+- Moved public dialect entrypoint from `@dude1wudv/pi-ai/grammar` to `@dude1wudv/pi-ai/dialect` in package exports
 - Updated internal imports in `stream-markup-healing.ts` to use new dialect module path
 - Changed `renderToolInventory` to demote a tool description's own markdown headers by one level when it contains a top-level `# ` header, so they nest under the wrapping `# Tool: <name>` heading instead of reading as sibling sections. Descriptions that already start at `##` and headers inside fenced code blocks are left untouched.
 
@@ -1470,14 +1551,14 @@
 
 ### Added
 
-- Added `jsonSchemaToTypeScript` to `@oh-my-pi/pi-ai/utils/schema` to render JSON Schema argument shapes as compact, human-readable TypeScript-style signatures
+- Added `jsonSchemaToTypeScript` to `@dude1wudv/pi-ai/utils/schema` to render JSON Schema argument shapes as compact, human-readable TypeScript-style signatures
 - Added the generic `ToolExample` type (`ToolCallExample`/`ToolCompareExample`/`ToolNoteExample`, parameterized over a tool's argument shape) and an `examples` property on the `Tool` interface for defining tool-call examples once as data.
-- Added `renderToolExamples` (via `@oh-my-pi/pi-ai/grammar`) to render a tool's examples into an `<examples>` block in the model's native tool-call syntax, with an optional `_i` intent-field placeholder injected when intent tracing is active.
+- Added `renderToolExamples` (via `@dude1wudv/pi-ai/grammar`) to render a tool's examples into an `<examples>` block in the model's native tool-call syntax, with an optional `_i` intent-field placeholder injected when intent tracing is active.
 - Added per-grammar `renderToolCall` rendering of a single tool-call invocation (the inner element only, without the parallel-call block envelope), distinct from `renderAssistantToolCalls` which renders a complete block of one or more parallel calls.
 - Added a `GrammarRenderOptions.example` flag to `renderToolCall`: when set, the invocation renders as the bare payload — Harmony emits just the JSON arguments, dropping the verbose `<|start|>…<|message|>…<|call|>` envelope — so `renderToolExamples` keeps `<examples>` blocks legible.
 - Added an `abortOnFabrication` parameter to `wrapInbandToolStream` (default `true`): when `false`, a fabricated in-band tool-result continuation is discarded without aborting the provider request instead of cutting the turn short.
-- Added `@oh-my-pi/pi-ai/utils/harmony-leak` export with helpers to detect, audit, and recover GPT-5 Harmony tool-call header leaks
-- Added the `@oh-my-pi/pi-ai/grammar` public entrypoint for grammar factories, prompt/call rendering, in-band scanning, history encoding, and related typed utilities
+- Added `@dude1wudv/pi-ai/utils/harmony-leak` export with helpers to detect, audit, and recover GPT-5 Harmony tool-call header leaks
+- Added the `@dude1wudv/pi-ai/grammar` public entrypoint for grammar factories, prompt/call rendering, in-band scanning, history encoding, and related typed utilities
 - Added a unified in-band tool-call grammar engine with syntax-owned scanners, prompts, history rendering, tool-result rendering, and stream adaptation for GLM, Hermes/Qwen, Kimi, XML/Anthropic, DeepSeek, Harmony, and pi-native formats.
 
 ### Changed
@@ -1485,7 +1566,7 @@
 - Changed Harmony in-band tool-call rendering to omit the `<|constrain|>json` marker before the payload in `commentary` channel calls
 - Changed tool inventory rendering to present each tool’s `Parameters` section as a simplified TypeScript-style signature derived from its wire schema
 - Added raw in-band tool-call block capture to parsed owned tool calls so debugging can inspect the exact model-emitted call syntax.
-- Moved the canonical `ToolCallSyntax` union to `@oh-my-pi/pi-catalog/identity` and re-exported it from `@oh-my-pi/pi-ai/grammar` so the catalog can own the syntax vocabulary without an `@oh-my-pi/pi-ai` runtime import; all existing import paths are unchanged.
+- Moved the canonical `ToolCallSyntax` union to `@dude1wudv/pi-catalog/identity` and re-exported it from `@dude1wudv/pi-ai/grammar` so the catalog can own the syntax vocabulary without an `@dude1wudv/pi-ai` runtime import; all existing import paths are unchanged.
 - Made tool-call argument validation more lenient for schema-directed scalar coercions, including object/array stringification and 0/1 boolean coercion.
 - Changed `renderToolInventory` (the verbose system-prompt inventory and `/dump`) to render each tool as a `# Tool: <name>` markdown section instead of a `<tool name="…">…</tool>` wrapper.
 
@@ -1636,7 +1717,7 @@
 
 ### Changed
 
-- The GPT-5 "Juice: 0" no-reasoning developer item in `applyResponsesReasoningParams` is now gated on the resolved `compat.requiresJuiceZeroHack` flag (auto-detected from GPT-5-family model names by `@oh-my-pi/pi-catalog`, overridable per model) instead of an inline model-name check.
+- The GPT-5 "Juice: 0" no-reasoning developer item in `applyResponsesReasoningParams` is now gated on the resolved `compat.requiresJuiceZeroHack` flag (auto-detected from GPT-5-family model names by `@dude1wudv/pi-catalog`, overridable per model) instead of an inline model-name check.
 
 ### Fixed
 
@@ -1703,8 +1784,8 @@
 
 ### Breaking Changes
 
-- The model catalog moved to the new `@oh-my-pi/pi-catalog` package. Deep subpath exports `@oh-my-pi/pi-ai/models.json`, `/models`, `/model-cache`, `/model-manager`, `/model-thinking`, `/effort`, `/provider-models*`, `/utils/discovery*`, `/providers/openai-codex/constants`, `/providers/google-gemini-headers`, and `/providers/openai-completions-compat` are gone — import the `@oh-my-pi/pi-catalog` equivalents (`/models.json`, `/models`, `/model-cache`, `/model-manager`, `/model-thinking`, `/effort`, `/provider-models*`, `/discovery*`, `/wire/codex`, `/wire/gemini-headers`, `/compat/openai`). The pi-ai root barrel re-exports only the model/effort *types* its own signatures use (`Model`, `Api`, `ThinkingConfig`, `Effort`, `Usage`, compat interfaces) — catalog *values* (`getBundledModel(s)`, `calculateCost`, `modelsAreEqual`, `clampThinkingLevelForModel`, `DEFAULT_MODEL_PER_PROVIDER`, …) must be imported from `@oh-my-pi/pi-catalog`.
-- `ProviderDefinition` is now auth-only: `defaultModel`, `createModelManagerOptions`, `catalogDiscovery`, `dynamicModelsAuthoritative`, `allowUnauthenticated`, and `specialModelManager` moved to pi-catalog's `CATALOG_PROVIDERS` table, and `KnownProviderId` was replaced by pi-catalog's `KnownProvider` (registry completeness is enforced by a compile-time check against that union). The pure GitHub Copilot key/endpoint helpers moved from `registry/oauth/github-copilot` to `@oh-my-pi/pi-catalog/wire/github-copilot`.
+- The model catalog moved to the new `@dude1wudv/pi-catalog` package. Deep subpath exports `@dude1wudv/pi-ai/models.json`, `/models`, `/model-cache`, `/model-manager`, `/model-thinking`, `/effort`, `/provider-models*`, `/utils/discovery*`, `/providers/openai-codex/constants`, `/providers/google-gemini-headers`, and `/providers/openai-completions-compat` are gone — import the `@dude1wudv/pi-catalog` equivalents (`/models.json`, `/models`, `/model-cache`, `/model-manager`, `/model-thinking`, `/effort`, `/provider-models*`, `/discovery*`, `/wire/codex`, `/wire/gemini-headers`, `/compat/openai`). The pi-ai root barrel re-exports only the model/effort *types* its own signatures use (`Model`, `Api`, `ThinkingConfig`, `Effort`, `Usage`, compat interfaces) — catalog *values* (`getBundledModel(s)`, `calculateCost`, `modelsAreEqual`, `clampThinkingLevelForModel`, `DEFAULT_MODEL_PER_PROVIDER`, …) must be imported from `@dude1wudv/pi-catalog`.
+- `ProviderDefinition` is now auth-only: `defaultModel`, `createModelManagerOptions`, `catalogDiscovery`, `dynamicModelsAuthoritative`, `allowUnauthenticated`, and `specialModelManager` moved to pi-catalog's `CATALOG_PROVIDERS` table, and `KnownProviderId` was replaced by pi-catalog's `KnownProvider` (registry completeness is enforced by a compile-time check against that union). The pure GitHub Copilot key/endpoint helpers moved from `registry/oauth/github-copilot` to `@dude1wudv/pi-catalog/wire/github-copilot`.
 
 ### Added
 
@@ -1717,7 +1798,7 @@
 - Tool-argument validation errors now truncate embedded argument strings at 256 chars per field — a failed `write`-class call no longer echoes hundreds of KB of payload back to the model as the error message.
 - Auth storage no longer issues per-boot no-op writes: the schema-version row is only rewritten when the recorded version actually changes, and the credential identity-key backfill skips rows whose derived identity is null — reopening a current-schema database now performs zero write transactions
 - Plain provider env-var names moved to the catalog table: registry defs dropped their 48 `envKeys` literals (including the pure `$pickenv` pickers for `huggingface`/`qwen-portal`/`xai-oauth`), `getEnvApiKey` now derives those fallbacks from `CATALOG_PROVIDERS[].envVars`, and `envKeys` remains only for computed resolvers (Anthropic Foundry, Vertex ADC, Bedrock credential chains) and non-catalog providers (`kagi`, `tavily`, `parallel`, `perplexity`)
-- Protocol handlers are now pure `model.compat` readers — the per-request `resolve*Compat`/`detect*Compat` calls (anthropic ×11, responses ×3, completions wrappers), inline `strictResponsesPairing` host detection, the OpenCode `reasoning_content` mutation block, and all `resolvedBaseUrl` threading are gone. Compat is materialized once at model build time (`@oh-my-pi/pi-catalog` `buildModel`); the OpenCode thinking-mode quirk is a precomputed `compat.whenThinking` pointer swap, and request-time base-URL overrides only feed the HTTP client. Behavior is unchanged (the Anthropic `supportsLongCacheRetention` official-endpoint gate is folded into detection).
+- Protocol handlers are now pure `model.compat` readers — the per-request `resolve*Compat`/`detect*Compat` calls (anthropic ×11, responses ×3, completions wrappers), inline `strictResponsesPairing` host detection, the OpenCode `reasoning_content` mutation block, and all `resolvedBaseUrl` threading are gone. Compat is materialized once at model build time (`@dude1wudv/pi-catalog` `buildModel`); the OpenCode thinking-mode quirk is a precomputed `compat.whenThinking` pointer swap, and request-time base-URL overrides only feed the HTTP client. Behavior is unchanged (the Anthropic `supportsLongCacheRetention` official-endpoint gate is folded into detection).
 - Providers now read baked thinking/wire metadata instead of re-parsing model ids per request: the Anthropic handler gates sampling params on `model.compat.supportsSamplingParams` and adaptive `display` on `model.thinking.supportsDisplay` (Bedrock too), adaptive effort tiers come from the baked `thinking.effortMap`, the Google `thinkingLevel` map is static, and effort-dial-less reasoners (`thinking: undefined`, e.g. `xai-oauth/grok-build`) short-circuit `resolveOpenAiReasoningEffort` without the removed `modelOmitsReasoningEffort` predicate.
 - Anthropic streaming retries now use a 10-retry budget with the Anthropic-compatible 0.5s exponential backoff capped at 8s with jitter; server `retry-after` hints still win, and retryable pre-content failures such as 502s no longer stop after three tries.
 
@@ -1907,7 +1988,7 @@
 
 ### Breaking Changes
 
-- Renamed the OAuth subpath export `@oh-my-pi/pi-ai/utils/oauth` → `@oh-my-pi/pi-ai/oauth` (and `@oh-my-pi/pi-ai/utils/oauth/*` → `@oh-my-pi/pi-ai/oauth/*`, e.g. `oauth/types`, `oauth/callback-server`, `oauth/openai-codex`) after relocating the OAuth implementation out of `utils/oauth/` into `registry/oauth/`. The high-level OAuth API (`getOAuthProviders`, `refreshOAuthToken`, `getOAuthApiKey`, `registerOAuthProvider`, `unregisterOAuthProviders`, `getOAuthProvider`) and the `OAuth*` types stay exported from the package root, unchanged.
+- Renamed the OAuth subpath export `@dude1wudv/pi-ai/utils/oauth` → `@dude1wudv/pi-ai/oauth` (and `@dude1wudv/pi-ai/utils/oauth/*` → `@dude1wudv/pi-ai/oauth/*`, e.g. `oauth/types`, `oauth/callback-server`, `oauth/openai-codex`) after relocating the OAuth implementation out of `utils/oauth/` into `registry/oauth/`. The high-level OAuth API (`getOAuthProviders`, `refreshOAuthToken`, `getOAuthApiKey`, `registerOAuthProvider`, `unregisterOAuthProviders`, `getOAuthProvider`) and the `OAuth*` types stay exported from the package root, unchanged.
 
 ### Changed
 
@@ -2001,7 +2082,7 @@
 
 ### Added
 
-- Added a dependency-free `@oh-my-pi/pi-ai/effort` module exporting the `Effort` enum and `THINKING_EFFORTS`, split out of `model-thinking` so hot-path consumers can import the thinking levels without pulling in `model-thinking` and its provider-compat dependency graph. The package barrel still re-exports both names, so existing imports are unaffected.
+- Added a dependency-free `@dude1wudv/pi-ai/effort` module exporting the `Effort` enum and `THINKING_EFFORTS`, split out of `model-thinking` so hot-path consumers can import the thinking levels without pulling in `model-thinking` and its provider-compat dependency graph. The package barrel still re-exports both names, so existing imports are unaffected.
 
 ### Fixed
 
@@ -2452,9 +2533,9 @@
 ### Breaking Changes
 
 - Changed `AuthBrokerClient.fetchSnapshot()` to return status-based results (`200` or `304`) instead of always returning a raw snapshot body, so callers now need to branch on `status`
-- Renamed public schema utilities in `@oh-my-pi/pi-ai/utils/schema` by replacing `sanitizeSchemaForGoogle`, `sanitizeSchemaForCCA`, `prepareSchemaForCCA`, and `sanitizeSchemaForMCP` with `normalizeSchemaForGoogle`, `normalizeSchemaForCCA`, and `normalizeSchemaForMCP`
+- Renamed public schema utilities in `@dude1wudv/pi-ai/utils/schema` by replacing `sanitizeSchemaForGoogle`, `sanitizeSchemaForCCA`, `prepareSchemaForCCA`, and `sanitizeSchemaForMCP` with `normalizeSchemaForGoogle`, `normalizeSchemaForCCA`, and `normalizeSchemaForMCP`
 - Added MCP schema normalization via `normalizeSchemaForMCP` for compatibility checks
-- Removed the `StringEnum` helper from `@oh-my-pi/pi-ai/utils/schema`. Use `z.enum([...])` directly; Zod's emitted JSON Schema is already wire-compatible with Google and other providers.
+- Removed the `StringEnum` helper from `@dude1wudv/pi-ai/utils/schema`. Use `z.enum([...])` directly; Zod's emitted JSON Schema is already wire-compatible with Google and other providers.
 - Renamed the concrete SQLite credential store class from `AuthCredentialStore` to `SqliteAuthCredentialStore`. `AuthCredentialStore` is now the persistence interface implemented by both the SQLite store and the new `RemoteAuthCredentialStore`. Update `new AuthCredentialStore(db)` / `AuthCredentialStore.open(...)` call-sites to `SqliteAuthCredentialStore`; type-position uses (`store: AuthCredentialStore`) continue to work unchanged.
 
 ### Added
@@ -2471,7 +2552,7 @@
 - Added per-model `additional_rate_limits` parsing to `openaiCodexUsageProvider`. The Codex `wham/usage` endpoint surfaces a separate `GPT-5.3-Codex-Spark` rate limit (`metered_feature: codex_bengalfox`) on Pro accounts; these now emit dedicated `openai-codex:spark:{primary,secondary}` `UsageLimit` entries with `scope.tier = "spark"`, mirroring how Anthropic exposes `anthropic:7d:sonnet` separately from the umbrella `anthropic:7d` bucket. The osx-widgets client already keyed spark detection off `limit.id.includes("spark")`; this populates that contract end-to-end.
 - Added `GET /v1/usage` to the auth-broker API to expose aggregated usage reports from `AuthStorage.fetchUsageReports`
 - Added auth-broker usage polling response handling that returns normalized usage reports plus generation timestamp for clients (5-min per-credential cache via `AuthStorage`)
-- Added the auth-broker subsystem (`@oh-my-pi/pi-ai/auth-broker`) for sharing OAuth credentials across machines without leaking refresh tokens.
+- Added the auth-broker subsystem (`@dude1wudv/pi-ai/auth-broker`) for sharing OAuth credentials across machines without leaking refresh tokens.
 - `startAuthBroker(...)` boots a `Bun.serve` HTTP server exposing `GET /v1/healthz`, `GET /v1/snapshot`, `POST /v1/credential` (upsert), `POST /v1/credential/:id/refresh`, and `POST /v1/credential/:id/disable`.
 - `AuthBrokerClient` is the matching HTTP client used by remote clients.
 - `RemoteAuthCredentialStore` is a client-side `AuthCredentialStore` that mirrors a broker snapshot in memory; mutating methods (`replace*`, `upsert*`, `delete*ForProvider`) throw because writes are server-side only.
@@ -2480,14 +2561,14 @@
 - Added `AuthStorageOptions.refreshOAuthCredential` override so a remote-store client can route every OAuth refresh through the broker instead of the local OAuth endpoint.
 - Added `REMOTE_REFRESH_SENTINEL` (`"__remote__"`) — the wire placeholder substituted for OAuth refresh tokens in broker snapshots; clients never see the real refresh token.
 - Exposed the OAuth provider catalog (`getOAuthProviders`, `OAuthProvider`, `OAuthProviderInfo`) and `refreshOAuthToken` through the package barrel so the coding-agent CLI can target them without reaching into `utils/oauth`.
-- Added the auth-gateway subsystem (`@oh-my-pi/pi-ai/auth-gateway`) — a forward-proxy that sits between unauthenticated clients (the macOS usage widget, llm-git, robomp containers, …) and the broker. Clients send standard provider-format requests; the gateway parses them into omp's canonical `Context`, dispatches through pi-ai's `streamSimple()`, and translates the canonical event stream back to the matching wire format. `Authorization` is injected server-side so access tokens never leave the gateway host. Wire surface:
+- Added the auth-gateway subsystem (`@dude1wudv/pi-ai/auth-gateway`) — a forward-proxy that sits between unauthenticated clients (the macOS usage widget, llm-git, robomp containers, …) and the broker. Clients send standard provider-format requests; the gateway parses them into omp's canonical `Context`, dispatches through pi-ai's `streamSimple()`, and translates the canonical event stream back to the matching wire format. `Authorization` is injected server-side so access tokens never leave the gateway host. Wire surface:
 - `GET  /healthz` — unauth liveness.
 - `GET  /v1/usage` — aggregated provider usage; 5-min per-credential cache via `AuthStorage.fetchUsageReports`.
 - `GET  /v1/models` — model catalog (scoped to providers with credentials).
 - `POST /v1/chat/completions` — OpenAI chat-completions in/out.
 - `POST /v1/messages` — Anthropic messages in/out (text + thinking + tool_use blocks, SSE event taxonomy preserved).
 - `POST /v1/responses` — OpenAI Responses in/out (reasoning items + function_call output items, SSE pass-through).
-- Added exports from `@oh-my-pi/pi-ai/auth-gateway`: `startAuthGateway`, `AuthGatewayServerOptions`, `AuthGatewayBootOptions`, `AuthGatewayServerHandle`, `ModelResolver`, `DEFAULT_AUTH_GATEWAY_BIND`. Per-format `parseRequest` / `encodeResponse` / `encodeStream` triples are reachable via the `./providers/*` subpath as `openai-chat-server`, `anthropic-messages-server`, and `openai-responses-server`.
+- Added exports from `@dude1wudv/pi-ai/auth-gateway`: `startAuthGateway`, `AuthGatewayServerOptions`, `AuthGatewayBootOptions`, `AuthGatewayServerHandle`, `ModelResolver`, `DEFAULT_AUTH_GATEWAY_BIND`. Per-format `parseRequest` / `encodeResponse` / `encodeStream` triples are reachable via the `./providers/*` subpath as `openai-chat-server`, `anthropic-messages-server`, and `openai-responses-server`.
 - Added `listProvidersWithEnvKey()` to enumerate every provider with an env-var fallback (used by the new migrate command in coding-agent).
 
 ### Changed
@@ -2563,7 +2644,7 @@
 
 ### Breaking Changes
 
-- Removed TypeBox root exports (`Type`, `Static`, and `TSchema`) from the package entrypoint, so callers importing those symbols from `@oh-my-pi/pi-ai` must migrate to `zod` or `@oh-my-pi/pi-ai/types`
+- Removed TypeBox root exports (`Type`, `Static`, and `TSchema`) from the package entrypoint, so callers importing those symbols from `@dude1wudv/pi-ai` must migrate to `zod` or `@dude1wudv/pi-ai/types`
 
 ### Added
 
@@ -3660,7 +3741,7 @@
 ### Changed
 
 - Enhanced `getModelMapping()` to support both GitLab Duo alias IDs (e.g., `duo-chat-gpt-5-codex`) and canonical model IDs (e.g., `gpt-5-codex`) for improved model resolution flexibility
-- Migrated `AuthCredentialStore` and `AuthStorage` into `@oh-my-pi/pi-ai` as shared credential primitives for downstream packages
+- Migrated `AuthCredentialStore` and `AuthStorage` into `@dude1wudv/pi-ai` as shared credential primitives for downstream packages
 - Moved Anthropic auth helpers (`findAnthropicAuth`, `isOAuthToken`, `buildAnthropicSearchHeaders`, `buildAnthropicUrl`) into shared AI utilities for reuse across providers
 - Replaced `CliAuthStorage` with `AuthCredentialStore` for improved credential management with multiple credentials per provider
 - Updated models.json pricing for Claude 3.5 Sonnet (input: 0.23→0.45, output: 3→2.2, added cache read: 0.225) and Claude 3 Opus (input: 0.3→0.95)
@@ -4196,7 +4277,7 @@
 
 ### Changed
 
-- Replaced direct `process.env` access with `getEnv()` utility from `@oh-my-pi/pi-utils` for consistent environment variable handling across all providers
+- Replaced direct `process.env` access with `getEnv()` utility from `@dude1wudv/pi-utils` for consistent environment variable handling across all providers
 - Updated environment variable names from `OMP_*` prefix to `PI_*` prefix for consistency (e.g., `OMP_CODING_AGENT_DIR` → `PI_CODING_AGENT_DIR`)
 
 ### Removed
@@ -4988,7 +5069,7 @@ Initial release under @oh-my-pi scope. See previous releases at [badlogic/pi-mon
 
 ### Breaking Changes
 
-- **Agent API moved**: All agent functionality (`agentLoop`, `agentLoopContinue`, `AgentContext`, `AgentEvent`, `AgentTool`, `AgentToolResult`, etc.) has moved to `@oh-my-pi/pi-agent-core`. Import from that package instead of `@oh-my-pi/pi-ai`.
+- **Agent API moved**: All agent functionality (`agentLoop`, `agentLoopContinue`, `AgentContext`, `AgentEvent`, `AgentTool`, `AgentToolResult`, etc.) has moved to `@dude1wudv/pi-agent-core`. Import from that package instead of `@dude1wudv/pi-ai`.
 
 ### Added
 

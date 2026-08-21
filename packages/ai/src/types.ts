@@ -32,7 +32,7 @@ import type {
 	ShellResult,
 	WriteArgs,
 	WriteResult,
-} from "@dude1wudv/pi-catalog/discovery/cursor-gen/agent_pb";
+} from "@dude1wudv/pi-catalog/discovery/cursor-proto";
 import type { Effort } from "@dude1wudv/pi-catalog/effort";
 import { isOpenAIModelId } from "@dude1wudv/pi-catalog/identity/family";
 import type { Api, FetchImpl, KnownApi, Model, Provider, ThinkingBudgets, Usage } from "@dude1wudv/pi-catalog/types";
@@ -501,6 +501,8 @@ export interface StreamOptions {
 	providerSessionState?: Map<string, ProviderSessionState>;
 	/** Canonical Codex compaction classification; ignored by other providers. */
 	codexCompaction?: CodexCompactionRequestContext;
+	/** Codex Code Mode tool exposure snapshot emitted as `tool_namespaces_info` turn metadata; ignored by other providers. */
+	toolNamespacesInfo?: unknown;
 	/**
 	 * Optional per-provider concurrent request cap for LLM stream calls. Keys are
 	 * provider ids (`model.provider`); positive numeric values cap in-flight
@@ -716,8 +718,9 @@ export interface AnthropicFallbackContent {
 }
 
 /**
- * Verbatim Anthropic web-search call/result retained for same-provider
- * history replay. Other providers discard it in `transformMessages`.
+ * Verbatim Anthropic web-search or tool-search call/result retained for
+ * same-provider history replay. Other providers discard it in
+ * `transformMessages`.
  */
 export interface AnthropicServerToolContent {
 	type: "anthropicServerTool";
@@ -725,12 +728,12 @@ export interface AnthropicServerToolContent {
 		| {
 				type: "server_tool_use";
 				id: string;
-				name: "web_search";
+				name: "web_search" | "tool_search_tool_regex" | "tool_search_tool_bm25";
 				input?: Record<string, unknown> | null;
 				[key: string]: unknown;
 		  }
 		| {
-				type: "web_search_tool_result";
+				type: "web_search_tool_result" | "tool_search_tool_result";
 				tool_use_id: string;
 				content: unknown;
 				[key: string]: unknown;
@@ -885,6 +888,13 @@ export interface ContextSnapshot {
 	nonMessageTokens: number; // estimated non-message total at send time
 	/** Estimated prompt tokens removed by local history rewrites after this provider snapshot was recorded. */
 	historyRewriteTokensRemoved?: number;
+	/**
+	 * Compaction epoch current when this snapshot's provider request was recorded.
+	 * A later compaction bumps the session epoch, so an anchor whose epoch is
+	 * older than the current in-flight snapshot describes pre-compaction history
+	 * and must not override the rebased estimate.
+	 */
+	compactionEpoch?: number;
 	lastMessageTimestamp?: number;
 }
 

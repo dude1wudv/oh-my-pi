@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from "bun:test";
 import type { AgentMessage, SyntheticToolResultDetails } from "@dude1wudv/pi-agent-core";
 import type { AssistantMessage, ToolResultMessage } from "@dude1wudv/pi-ai";
 import * as AIError from "@dude1wudv/pi-ai/error";
+import { kCursorExecResolved } from "@dude1wudv/pi-ai/utils/block-symbols";
 import { getBundledModel } from "@dude1wudv/pi-catalog/models";
 import type { Model, Usage } from "@dude1wudv/pi-catalog/types";
 import { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry";
@@ -45,12 +46,24 @@ function createHost(
 		fallbackChains?: Record<string, string[]>;
 		textOutputCommitted?: boolean;
 		messages?: readonly AgentMessage[];
+		lastModelChangeRole?: string;
+		modelRoles?: Record<string, string>;
 	} = {},
 ): TurnRecoveryHost {
-	const settings = Settings.isolated(options.fallbackChains ? { "retry.fallbackChains": options.fallbackChains } : {});
+	const settings = Settings.isolated({
+		...(options.fallbackChains ? { "retry.fallbackChains": options.fallbackChains } : {}),
+		...(options.modelRoles ? { modelRoles: options.modelRoles } : {}),
+	});
+	if (options.modelRoles) {
+		for (const [role, selector] of Object.entries(options.modelRoles)) {
+			settings.setModelRole(role, selector);
+		}
+	}
 	return {
 		agent: (options.messages ? { state: { messages: options.messages } } : undefined) as never,
-		sessionManager: undefined as never,
+		sessionManager: {
+			getLastModelChangeRole: () => options.lastModelChangeRole,
+		} as never,
 		persistedAssistantEntryId: () => undefined,
 		settings,
 		modelRegistry,
@@ -94,6 +107,9 @@ describe("TurnRecovery replay-unsafe output classification", () => {
 	beforeAll(async () => {
 		tempDir = TempDir.createSync("@pi-turn-recovery-replay-");
 		authStorage = await AuthStorage.create(tempDir.join("testauth.db"));
+		// Live-role resolution (#liveRetryRoleHint) filters by provider auth;
+		// pin a runtime key so the test does not depend on host env credentials.
+		authStorage.setRuntimeApiKey("anthropic", "test-key");
 		modelRegistry = new ModelRegistry(authStorage, tempDir.join("models.yml"));
 	});
 
@@ -533,5 +549,180 @@ describe("TurnRecovery replay-unsafe output classification", () => {
 			const message = makeMessage([toolCall("call-1")], model);
 			expect(recoveryFor(message, [syntheticResult("call-1")]).isRetryableError(message)).toBe(false);
 		});
+	});
+
+	describe("HTTP/2 stream reset after resolved tool calls", () => {
+		const nghttp2Internal = "Stream closed with error code NGHTTP2_INTERNAL_ERROR";
+		const nghttp2Refused = "Stream closed with error code NGHTTP2_REFUSED_STREAM";
+		const stallMessage = "Provider stream stalled while waiting for the next event";
+
+		function cursorMessage(content: AssistantMessage["content"], errorMessage: string): AssistantMessage {
+			const message = makeMessage(content, model);
+			message.provider = "cursor";
+			message.errorMessage = errorMessage;
+			return message;
+		}
+
+		function execToolCall(id: string, marked = false): AssistantMessage["content"][number] {
+			const block: AssistantMessage["content"][number] = {
+				type: "toolCall",
+				id,
+				name: "bash",
+				arguments: { command: "pwd" },
+			};
+			if (marked) (block as { [kCursorExecResolved]?: true })[kCursorExecResolved] = true;
+			return block;
+		}
+
+		function mcpToolCall(id: string): AssistantMessage["content"][number] {
+			return {
+				type: "toolCall",
+				id,
+				name: "mcp__databricks_production_execute_sql",
+				arguments: { query: "SELECT 1" },
+			};
+		}
+
+		function realResult(toolCallId: string, toolName = "bash"): ToolResultMessage {
+			return {
+				role: "toolResult",
+				toolCallId,
+				toolName,
+				content: [{ type: "text", text: "/workspace" }],
+				isError: false,
+				timestamp: Date.now(),
+			};
+		}
+
+		function recoveryForReset(message: AssistantMessage, tail: readonly AgentMessage[]): TurnRecovery {
+			return new TurnRecovery(createHost(model, modelRegistry, { messages: [message as AgentMessage, ...tail] }));
+		}
+
+		it("continues a Cursor NGHTTP2_INTERNAL_ERROR after a marked exec result", () => {
+			const message = cursorMessage([execToolCall("call-1", true)], nghttp2Internal);
+			const recovery = recoveryForReset(message, [realResult("call-1")]);
+			expect(recovery.isRetryableError(message)).toBe(false);
+			expect(recovery.classifyResolvedInterruptedToolTurn(message)).toBe("stream-stall");
+		});
+
+		it("continues a Cursor NGHTTP2_REFUSED_STREAM after a marked exec result", () => {
+			const message = cursorMessage([execToolCall("call-1", true)], nghttp2Refused);
+			expect(recoveryForReset(message, [realResult("call-1")]).classifyResolvedInterruptedToolTurn(message)).toBe(
+				"stream-stall",
+			);
+		});
+
+		it("continues a Cursor HTTP/2 reset after an unmarked MCP result", () => {
+			const message = cursorMessage([mcpToolCall("mcp-1")], nghttp2Internal);
+			const recovery = recoveryForReset(message, [realResult("mcp-1", "mcp__databricks_production_execute_sql")]);
+			expect(recovery.classifyResolvedInterruptedToolTurn(message)).toBe("stream-stall");
+		});
+
+		it("continues a Cursor idle stall after an unmarked MCP call", () => {
+			const message = cursorMessage([mcpToolCall("mcp-1")], stallMessage);
+			const recovery = recoveryForReset(message, [realResult("mcp-1", "mcp__databricks_production_execute_sql")]);
+			expect(recovery.classifyResolvedInterruptedToolTurn(message)).toBe("stream-stall");
+		});
+
+		it("does not continue an HTTP/2 reset whose tool call has no result", () => {
+			const message = cursorMessage([execToolCall("call-1", true)], nghttp2Internal);
+			expect(recoveryForReset(message, []).classifyResolvedInterruptedToolTurn(message)).toBeUndefined();
+		});
+
+		it("does not continue an HTTP/2 CANCEL reset", () => {
+			const message = cursorMessage([execToolCall("call-1", true)], "Stream closed with error code NGHTTP2_CANCEL");
+			expect(
+				recoveryForReset(message, [realResult("call-1")]).classifyResolvedInterruptedToolTurn(message),
+			).toBeUndefined();
+		});
+
+		it("matches a Connect-wrapped NGHTTP2 close", () => {
+			const message = cursorMessage(
+				[mcpToolCall("mcp-1")],
+				"Connect error failed_precondition: Error: Stream closed with error code NGHTTP2_INTERNAL_ERROR",
+			);
+			expect(
+				recoveryForReset(message, [
+					realResult("mcp-1", "mcp__databricks_production_execute_sql"),
+				]).classifyResolvedInterruptedToolTurn(message),
+			).toBe("stream-stall");
+		});
+	});
+
+	it("maps an ephemeral fallback hop to the default chain instead of a shared later-listed role", () => {
+		const vision = getBundledModel("openai", "gpt-4o-mini");
+		if (!vision) throw new Error("Expected bundled model gpt-4o-mini");
+		const selector = `${model.provider}/${model.id}`;
+		const recovery = new TurnRecovery(
+			createHost(model, modelRegistry, {
+				lastModelChangeRole: "fallback",
+				modelRoles: {
+					default: selector,
+					vision: selector,
+				},
+				fallbackChains: {
+					vision: [`${vision.provider}/${vision.id}`],
+					default: [`${vision.provider}/${vision.id}`],
+				},
+			}),
+		);
+		expect(recovery.resolveRetryFallbackRole(selector, model)).toBe("default");
+	});
+
+	it("uses the live vision role when that role shares a model with default", () => {
+		const visionFallback = getBundledModel("openai", "gpt-4o-mini");
+		if (!visionFallback) throw new Error("Expected bundled model gpt-4o-mini");
+		const selector = `${model.provider}/${model.id}`;
+		const recovery = new TurnRecovery(
+			createHost(model, modelRegistry, {
+				lastModelChangeRole: "vision",
+				modelRoles: {
+					default: selector,
+					vision: selector,
+				},
+				fallbackChains: {
+					vision: [`${visionFallback.provider}/${visionFallback.id}`],
+					default: [`${visionFallback.provider}/${visionFallback.id}`],
+				},
+			}),
+		);
+		expect(recovery.resolveRetryFallbackRole(selector, model)).toBe("vision");
+	});
+
+	it("ignores a recorded role whose assignment no longer matches the active model", () => {
+		const vision = getBundledModel("openai", "gpt-4o-mini");
+		if (!vision) throw new Error("Expected bundled model gpt-4o-mini");
+		const selector = `${model.provider}/${model.id}`;
+		const recovery = new TurnRecovery(
+			createHost(model, modelRegistry, {
+				lastModelChangeRole: "vision",
+				modelRoles: {
+					default: selector,
+					vision: `${vision.provider}/${vision.id}`,
+				},
+				fallbackChains: {
+					vision: [`${vision.provider}/${vision.id}`],
+					default: [`${vision.provider}/${vision.id}`],
+				},
+			}),
+		);
+		expect(recovery.resolveRetryFallbackRole(selector, model)).toBe("default");
+	});
+
+	it("does not attach the default chain to a model that is not default's primary", () => {
+		const other = getBundledModel("openai", "gpt-4o-mini");
+		if (!other) throw new Error("Expected bundled model gpt-4o-mini");
+		const recovery = new TurnRecovery(
+			createHost(other, modelRegistry, {
+				lastModelChangeRole: "fallback",
+				modelRoles: {
+					default: `${model.provider}/${model.id}`,
+				},
+				fallbackChains: {
+					default: [`${model.provider}/${model.id}`],
+				},
+			}),
+		);
+		expect(recovery.resolveRetryFallbackRole(`${other.provider}/${other.id}`, other)).toBeUndefined();
 	});
 });

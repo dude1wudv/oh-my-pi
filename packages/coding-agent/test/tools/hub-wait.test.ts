@@ -110,62 +110,28 @@ describe("hub unified wait", () => {
 		expect(result.useless).toBe(true);
 	});
 
-	test("gated-only wait returns immediately without consuming the aggregate", async () => {
+	test("bare wait ignores a detached ref whose running status is stale", async () => {
 		const registry = AgentRegistry.global();
 		registry.register({ id: SELF_ID, displayName: "main", kind: "main", session: null });
-		const manager = new AsyncJobManager({ onJobComplete: () => {} });
-		const release = Promise.withResolvers<string>();
-		const gate = manager.createBatchGate({ ownerId: SELF_ID, wakeInterval: "off" });
-		const wakes: string[] = [];
-		manager.registerBatchDeliverySink(SELF_ID, snapshot => {
-			wakes.push(snapshot.reason ?? "unknown");
+		registry.register({
+			id: "Zombie",
+			displayName: "stale task",
+			kind: "sub",
+			parentId: SELF_ID,
+			session: null,
+			status: "running",
 		});
-		const jobId = manager.register("task", "gated task", async () => release.promise, {
-			ownerId: SELF_ID,
-			batchGate: gate,
-		});
-		const tool = new HubTool(makeSession(manager));
 
-		const result = await tool.execute("call_gated", { op: "wait", ids: [jobId] });
+		const manager = new AsyncJobManager({ onJobComplete: () => {} });
+		// `timeoutMs: 0` would block forever if the stale ref still opened the
+		// message-wait gate; the test times out instead of asserting.
+		const result = await new HubTool(makeSession(manager)).execute("call_4", { op: "wait", timeoutMs: 0 });
 		const text = result.content[0]?.type === "text" ? result.content[0].text : "";
-		expect(result.useless).toBe(true);
-		expect(text).toContain("Runtime owns this async task batch; no polling is needed.");
-		expect(manager.getJob(jobId)?.status).toBe("running");
 
-		release.resolve("done");
-		await manager.waitForAll();
-		expect(wakes).toEqual(["all-settled"]);
-	});
-
-	test("jobs snapshot does not acknowledge a settled job in an active gate", async () => {
-		const delivered: string[] = [];
-		const manager = new AsyncJobManager({ onJobComplete: () => {} });
-		manager.registerDeliverySink(SELF_ID, jobId => {
-			delivered.push(jobId);
-		});
-		const gate = manager.createBatchGate({ ownerId: SELF_ID, wakeInterval: "off" });
-		const settledId = manager.register("task", "settled child", async () => "done", {
-			ownerId: SELF_ID,
-			batchGate: gate,
-		});
-		const release = Promise.withResolvers<string>();
-		const runningId = manager.register("task", "running child", async () => release.promise, {
-			ownerId: SELF_ID,
-			batchGate: gate,
-		});
-		await manager.getJob(settledId)?.promise;
-
-		expect(manager.isJobInActiveBatch(settledId)).toBe(true);
-		const tool = new HubTool(makeSession(manager));
-		const result = await tool.execute("call_jobs", { op: "jobs" });
-		expect((result.details as CoordinationDetails).jobs?.map(job => job.id)).toEqual([settledId, runningId]);
-		expect(manager.isJobInActiveBatch(settledId)).toBe(true);
-
-		manager.closeBatchGate(gate);
-		expect(manager.isDeliverySuppressed(settledId)).toBe(false);
-		await manager.drainDeliveries({ timeoutMs: 2_000 });
-		expect(delivered).toContain(settledId);
-		release.resolve("done");
-		await manager.waitForAll();
+		expect(text).toContain("No running background jobs to wait for.");
+		// The stale ref is reported (not silently dropped): it is the only handle
+		// the caller has for clearing it with `hub cancel`.
+		expect(text).toContain("Zombie");
+		expect(text).toContain("no turn in flight");
 	});
 });
