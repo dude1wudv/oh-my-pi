@@ -78,6 +78,12 @@ interface PackageManifest {
 	files?: JsonValue[];
 	optionalDependencies?: JsonObject;
 }
+function applyPublishRepository(manifest: PackageManifest): void {
+	const publishRepository = process.env.GITHUB_REPOSITORY;
+	if (publishRepository) {
+		manifest.repository = { type: "git", url: `https://github.com/${publishRepository}` };
+	}
+}
 
 const repoRoot = path.join(import.meta.dir, "..");
 const isDryRun = process.argv.includes("--dry-run");
@@ -225,6 +231,7 @@ export async function rewriteManifest(pkg: PublishPackage, write: boolean): Prom
 		if (!hasDist && !files.includes(extra)) files.push(extra);
 	}
 	manifest.files = files;
+	applyPublishRepository(manifest);
 	if (write) await Bun.write(manifestPath, `${JSON.stringify(manifest, null, "\t")}\n`);
 	return manifest;
 }
@@ -289,7 +296,7 @@ export async function prepareNativeCorePackage(pkgDir: string, write: boolean): 
 	const manifest = (await Bun.file(manifestPath).json()) as PackageManifest;
 	if (typeof manifest.version !== "string") throw new Error(`Missing version in ${manifestPath}`);
 	const legalFiles = await stageLegalPayloads(pkgDir, manifest.license, write);
-	manifest.optionalDependencies = buildNativeOptionalDependencies(manifest.version);
+	applyPublishRepository(manifest);
 	manifest.files = [
 		"native/index.js",
 		"native/index.d.ts",
@@ -404,6 +411,12 @@ export function isVersionAlreadyPublished(output: string): boolean {
 }
 
 async function publishGeneratedLeafPackage(leaf: GeneratedLeafPackage): Promise<void> {
+	if (!isDryRun) {
+		const manifestPath = path.join(leaf.dir, "package.json");
+		const manifest = (await Bun.file(manifestPath).json()) as PackageManifest;
+		applyPublishRepository(manifest);
+		await Bun.write(manifestPath, `${JSON.stringify(manifest, null, "\t")}\n`);
+	}
 	await packAndPublish(leaf.dir, leaf.manifest.name);
 }
 
