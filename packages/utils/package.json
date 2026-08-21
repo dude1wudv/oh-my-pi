@@ -1,7 +1,7 @@
 {
 	"type": "module",
 	"name": "@dude1wudv/pi-utils",
-	"version": "20.1.6",
+	"version": "20.1.8",
 	"description": "Shared utilities for pi packages",
 	"homepage": "https://omp.sh",
 	"author": "Stencil Labs, Inc.",

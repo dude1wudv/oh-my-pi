@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [20.1.8] - 2026-08-21
+
 ### Added
 
 - Added helper functions and constants for reading enterprise ChatGPT workspace data-residency regions from Codex OAuth access tokens and forwarding the residency header to Codex backend endpoints.

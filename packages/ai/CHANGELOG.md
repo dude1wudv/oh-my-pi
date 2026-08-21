@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [20.1.8] - 2026-08-21
+
 ### Added
 
 - Added Codex Responses support for Code Mode, preserving tool modes and passing tool namespace metadata during sessions.

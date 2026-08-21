@@ -270,8 +270,14 @@ export async function applyPublishBin(pkgRelDir: string, write: boolean): Promis
 }
 
 function buildNativeOptionalDependencies(version: string): JsonObject {
+	const requestedTags = Bun.env.OMP_NATIVE_LEAF_TAGS?.split(",").filter(Boolean);
+	if (requestedTags) {
+		const unknownTags = requestedTags.filter(tag => !LEAF_TARGETS.some(target => target.tag === tag));
+		if (unknownTags.length > 0) throw new Error(`Unknown native leaf tag(s): ${unknownTags.join(", ")}`);
+	}
+	const targets = requestedTags ? LEAF_TARGETS.filter(target => requestedTags.includes(target.tag)) : LEAF_TARGETS;
 	const optionalDependencies: JsonObject = {};
-	for (const target of LEAF_TARGETS) {
+	for (const target of targets) {
 		optionalDependencies[`@dude1wudv/pi-natives-${target.tag}`] = version;
 	}
 	return optionalDependencies;

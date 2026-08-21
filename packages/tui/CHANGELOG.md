@@ -2,6 +2,8 @@
 
 ## [Unreleased]
 
+## [20.1.8] - 2026-08-21
+
 ### Added
 
 - Added optional `getNativeScrollbackLiveRegionPinnedStart()` hook to allow nested transcripts to pin a later dashboard without shifting the earliest live seam.
