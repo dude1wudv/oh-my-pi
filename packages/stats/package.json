@@ -23,7 +23,7 @@
 		"statistics"
 	],
 	"main": "./src/index.ts",
-	"types": "./dist/types/index.d.ts",
+	"types": "./src/index.ts",
 	"bin": {
 		"omp-stats": "./src/index.ts"
 	},
@@ -70,23 +70,23 @@
 	],
 	"exports": {
 		".": {
-			"types": "./dist/types/index.d.ts",
+			"types": "./src/index.ts",
 			"import": "./src/index.ts"
 		},
 		"./*": {
-			"types": "./dist/types/*.d.ts",
+			"types": "./src/*.ts",
 			"import": "./src/*.ts"
 		},
 		"./client": {
-			"types": "./dist/types/client/index.d.ts",
+			"types": "./src/client/index.tsx",
 			"import": "./src/client/index.tsx"
 		},
 		"./client/*": {
-			"types": "./dist/types/client/*.d.ts",
+			"types": "./src/client/*.ts",
 			"import": "./src/client/*.ts"
 		},
 		"./client/components/*": {
-			"types": "./dist/types/client/components/*.d.ts",
+			"types": "./src/client/components/*.ts",
 			"import": "./src/client/components/*.ts"
 		},
 		"./*.js": "./src/*.ts"

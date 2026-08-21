@@ -262,6 +262,7 @@ export class PrewalkCoordinator {
 			enabled: previousEnabledTools.filter(name => !isMCPToolName(name)),
 			mounted: previousMountedTools.filter(name => !isMCPToolName(name)),
 		};
+		const planFilePath = this.#host.getPlanReferencePath();
 		this.#host.setPlanModeState({
 			enabled: true,
 			planFilePath:

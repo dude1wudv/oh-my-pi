@@ -1,5 +1,4 @@
 import { afterEach, beforeAll, describe, expect, it, vi } from "bun:test";
-import type { StoppingCriteria, TextGenerationPipeline } from "@huggingface/transformers";
 import type { Api, Model } from "@dude1wudv/pi-ai";
 import * as ai from "@dude1wudv/pi-ai";
 import { getBundledModel } from "@dude1wudv/pi-catalog/models";
@@ -30,6 +29,7 @@ import {
 } from "@dude1wudv/pi-coding-agent/tiny/title-client";
 import type { TinyTitleWorkerInbound, TinyTitleWorkerOutbound } from "@dude1wudv/pi-coding-agent/tiny/title-protocol";
 import { generateSessionTitle } from "@dude1wudv/pi-coding-agent/utils/title-generator";
+import type { StoppingCriteria, TextGenerationPipeline } from "@huggingface/transformers";
 import type { Subprocess } from "bun";
 import { buildCompletionPrompt } from "../src/tiny/completion-prompt";
 import { createStopOnTextCriteria, type TransformersRuntime } from "../src/tiny/worker";

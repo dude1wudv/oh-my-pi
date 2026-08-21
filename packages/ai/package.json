@@ -27,7 +27,7 @@
 		"api"
 	],
 	"main": "./src/index.ts",
-	"types": "./dist/types/index.d.ts",
+	"types": "./src/index.ts",
 	"scripts": {
 		"check": "biome check . && bun run check:types",
 		"check:types": "tsgo -p tsconfig.json --noEmit",
@@ -56,79 +56,79 @@
 	],
 	"exports": {
 		".": {
-			"types": "./dist/types/index.d.ts",
+			"types": "./src/index.ts",
 			"import": "./src/index.ts"
 		},
 		"./error": {
-			"types": "./dist/types/error/index.d.ts",
+			"types": "./src/error/index.ts",
 			"import": "./src/error/index.ts"
 		},
 		"./*": {
-			"types": "./dist/types/*.d.ts",
+			"types": "./src/*.ts",
 			"import": "./src/*.ts"
 		},
 		"./auth-broker": {
-			"types": "./dist/types/auth-broker/index.d.ts",
+			"types": "./src/auth-broker/index.ts",
 			"import": "./src/auth-broker/index.ts"
 		},
 		"./auth-broker/*": {
-			"types": "./dist/types/auth-broker/*.d.ts",
+			"types": "./src/auth-broker/*.ts",
 			"import": "./src/auth-broker/*.ts"
 		},
 		"./auth-gateway": {
-			"types": "./dist/types/auth-gateway/index.d.ts",
+			"types": "./src/auth-gateway/index.ts",
 			"import": "./src/auth-gateway/index.ts"
 		},
 		"./auth-gateway/*": {
-			"types": "./dist/types/auth-gateway/*.d.ts",
+			"types": "./src/auth-gateway/*.ts",
 			"import": "./src/auth-gateway/*.ts"
 		},
 		"./providers/*": {
-			"types": "./dist/types/providers/*.d.ts",
+			"types": "./src/providers/*.ts",
 			"import": "./src/providers/*.ts"
 		},
 		"./providers/openai-codex/*": {
-			"types": "./dist/types/providers/openai-codex/*.d.ts",
+			"types": "./src/providers/openai-codex/*.ts",
 			"import": "./src/providers/openai-codex/*.ts"
 		},
 		"./usage/*": {
-			"types": "./dist/types/usage/*.d.ts",
+			"types": "./src/usage/*.ts",
 			"import": "./src/usage/*.ts"
 		},
 		"./utils/harmony-leak": {
-			"types": "./dist/types/utils/harmony-leak.d.ts",
+			"types": "./src/utils/harmony-leak.ts",
 			"import": "./src/utils/harmony-leak.ts"
 		},
 		"./dialect": {
-			"types": "./dist/types/dialect/index.d.ts",
+			"types": "./src/dialect/index.ts",
 			"import": "./src/dialect/index.ts"
 		},
 		"./utils/*": {
-			"types": "./dist/types/utils/*.d.ts",
+			"types": "./src/utils/*.ts",
 			"import": "./src/utils/*.ts"
 		},
 		"./oauth": {
-			"types": "./dist/types/registry/oauth/index.d.ts",
+			"types": "./src/registry/oauth/index.ts",
 			"import": "./src/registry/oauth/index.ts"
 		},
 		"./oauth/*": {
-			"types": "./dist/types/registry/oauth/*.d.ts",
+			"types": "./src/registry/oauth/*.ts",
 			"import": "./src/registry/oauth/*.ts"
 		},
 		"./registry": {
-			"types": "./dist/types/registry/index.d.ts",
+			"types": "./src/registry/index.ts",
 			"import": "./src/registry/index.ts"
 		},
 		"./registry/oauth": {
-			"types": "./dist/types/registry/oauth/index.d.ts",
+			"types": "./src/registry/oauth/index.ts",
 			"import": "./src/registry/oauth/index.ts"
 		},
 		"./utils/schema": {
-			"types": "./dist/types/utils/schema/index.d.ts",
+			"types": "./src/utils/schema/index.ts",
 			"import": "./src/utils/schema/index.ts"
 		},
 		"./utils/schema/*": {
-			"types": "./dist/types/utils/schema/*.d.ts",
+			"types": "./src/utils/schema/*.ts",
 			"import": "./src/utils/schema/*.ts"
 		},
 		"./*.js": "./src/*.ts"

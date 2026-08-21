@@ -22,7 +22,7 @@
 		"discovery"
 	],
 	"main": "./src/index.ts",
-	"types": "./dist/types/index.d.ts",
+	"types": "./src/index.ts",
 	"scripts": {
 		"check": "biome check . && bun run check:types",
 		"check:types": "tsgo -p tsconfig.json --noEmit",
@@ -52,47 +52,47 @@
 	],
 	"exports": {
 		".": {
-			"types": "./dist/types/index.d.ts",
+			"types": "./src/index.ts",
 			"import": "./src/index.ts"
 		},
 		"./models.json": {
-			"types": "./dist/types/models.json.d.d.ts",
+			"types": "./src/models.json",
 			"import": "./src/models.json"
 		},
 		"./provider-models": {
-			"types": "./dist/types/provider-models/index.d.ts",
+			"types": "./src/provider-models/index.ts",
 			"import": "./src/provider-models/index.ts"
 		},
 		"./provider-models/*": {
-			"types": "./dist/types/provider-models/*.d.ts",
+			"types": "./src/provider-models/*.ts",
 			"import": "./src/provider-models/*.ts"
 		},
 		"./discovery": {
-			"types": "./dist/types/discovery/index.d.ts",
+			"types": "./src/discovery/index.ts",
 			"import": "./src/discovery/index.ts"
 		},
 		"./discovery/*": {
-			"types": "./dist/types/discovery/*.d.ts",
+			"types": "./src/discovery/*.ts",
 			"import": "./src/discovery/*.ts"
 		},
 		"./identity": {
-			"types": "./dist/types/identity/index.d.ts",
+			"types": "./src/identity/index.ts",
 			"import": "./src/identity/index.ts"
 		},
 		"./identity/*": {
-			"types": "./dist/types/identity/*.d.ts",
+			"types": "./src/identity/*.ts",
 			"import": "./src/identity/*.ts"
 		},
 		"./wire/*": {
-			"types": "./dist/types/wire/*.d.ts",
+			"types": "./src/wire/*.ts",
 			"import": "./src/wire/*.ts"
 		},
 		"./compat/*": {
-			"types": "./dist/types/compat/*.d.ts",
+			"types": "./src/compat/*.ts",
 			"import": "./src/compat/*.ts"
 		},
 		"./*": {
-			"types": "./dist/types/*.d.ts",
+			"types": "./src/*.ts",
 			"import": "./src/*.ts"
 		},
 		"./*.js": "./src/*.ts"

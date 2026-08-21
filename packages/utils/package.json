@@ -21,7 +21,7 @@
 		"streams"
 	],
 	"main": "./src/index.ts",
-	"types": "./dist/types/index.d.ts",
+	"types": "./src/index.ts",
 	"scripts": {
 		"check": "biome check . && bun run check:types",
 		"check:types": "tsgo -p tsconfig.json --noEmit",
@@ -47,7 +47,7 @@
 	],
 	"exports": {
 		".": {
-			"types": "./dist/types/index.d.ts",
+			"types": "./src/index.ts",
 			"import": "./src/index.ts"
 		},
 		"./ar": {
@@ -55,7 +55,7 @@
 			"import": "./src/ar/index.ts"
 		},
 		"./*": {
-			"types": "./dist/types/*.d.ts",
+			"types": "./src/*.ts",
 			"import": "./src/*.ts"
 		},
 		"./*.js": "./src/*.ts"

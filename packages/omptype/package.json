@@ -21,7 +21,7 @@
 		"jit"
 	],
 	"main": "./dist/js/index.js",
-	"types": "./dist/types/index.d.ts",
+	"types": "./src/index.ts",
 	"scripts": {
 		"check": "biome check . && bun run check:types",
 		"check:types": "tsgo -p tsconfig.json --noEmit",
@@ -53,17 +53,17 @@
 	],
 	"exports": {
 		".": {
-			"types": "./dist/types/index.d.ts",
+			"types": "./src/index.ts",
 			"bun": "./src/index.ts",
 			"default": "./dist/js/index.js"
 		},
 		"./*": {
-			"types": "./dist/types/*.d.ts",
+			"types": "./src/*.ts",
 			"bun": "./src/*.ts",
 			"default": "./dist/js/*.js"
 		},
 		"./*.js": {
-			"types": "./dist/types/*.d.ts",
+			"types": "./src/*.ts",
 			"bun": "./src/*.ts",
 			"default": "./dist/js/*.js"
 		}

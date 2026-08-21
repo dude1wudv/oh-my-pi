@@ -26,7 +26,7 @@
 	],
 	"main": "./src/index.ts",
 	"module": "./src/index.ts",
-	"types": "./dist/types/index.d.ts",
+	"types": "./src/index.ts",
 	"bin": {
 		"mnemopi": "src/cli.ts"
 	},
@@ -72,35 +72,35 @@
 	],
 	"exports": {
 		".": {
-			"types": "./dist/types/index.d.ts",
+			"types": "./src/index.ts",
 			"import": "./src/index.ts"
 		},
 		"./core": {
-			"types": "./dist/types/core/index.d.ts",
+			"types": "./src/core/index.ts",
 			"import": "./src/core/index.ts"
 		},
 		"./core/beam": {
-			"types": "./dist/types/core/beam/index.d.ts",
+			"types": "./src/core/beam/index.ts",
 			"import": "./src/core/beam/index.ts"
 		},
 		"./beam": {
-			"types": "./dist/types/core/beam/index.d.ts",
+			"types": "./src/core/beam/index.ts",
 			"import": "./src/core/beam/index.ts"
 		},
 		"./diagnose": {
-			"types": "./dist/types/diagnose.d.ts",
+			"types": "./src/diagnose.ts",
 			"import": "./src/diagnose.ts"
 		},
 		"./mcp": {
-			"types": "./dist/types/mcp-tools.d.ts",
+			"types": "./src/mcp-tools.ts",
 			"import": "./src/mcp-tools.ts"
 		},
 		"./cli": {
-			"types": "./dist/types/cli.d.ts",
+			"types": "./src/cli.ts",
 			"import": "./src/cli.ts"
 		},
 		"./*": {
-			"types": "./dist/types/*.d.ts",
+			"types": "./src/*.ts",
 			"import": "./src/*.ts"
 		},
 		"./*.js": "./src/*.ts"

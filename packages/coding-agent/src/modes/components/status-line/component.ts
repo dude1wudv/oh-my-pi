@@ -8,6 +8,7 @@ import {
 	padding,
 	truncateToWidth,
 	visibleWidth,
+	wrapTextWithAnsi,
 } from "@dude1wudv/pi-tui";
 import { adjustHsv, formatNumber, getProjectDir } from "@dude1wudv/pi-utils";
 import { settings } from "../../../config/settings";
@@ -1810,6 +1811,13 @@ export class StatusLineComponent implements Component {
 		previewTitle?: string,
 	): string {
 		const effectiveSettings = this.#resolveSettings();
+		const losslessSegmentOptions: StatusLineSettings["segmentOptions"] = {
+			...effectiveSettings.segmentOptions,
+			path: {
+				...effectiveSettings.segmentOptions.path,
+				maxLength: 32_768,
+			},
+		};
 		const plain = layout !== "box";
 		const includePath =
 			hasPathSegment(effectiveSettings.leftSegments) || hasPathSegment(effectiveSettings.rightSegments);
@@ -1906,8 +1914,6 @@ export class StatusLineComponent implements Component {
 				capWidth
 			);
 		};
-		const leftWidth = groupWidth(leftParts, leftCapWidth, leftSepWidth);
-		const rightWidth = groupWidth(rightParts, rightCapWidth, rightSepWidth);
 
 		let leftWidth = groupWidth(left, leftCapWidth, leftSepWidth);
 		let rightWidth = groupWidth(right, rightCapWidth, rightSepWidth);

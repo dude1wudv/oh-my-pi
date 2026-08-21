@@ -27,7 +27,7 @@
 		"syntax-highlighting"
 	],
 	"main": "./native/index.js",
-	"types": "./native/index.d.ts",
+	"types": "./native/index.js",
 	"scripts": {
 		"build": "bun ../../scripts/bazel-natives.ts host --dest native",
 		"build:bindings": "bun scripts/build-bindings.ts",
@@ -79,11 +79,11 @@
 			"import": "./native/index.js"
 		},
 		"./desktop": {
-			"types": "./native/desktop.d.ts",
+			"types": "./native/desktop.js",
 			"import": "./native/desktop.js"
 		},
 		"./clipboard": {
-			"types": "./native/clipboard.d.ts",
+			"types": "./native/clipboard.js",
 			"import": "./native/clipboard.js"
 		}
 	},

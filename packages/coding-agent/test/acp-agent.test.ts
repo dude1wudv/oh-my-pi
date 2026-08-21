@@ -6,7 +6,6 @@ import type { Model } from "@dude1wudv/pi-ai";
 import { buildModel } from "@dude1wudv/pi-catalog/build";
 import { resetSettingsForTest, Settings } from "@dude1wudv/pi-coding-agent/config/settings";
 import type { ExtensionUIContext } from "@dude1wudv/pi-coding-agent/extensibility/extensions";
-import { resolveLocalUrlToPath } from "@dude1wudv/pi-coding-agent/internal-urls";
 import {
 	ACP_BOOTSTRAP_RACE_GUARD_MS,
 	AcpAgent,

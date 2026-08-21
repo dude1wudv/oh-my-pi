@@ -47,6 +47,7 @@ function createSession(
 		settings?: Record<string, unknown>;
 		agentId?: string;
 		planMode?: boolean;
+		planReferencePath?: string;
 		spawns?: string;
 	} = {},
 ): ToolSession {

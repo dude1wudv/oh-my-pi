@@ -7,7 +7,10 @@ import { ModelRegistry } from "@dude1wudv/pi-coding-agent/config/model-registry"
 import { Settings } from "@dude1wudv/pi-coding-agent/config/settings";
 import { AuthStorage } from "@dude1wudv/pi-coding-agent/session/auth-storage";
 import type { CompactionMethod } from "@dude1wudv/pi-coding-agent/session/compaction-methods";
-import { SessionMaintenance, type SessionMaintenanceHost } from "@dude1wudv/pi-coding-agent/session/session-maintenance";
+import {
+	SessionMaintenance,
+	type SessionMaintenanceHost,
+} from "@dude1wudv/pi-coding-agent/session/session-maintenance";
 import { SessionManager } from "@dude1wudv/pi-coding-agent/session/session-manager";
 import * as snapcompactModule from "@dude1wudv/snapcompact";
 

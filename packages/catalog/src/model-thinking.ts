@@ -27,6 +27,7 @@ import {
 	isDeepseekV4FlashModelId,
 	isGlm52ReasoningEffortModelId,
 	isGlm53ReasoningEffortModelId,
+	isGrokReasoningEffortCapable,
 	isGrokXHighEffortCapable,
 	isKimiK3ModelId,
 	isMimoModelIdOrName,
@@ -189,7 +190,15 @@ function fillThinkingWireDefaults<TApi extends Api>(
 		(impliesMandatoryReasoning(parsed, spec.id) || isQwenTemplateReasoningEffortCompat(compat));
 	const needsDefaultLevel =
 		thinking.defaultLevel === undefined && (isKimiK3ModelId(spec.id) || isGlm53ReasoningEffortModelId(spec.id));
-	if (!effortsChanged && !shouldReplaceEffortMap && !needsDisplay && !needsRequiresEffort && !needsDefaultLevel) {
+	const needsGrokDefaultLevel = thinking.defaultLevel === undefined && isGrokReasoningEffortCapable(spec.id);
+	if (
+		!effortsChanged &&
+		!shouldReplaceEffortMap &&
+		!needsDisplay &&
+		!needsRequiresEffort &&
+		!needsDefaultLevel &&
+		!needsGrokDefaultLevel
+	) {
 		return thinking;
 	}
 	const filled: ThinkingConfig = { ...thinking };
@@ -206,7 +215,7 @@ function fillThinkingWireDefaults<TApi extends Api>(
 	if (needsDisplay) {
 		filled.supportsDisplay = true;
 	}
-	if (needsKimiDefaultLevel) {
+	if (needsDefaultLevel) {
 		filled.defaultLevel = Effort.Max;
 	}
 	if (needsGrokDefaultLevel) {

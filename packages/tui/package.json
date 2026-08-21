@@ -27,7 +27,7 @@
 		"cli"
 	],
 	"main": "./src/index.ts",
-	"types": "./dist/types/index.d.ts",
+	"types": "./src/index.ts",
 	"scripts": {
 		"check": "biome check . && bun run check:types",
 		"check:types": "tsgo -p tsconfig.json --noEmit",
@@ -54,15 +54,15 @@
 	],
 	"exports": {
 		".": {
-			"types": "./dist/types/index.d.ts",
+			"types": "./src/index.ts",
 			"import": "./src/index.ts"
 		},
 		"./*": {
-			"types": "./dist/types/*.d.ts",
+			"types": "./src/*.ts",
 			"import": "./src/*.ts"
 		},
 		"./components/*": {
-			"types": "./dist/types/components/*.d.ts",
+			"types": "./src/components/*.ts",
 			"import": "./src/components/*.ts"
 		},
 		"./*.js": "./src/*.ts"
