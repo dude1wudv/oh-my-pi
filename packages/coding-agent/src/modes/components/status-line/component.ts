@@ -1859,7 +1859,10 @@ export class StatusLineComponent implements Component {
 		for (const segId of leftSegmentIds) {
 			if (subagentBadge && segId === "subagents") continue;
 			const rendered = renderSegment(segId, ctx);
-			if (rendered.visible && rendered.content) leftParts.push(rendered.content);
+			if (rendered.visible && rendered.content) {
+				leftParts.push(rendered.content);
+				leftSegIds.push(segId);
+			}
 		}
 
 		const rightParts: string[] = [];
@@ -1936,8 +1939,30 @@ export class StatusLineComponent implements Component {
 					rightWidth = groupWidth(right, rightCapWidth, rightSepWidth);
 				}
 			}
+			const rightOverflowDropIndex = (): number | null => {
+				const prefixLength = right.length - rightSegIds.length;
+				const lowPrioritySegments = [
+					"cache_hit",
+					"cost",
+					"session_name",
+					"token_in",
+					"token_out",
+					"token_total",
+				] as const;
+				for (const segmentId of lowPrioritySegments) {
+					const segmentIndex = rightSegIds.indexOf(segmentId);
+					if (segmentIndex >= 0) return prefixLength + segmentIndex;
+				}
+				return null;
+			};
 			while (totalWidth() > topFillWidth && right.length > 0) {
-				right.pop();
+				const prefixLength = right.length - rightSegIds.length;
+				const dropIdx = rightOverflowDropIndex();
+				if (dropIdx === null) break;
+				right.splice(dropIdx, 1);
+				if (dropIdx >= prefixLength && rightSegIds.length > 0) {
+					rightSegIds.splice(dropIdx - prefixLength, 1);
+				}
 				rightWidth = groupWidth(right, rightCapWidth, rightSepWidth);
 			}
 			// Shrink path before dropping left segments — path is the only elastic segment
@@ -1974,12 +1999,10 @@ export class StatusLineComponent implements Component {
 				}
 			}
 			const leftOverflowDropIndex = (): number => {
-				// Preserve the current working directory as long as possible. The
-				// previous right-to-left pop could collapse a normal-width bar to
-				// just the model segment, hiding the path before less-critical left
-				// segments such as model/mode/collab were removed.
-				for (let i = leftSegIds.length - 1; i >= 0; i--) {
-					if (leftSegIds[i] !== "path") return i;
+				const lowPrioritySegments = ["cost", "pr", "git", "path", "collab", "mode", "model", "pi"] as const;
+				for (const segmentId of lowPrioritySegments) {
+					const segmentIndex = leftSegIds.indexOf(segmentId);
+					if (segmentIndex >= 0) return segmentIndex;
 				}
 				return left.length - 1;
 			};
@@ -2008,9 +2031,9 @@ export class StatusLineComponent implements Component {
 			return direction === "right" ? capText + content : content + capText;
 		};
 
-		const leftGroup = renderGroup(leftParts, "left");
-		const rightGroup = renderGroup(rightParts, "right");
-		const combinedWidth = leftWidth + rightWidth + (leftParts.length > 0 && rightParts.length > 0 ? 1 : 0);
+		const leftGroup = renderGroup(left, "left");
+		const rightGroup = renderGroup(right, "right");
+		const combinedWidth = leftWidth + rightWidth + (left.length > 0 && right.length > 0 ? 1 : 0);
 		let rows: string[];
 		if (combinedWidth <= width) {
 			if (leftGroup && rightGroup) {
@@ -2036,7 +2059,7 @@ export class StatusLineComponent implements Component {
 			const compactSeparatorWidth = visibleWidth(compactSeparator);
 			rows = [];
 			let current = "";
-			for (const chunk of [...leftParts, ...rightParts]) {
+			for (const chunk of [...left, ...right]) {
 				const chunkWidth = visibleWidth(chunk);
 				if (chunkWidth > width) {
 					if (current) {

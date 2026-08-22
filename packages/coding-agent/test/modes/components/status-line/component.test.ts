@@ -19,9 +19,16 @@ function makeSessionWithLastMessage(
 	{
 		cost = 0,
 		advisorCost = 0,
+		tokensPerSecond = null,
 		usingSubscription = false,
 		advisorUsingSubscription = false,
-	}: { cost?: number; advisorCost?: number; usingSubscription?: boolean; advisorUsingSubscription?: boolean } = {},
+	}: {
+		cost?: number;
+		advisorCost?: number;
+		tokensPerSecond?: number | null;
+		usingSubscription?: boolean;
+		advisorUsingSubscription?: boolean;
+	} = {},
 ) {
 	return {
 		messages: lastMessage ? [lastMessage] : [],
@@ -47,7 +54,7 @@ function makeSessionWithLastMessage(
 				orchestrationCacheRead: 0,
 				premiumRequests: 0,
 				cost,
-				tokensPerSecond: null,
+				tokensPerSecond,
 			}),
 			getSessionName: () => "test-session",
 		},
@@ -99,10 +106,30 @@ describe("StatusLineComponent", () => {
 
 		// By default preset, 'mode' segment is included in left/right segments.
 		// Let's get the border and see if Prewalk is rendered.
-		const footer = statusLine.render(100).join("\n");
+		const footer = statusLine.getTopBorder(100).content;
 		// SGR codes might be included, so we check if the stripped content contains "Prewalk"
 		const stripped = footer.replace(/\x1b\[[0-9;]*m/g, "");
 		expect(stripped).toContain("Prewalk");
+	});
+	it("keeps context, TTFT, and TPS visible in a narrow terminal", () => {
+		const statusLine = new StatusLineComponent(
+			makeSessionWithLastMessage(
+				{
+					role: "assistant",
+					timestamp: Date.now() - 2_000,
+					duration: 2_000,
+					ttft: 845,
+					usage: { output: 100 },
+				},
+				false,
+				{ tokensPerSecond: 50 },
+			) as unknown as AgentSession,
+		);
+
+		const stripped = statusLine.getTopBorder(80).content.replace(/\x1b\[[0-9;]*m/g, "");
+		expect(stripped).toContain("0.0%/128K");
+		expect(stripped).toContain("TTFT 845ms");
+		expect(stripped).toContain("50.0 tok/s");
 	});
 	it("renders primary and advisor costs separately with subscription indicator in Unicode preset", () => {
 		const statusLine = new StatusLineComponent(
