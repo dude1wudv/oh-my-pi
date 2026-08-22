@@ -2,7 +2,7 @@
 	"type": "module",
 	"private": true,
 	"name": "@dude1wudv/typescript-edit-benchmark",
-	"version": "20.1.6",
+	"version": "20.1.9",
 	"description": "Edit benchmark suite using TypeScript source code mutations",
 	"homepage": "https://omp.sh",
 	"author": "Stencil Labs, Inc.",

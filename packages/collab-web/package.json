@@ -1,7 +1,7 @@
 {
 	"type": "module",
 	"name": "@dude1wudv/collab-web",
-	"version": "20.1.6",
+	"version": "20.1.9",
 	"private": true,
 	"description": "Browser guest client and local relay tools for omp collab live sessions",
 	"homepage": "https://omp.sh",

@@ -1,6 +1,9 @@
 # Changelog
 
 ## [Unreleased]
+
+## [20.1.9] - 2026-08-22
+
 ### Fixed
 
 - Fixed narrow status bars dropping context usage, TTFT, and TPS metrics.

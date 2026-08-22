@@ -2,7 +2,7 @@
 	"type": "module",
 	"private": true,
 	"name": "@dude1wudv/pi-metaharness",
-	"version": "20.1.6",
+	"version": "20.1.9",
 	"description": "Unified benchmark runners plus Harbor run storage, REST/SSE APIs, and a live web dashboard",
 	"homepage": "https://omp.sh",
 	"author": "Stencil Labs, Inc.",

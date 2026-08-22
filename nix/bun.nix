@@ -160,23 +160,75 @@
   "@dude1wudv/browser-relay" = copyPathToStore ../packages/browser-relay;
   "@dude1wudv/collab-web" = copyPathToStore ../packages/collab-web;
   "@dude1wudv/hashline" = copyPathToStore ../packages/hashline;
+  "@dude1wudv/hashline@20.1.8" = fetchurl {
+    url = "https://registry.npmjs.org/@dude1wudv/hashline/-/hashline-20.1.8.tgz";
+    hash = "sha512-XThj80ewhBB7dEK2PnutEHbPimCDRVj8L5XASa9Gzq4FWSgWhbf1bcSPEdfLM/Sx/PEu+xpk245CWR/CrkDHkg==";
+  };
   "@dude1wudv/omp-stats" = copyPathToStore ../packages/stats;
+  "@dude1wudv/omp-stats@20.1.8" = fetchurl {
+    url = "https://registry.npmjs.org/@dude1wudv/omp-stats/-/omp-stats-20.1.8.tgz";
+    hash = "sha512-YmZITM1CgluPgMBjK+ICM70fqfnCyglGdFrWDQ13yBltZ+wBTTGEBm0X0pOh2Kikv+9Rl+xRiaXnqBZpNYj1WA==";
+  };
   "@dude1wudv/omptype" = copyPathToStore ../packages/omptype;
+  "@dude1wudv/omptype@20.1.8" = fetchurl {
+    url = "https://registry.npmjs.org/@dude1wudv/omptype/-/omptype-20.1.8.tgz";
+    hash = "sha512-KyoXaQGnQxdCz42gnfl1OexdtYIAoLWrC8wKFfXTqQuUWKtf46Ugrsx0gCjzsrEd6nSCzHLPmupJszCGTmlVcQ==";
+  };
   "@dude1wudv/pi-agent-core" = copyPathToStore ../packages/agent;
+  "@dude1wudv/pi-agent-core@20.1.8" = fetchurl {
+    url = "https://registry.npmjs.org/@dude1wudv/pi-agent-core/-/pi-agent-core-20.1.8.tgz";
+    hash = "sha512-90WnG/hrgpar4DCfNzqnhmfssOyhqRbbxsBIe7pscDXlcnFJBBQBVryRv2eJok3hqHyuFhJv8z+EacbmdEh7Ig==";
+  };
   "@dude1wudv/pi-ai" = copyPathToStore ../packages/ai;
+  "@dude1wudv/pi-ai@20.1.8" = fetchurl {
+    url = "https://registry.npmjs.org/@dude1wudv/pi-ai/-/pi-ai-20.1.8.tgz";
+    hash = "sha512-xnns7ye/FCauMNr8HPgKsYuMJp1/GR1F1CSn6xqY19uwp8v6luVGf5ISGaTlCTC/EQ7RuN0CulXQciBhAVtmhA==";
+  };
   "@dude1wudv/pi-catalog" = copyPathToStore ../packages/catalog;
+  "@dude1wudv/pi-catalog@20.1.8" = fetchurl {
+    url = "https://registry.npmjs.org/@dude1wudv/pi-catalog/-/pi-catalog-20.1.8.tgz";
+    hash = "sha512-v24XtWSwZWLz9WjdC1Oc3r2kUdnLYxjxx45xKlkmh+ZXRWxOtMy12zYSZoeLIlTcUtEOO7mnclcgH79gX9ckUQ==";
+  };
   "@dude1wudv/pi-coding-agent" = copyPathToStore ../packages/coding-agent;
+  "@dude1wudv/pi-coding-agent@20.1.8" = fetchurl {
+    url = "https://registry.npmjs.org/@dude1wudv/pi-coding-agent/-/pi-coding-agent-20.1.8.tgz";
+    hash = "sha512-CeVyIo1Z5HAFXtcJh/CDFioKD3nmABwxl90OcC6x6DUPt0Ja6eXkQVPqFoJW5iPRK8CgtLIP3+Hcp6Kqs1BPMA==";
+  };
   "@dude1wudv/pi-metaharness" = copyPathToStore ../packages/metaharness;
   "@dude1wudv/pi-mnemopi" = copyPathToStore ../packages/mnemopi;
+  "@dude1wudv/pi-mnemopi@20.1.8" = fetchurl {
+    url = "https://registry.npmjs.org/@dude1wudv/pi-mnemopi/-/pi-mnemopi-20.1.8.tgz";
+    hash = "sha512-1VQMVkjIkjF/TPglBcqQU9geca60DFJ9FAzmAMAE4Mj00fWH2ZvlCqvjRVx88VUR7aCBLaCr4m+3qvxCE5wX4w==";
+  };
   "@dude1wudv/pi-natives" = copyPathToStore ../packages/natives;
   "@dude1wudv/pi-natives-win32-x64@20.1.0" = fetchurl {
     url = "https://registry.npmjs.org/@dude1wudv/pi-natives-win32-x64/-/pi-natives-win32-x64-20.1.0.tgz";
     hash = "sha512-MI+6vZRb4foxUTbn3yEP6tJjmp0SAJEcyg/+/9Gzc7p4rF1UKyHtqCXd7kTLoNkL76WOkBJCArUoTk1ySXUopw==";
   };
+  "@dude1wudv/pi-natives@20.1.8" = fetchurl {
+    url = "https://registry.npmjs.org/@dude1wudv/pi-natives/-/pi-natives-20.1.8.tgz";
+    hash = "sha512-ya/gTtSSfEXhvEDWEAuWbM4bHWfoATJJzx2ry4nMTlXmN37m7VkqZiBq3fd9OqWqPHDtQOOIPd4PdqhtpfmBPA==";
+  };
   "@dude1wudv/pi-tui" = copyPathToStore ../packages/tui;
+  "@dude1wudv/pi-tui@20.1.8" = fetchurl {
+    url = "https://registry.npmjs.org/@dude1wudv/pi-tui/-/pi-tui-20.1.8.tgz";
+    hash = "sha512-UUe3DX++UzV41HRUMWfSnWbX3tg3T6UMJWZbuU1u5CbNGbLq1mECWelBXrBNiLOTkzmuj68qY91lwFFWG44dQw==";
+  };
   "@dude1wudv/pi-utils" = copyPathToStore ../packages/utils;
+  "@dude1wudv/pi-utils@20.1.8" = fetchurl {
+    url = "https://registry.npmjs.org/@dude1wudv/pi-utils/-/pi-utils-20.1.8.tgz";
+    hash = "sha512-U0F2Tj4nbG46COOaARPk2ETA757MchEduiUttUV8nAp3NPBDOmvDATv3SS0hOUXU8GUXHSHvmHIfr3zxKDBDCw==";
+  };
   "@dude1wudv/pi-wire" = copyPathToStore ../packages/wire;
+  "@dude1wudv/pi-wire@20.1.8" = fetchurl {
+    url = "https://registry.npmjs.org/@dude1wudv/pi-wire/-/pi-wire-20.1.8.tgz";
+    hash = "sha512-rFe9mCVTMPLWB25fWx0qV6iyUsPuhsP4rtrDIkvJp4t/XdeC8u3NJpaJIR3QBfT2Gm9zTVfU8qLSYU05OJHE3A==";
+  };
   "@dude1wudv/snapcompact" = copyPathToStore ../packages/snapcompact;
+  "@dude1wudv/snapcompact@20.1.8" = fetchurl {
+    url = "https://registry.npmjs.org/@dude1wudv/snapcompact/-/snapcompact-20.1.8.tgz";
+    hash = "sha512-03DldQww1nrvdRtO3W3qg/1iqJeShxaJaoBBw8QOlQwuTfiAq3kkp6CZHCBFTNpzsXtwbTbJxIrUWG9v8tp7Ew==";
+  };
   "@dude1wudv/typescript-edit-benchmark" = copyPathToStore ../packages/typescript-edit-benchmark;
   "@emnapi/core@1.11.2" = fetchurl {
     url = "https://registry.npmjs.org/@emnapi/core/-/core-1.11.2.tgz";

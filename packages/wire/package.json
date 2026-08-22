@@ -1,7 +1,7 @@
 {
 	"type": "module",
 	"name": "@dude1wudv/pi-wire",
-	"version": "20.1.8",
+	"version": "20.1.9",
 	"description": "Shared wire protocol types for Oh My Pi packages",
 	"homepage": "https://omp.sh",
 	"author": "Stencil Labs, Inc.",
