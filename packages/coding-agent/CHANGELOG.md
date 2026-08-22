@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Fixed fork npm releases using the fork repository for provenance verification.
+
 ## [20.1.9] - 2026-08-22
 
 ### Fixed
