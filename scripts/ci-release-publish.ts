@@ -296,7 +296,7 @@ export async function prepareNativeCorePackage(pkgDir: string, write: boolean): 
 	const manifest = (await Bun.file(manifestPath).json()) as PackageManifest;
 	if (typeof manifest.version !== "string") throw new Error(`Missing version in ${manifestPath}`);
 	const legalFiles = await stageLegalPayloads(pkgDir, manifest.license, write);
-	applyPublishRepository(manifest);
+	manifest.optionalDependencies = buildNativeOptionalDependencies(manifest.version);
 	manifest.files = [
 		"native/index.js",
 		"native/index.d.ts",
